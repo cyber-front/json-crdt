@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude"
+               status="warn" name="XIncludeDemo">
+  <properties>
+    <property name="filename">xinclude-demo.log</property>
+  </properties>
+  <ThresholdFilter level="trace"  onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+  <ThresholdFilter level="debug"  onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+  <ThresholdFilter level="info"  onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+  <ThresholdFilter level="warn"  onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+  <ThresholdFilter level="error"  onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+  <ThresholdFilter level="fatal"  onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+  <xi:include href="log4j-xinclude-appenders.xml" />
+  <xi:include href="log4j-xinclude-loggers.xml" />
+</configuration>

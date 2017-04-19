@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<loggers>
+  <logger name="org.apache.logging.log4j.test1" level="debug" additivity="false">
+    <ThreadContextMapFilter>
+      <KeyValuePair key="test" value="123" />
+    </ThreadContextMapFilter>
+    <AppenderRef ref="STDOUT" />
+  </logger>
+ 
+  <logger name="org.apache.logging.log4j.test2" level="debug" additivity="false">
+    <AppenderRef ref="File" />
+  </logger>
+ 
+  <root level="error">
+    <AppenderRef ref="STDOUT" />
+  </root>
+</loggers>
