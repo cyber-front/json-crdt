@@ -260,9 +260,9 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	public int hashCode() {
 		int hash = 1;
 		
-		hash = hash * 13 + this.getOperationId().hashCode();
-		hash = hash * 19 + this.getTimeStamp().hashCode();
-		hash = hash * 23 + this.getOp().hashCode();
+		hash = hash * 13 + (null != this.getOperationId() ? this.getOperationId().hashCode() : 0);
+		hash = hash * 19 + (null != this.getTimeStamp() ? this.getTimeStamp().hashCode() : 0);
+		hash = hash * 23 + (null != this.getOp() ? this.getOp().hashCode() : 0);
 		
 		return hash;
 	}
