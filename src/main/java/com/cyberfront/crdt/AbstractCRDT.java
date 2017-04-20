@@ -30,16 +30,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 public abstract class AbstractCRDT {
 	
 	/**
-	 * This will return true exactly when there is at least one DeleteOperation in the list being maintained by the CRDT 
+	 * This will return true exactly when there is at least one com.cyberfront.crdt.operations.DeleteOperation in the list being maintained by the CRDT 
 	 *
-	 * @return Returns true exactly when there is at least one DeleteOperation in the list of operations
+	 * @return Returns true exactly when there is at least one com.cyberfront.crdt.operations.DeleteOperation in the list of operations
 	 */
 	public abstract boolean isDeleted();
 	
 	/**
-	 * This will return true exactly when there is at least one CreateOperation in the list being maintained by the CRDT 
+	 * This will return true exactly when there is at least one com.cyberfront.crdt.operations.CreateOperation in the list being maintained by the CRDT 
 	 *
-	 * @return Returns true exactly when there is at least one CreateOperation in the list of operations
+	 * @return Returns true exactly when there is at least one com.cyberfront.crdt.operations.CreateOperation in the list of operations
 	 */
 	public abstract boolean isCreated();
 	

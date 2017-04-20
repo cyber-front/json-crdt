@@ -27,13 +27,15 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class ReadOperation.
+ * The ReadOperation encapsulates the reading a JSON document from the CRDT.  It should have
+ * the highest timestamp later than the CRDT CreateOperation and earlier than any DelteOperation
+ * CRDT operation  An RFC 6902 formated JSON object isn't used here, instead the operation has no
+ * effect on the JsonDocument being reconstructed.
  */
 public class ReadOperation extends AbstractOperation {
 	
-	/** The logger. */
+	/** Logger to use when displaying state information */
 	@SuppressWarnings("unused")
 	private Logger logger = LogManager.getLogger(ReadOperation.class);
 	

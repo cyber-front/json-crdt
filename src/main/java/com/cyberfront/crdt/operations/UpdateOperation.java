@@ -34,7 +34,7 @@ import com.flipkart.zjsonpatch.JsonPatch;
  */
 public class UpdateOperation extends AbstractOperation {
 	
-	/** The Constant logger. */
+	/** Logger to use when displaying state information */
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(UpdateOperation.class);
 

@@ -27,29 +27,33 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class DeleteOperation.
+ * The DeleteOperation encapsulates the deletion of a JSON document in the CRDT.  It should have
+ * the highest timestamp of any operation contained in the CRDT.  An RFC 6902 formated JSON object
+ * isn't used here, instead the operation is held as null and null is returned when processing the
+ * operations.  This eliminates the possibility of making any changes to the the object subsequent
+ * to the processing of a DeleteOperation, even though there may be subsequent operations with 
+ * higher timestamp values contained in the CRDT.
  */
 public class DeleteOperation extends AbstractOperation {
 	
-	/** The Constant logger. */
+	/** Logger to use when displaying state information */
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(DeleteOperation.class);
 	
 	/**
-	 * Instantiates a new delete operation.
+	 * This instantiates a new DeleteOperation given a timestamp. 
 	 *
-	 * @param timeStamp the time stamp
+	 * @param timeStamp The effective time stamp of the operation 
 	 */
 	public DeleteOperation(Long timeStamp) {
 		super(null, timeStamp);
 	}
 	
 	/**
-	 * Instantiates a new delete operation.
+	 * Instantiates a copy of the given DeleteOperation
 	 *
-	 * @param src the src
+	 * @param src The source DeleteOperation to copy
 	 */
 	public DeleteOperation(DeleteOperation src) {
 		super(src);

@@ -30,31 +30,36 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonPatch;
 
 /**
- * The Class CreateOperation.
+ * The CreateOperation encapsulates the creation of a new JSON document in the CRDT.  It should have
+ * the lowest timestamp of any operation contained in the CRDT and the JsonNode should be derived exclusively of
+ * "add" elements.  When processed, it will ignore any operations with an earlier timestamp and therefore should
+ * only be used exactly once in each CRDT instance.  Further, these operations should be JSON objects adhering to
+ * RFC 6902.  That said, no validation of these object to determine their compliance with RFC 6902 is performed. 
  */
 public class CreateOperation extends AbstractOperation {
 	
-	/** The Constant logger. */
+	/** Logger to use when displaying state information */
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(CreateOperation.class);
 
-	/** The Constant mapper. */
+	/** The ObjectMapper used to create empty JsonNode object to start the chain of JsonDiff derived operations */
 	private static final ObjectMapper mapper = new ObjectMapper();
 
 	/**
-	 * Instantiates a new creates the operation.
+	 * This instantiates a new CreateOperation given an operation in a JsonNode and a timestamp.  The operation
+	 * is not validated as conforming to RFC 6902 or for containing only "add" operations
 	 *
-	 * @param op the op
-	 * @param timeStamp the time stamp
+	 * @param op The operation, consisting of a JsonNode with only "add" operations and conforming to RFC 6902.
+	 * @param timeStamp The effective time stamp of the operation 
 	 */
 	public CreateOperation(JsonNode op, Long timeStamp) {
 		super(op, timeStamp);
 	}
 	
 	/**
-	 * Instantiates a new creates the operation.
+	 * Instantiates a copy of the given CreateOperation
 	 *
-	 * @param src the src
+	 * @param src The source CreateOperation to copy
 	 */
 	public CreateOperation(CreateOperation src) {
 		super(src);
