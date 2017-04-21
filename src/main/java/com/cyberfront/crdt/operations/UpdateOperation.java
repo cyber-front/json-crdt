@@ -28,7 +28,6 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flipkart.zjsonpatch.JsonPatch;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class UpdateOperation.
  */
@@ -39,19 +38,20 @@ public class UpdateOperation extends AbstractOperation {
 	private static final Logger logger = LogManager.getLogger(UpdateOperation.class);
 
 	/**
-	 * Instantiates a new update operation.
+	 * This instantiates a new UpdateOperation given an operation in a JsonNode and a timestamp.  The operation
+	 * is not validated as conforming to RFC 6902
 	 *
-	 * @param op the op
-	 * @param timeStamp the time stamp
+	 * @param op The operation, consisting of a JsonNode conforming to RFC 6902.
+	 * @param timeStamp The effective time stamp of the operation 
 	 */
 	public UpdateOperation(JsonNode op, Long timeStamp) {
 		super(op, timeStamp);
 	}
 	
 	/**
-	 * Instantiates a new update operation.
+	 * Instantiates a copy of the given UpdateOperation
 	 *
-	 * @param src the src
+	 * @param src The source UpdateOperation to copy
 	 */
 	public UpdateOperation(UpdateOperation src) {
 		super(src);

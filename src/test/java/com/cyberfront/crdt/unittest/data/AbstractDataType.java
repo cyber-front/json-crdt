@@ -37,9 +37,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thedeanda.lorem.LoremIpsum;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class DataType.
+ * This is the abstract base class for the test data elements which are coded as JSON objects in the CRDT 
+ * elements under test
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
@@ -53,29 +53,29 @@ import com.thedeanda.lorem.LoremIpsum;
 
 public abstract class AbstractDataType {
 	
-	/** The Constant logger. */
+	/** Logger to use when displaying state information */
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(AbstractDataType.class);
 	
-	/** The Constant mapper. */
+	/** The ObjectMapper used to translate between JSON and any of the classes derived from
+	 * com.cyberfront.crdt.unittest.data.AbstractDataType */
 	private static final ObjectMapper mapper = new ObjectMapper();
 
-	/** The id. */
+	/** A unique identifier for the object */
 	private String id;
-	
-	/** The notes. */
 	
 	/** Notes associated with the data instance. */
 	private String notes;
 	
-	/** The description. */
+	/** A description of the objec. */
 	private String description;
 	
-	/** The version. */
+	/** The version, relating to the number of times the object was revised */
 	private Long version;
 	
 	/**
-	 * Instantiates a new data type.
+	 * Create a new object, setting random values to most of the fields, though
+	 * the version is set initially to 0 since it hasn't been changed.
 	 */
 	public AbstractDataType() {
 		this.setDescription(LoremIpsum.getInstance().getWords(5, 10));
@@ -85,9 +85,9 @@ public abstract class AbstractDataType {
 	}
 	
 	/**
-	 * Instantiates a new data type.
+	 * Instantiates a new AbstractDataType by copying a source instance 
 	 *
-	 * @param src the src
+	 * @param src The course AbstractDataType to copy into this instance
 	 */
 	protected AbstractDataType(AbstractDataType src) {
 		this.description = src.description;
@@ -160,10 +160,11 @@ public abstract class AbstractDataType {
 	}
 
 	/**
-	 * Increment version.
+	 * Increments the version counter to the next element; this should be
+	 * called whenever the object is updated.
 	 */
 	protected void incrementVersion() {
-		++this.version;
+		this.setVersion(this.getVersion() + 1);
 	}
 	
 	/**
@@ -174,7 +175,6 @@ public abstract class AbstractDataType {
 	public void setVersion(Long version) {
 		this.version = version;
 	}
-
 
 	/**
 	 * Update the instance such that each field is changed with probability given by prob
@@ -192,6 +192,31 @@ public abstract class AbstractDataType {
 			this.incrementVersion();
 		}
 	}
+
+	/**
+	 * Gets the object mapper.
+	 *
+	 * @return the mapper
+	 */
+	protected static ObjectMapper getMapper() {
+		return mapper;
+	}
+	
+	/**
+	 * Converts this object to it equivalent JSON representation
+	 *
+	 * @return The JSON representation of this object
+	 */
+	public JsonNode toJson() {
+		return getMapper().valueToTree(this);
+	}
+	
+	/**
+	 * Gets the type of this object
+	 *
+	 * @return The type of this object
+	 */
+	public abstract TYPE getType();
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -244,29 +269,4 @@ public abstract class AbstractDataType {
 		
 		return sb.toString();
 	}
-	
-	/**
-	 * Gets the mapper.
-	 *
-	 * @return the mapper
-	 */
-	protected static ObjectMapper getMapper() {
-		return mapper;
-	}
-	
-	/**
-	 * To json.
-	 *
-	 * @return the json node
-	 */
-	public JsonNode toJson() {
-		return getMapper().valueToTree(this);
-	}
-	
-	/**
-	 * Gets the type.
-	 *
-	 * @return the type
-	 */
-	public abstract TYPE getType();
 }

@@ -60,60 +60,6 @@ public class Factory {
 	}
 
 	/**
-	 * Gets the simple A.
-	 *
-	 * @return the simple A
-	 */
-//	public static SimpleA getSimpleA() { 
-//		return new SimpleA();
-//	}
-
-	/**
-	 * Gets the simple B.
-	 *
-	 * @return the simple B
-	 */
-//	public static SimpleB getSimpleB() { 
-//		return new SimpleB();
-//	}
-
-	/**
-	 * Gets the simple C.
-	 *
-	 * @return the simple C
-	 */
-//	public static SimpleC getSimpleC() { 
-//		return new SimpleC();
-//	}
-
-	/**
-	 * Gets the simple D.
-	 *
-	 * @return the simple D
-	 */
-//	public static SimpleD getSimpleD() { 
-//		return new SimpleD();
-//	}
-
-	/**
-	 * Gets the simple collection.
-	 *
-	 * @return the simple collection
-	 */
-//	public static SimpleCollection getSimpleCollection() { 
-//		return new SimpleCollection();
-//	}
-
-	/**
-	 * Gets the simple reference.
-	 *
-	 * @return the simple reference
-	 */
-//	public static SimpleReference getSimpleReference() { 
-//		return new SimpleReference();
-//	}
-
-	/**
 	 * Gets the instances.
 	 *
 	 * @param count the count

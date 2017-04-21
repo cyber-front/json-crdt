@@ -40,18 +40,18 @@ public class ReadOperation extends AbstractOperation {
 	private Logger logger = LogManager.getLogger(ReadOperation.class);
 	
 	/**
-	 * Instantiates a new read operation.
+	 * This instantiates a new ReadOperation given a timestamp. 
 	 *
-	 * @param timeStamp the time stamp
+	 * @param timeStamp The effective time stamp of the operation 
 	 */
 	public ReadOperation(Long timeStamp) {
 		super(null, timeStamp);
 	}
 	
 	/**
-	 * Instantiates a new read operation.
+	 * Instantiates a copy of the given ReadOperation
 	 *
-	 * @param src the src
+	 * @param src The source ReadOperation to copy
 	 */
 	public ReadOperation(ReadOperation src) {
 		super(src);
