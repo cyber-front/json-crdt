@@ -47,6 +47,9 @@ public abstract class BaseManager<T extends AbstractDataType> {
 	/**
 	 * Instantiates a new base manager.
 	 *
+	 * @param id the id
+	 * @param username the username
+	 * @param nodename the nodename
 	 * @param objectClass the object class
 	 */
 	public BaseManager(String id, String username, String nodename, Class<T> objectClass) {
@@ -66,9 +69,9 @@ public abstract class BaseManager<T extends AbstractDataType> {
 	}
 
 	/**
-	 * Gets the id.
+	 * Gets the object id.
 	 *
-	 * @return the id
+	 * @return the object id
 	 */
 	public String getObjectId(){
 		return this.objectId;
@@ -102,32 +105,38 @@ public abstract class BaseManager<T extends AbstractDataType> {
 	}
 	
 	/**
-	 * Sets the id.
+	 * Sets the object id.
 	 *
-	 * @param id the new id
+	 * @param id the new object id
 	 */
 	private void setObjectId(String id) {
 		this.objectId = id;
 	}
 	
 	/**
-	 * Sets the user.
+	 * Sets the username.
 	 *
-	 * @param user the new user
+	 * @param user the new username
 	 */
 	private void setUsername(String user) {
 		this.username = user;
 	}
 	
 	/**
-	 * Sets the source.
+	 * Sets the nodename.
 	 *
-	 * @param source the new source
+	 * @param source the new nodename
 	 */
 	private void setNodename(String source) {
 		this.nodename = source;
 	}
 
+	/**
+	 * Base compare.
+	 *
+	 * @param o the o
+	 * @return the int
+	 */
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
@@ -170,6 +179,11 @@ public abstract class BaseManager<T extends AbstractDataType> {
 		return hash;
 	}
 	
+	/**
+	 * Gets the segment.
+	 *
+	 * @return the segment
+	 */
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.support.ComparableManager#getSegment()
 	 */

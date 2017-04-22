@@ -60,10 +60,10 @@ public class Factory {
 	}
 
 	/**
-	 * Gets the instances.
+	 * Generates and returns a collection of `count` concrete instances of AbstractDataType
 	 *
-	 * @param count the count
-	 * @return the instances
+	 * @param count The number of instances to generate 
+	 * @return The instances generated
 	 */
 	public static Collection<AbstractDataType> getInstances(int count) {
 		ArrayList<AbstractDataType> rv = new ArrayList<>();
@@ -76,19 +76,19 @@ public class Factory {
 	}
 
 	/**
-	 * Gets the single instance of Factory.
+	 * Gets the single concrete instance of AbstractDataType
 	 *
-	 * @return single instance of Factory
+	 * @return the single concrete instance of AbstractDataType 
 	 */
 	public static AbstractDataType getInstance() {
-		return getInstance(TYPE.values()[WordFactory.getRandom().nextInt(TYPE.values().length)]);
+		return getInstance(pickType());
 	}
 
 	/**
-	 * Gets the single instance of Factory.
+	 * Gets the single instance of a type corresponding to the given type
 	 *
-	 * @param type the type
-	 * @return single instance of Factory
+	 * @param type TYPE enumeration value corresponding to the concrete type to instantiate and return
+	 * @return single concrete instance of a AbstractDataType
 	 */
 	public static AbstractDataType getInstance(TYPE type) {
 		switch (type) {
@@ -110,10 +110,10 @@ public class Factory {
 	}
 
 	/**
-	 * Copy.
+	 * Copy an instance of the given AbstractDataType instance
 	 *
-	 * @param element the element
-	 * @return the data type
+	 * @param element Element to copy
+	 * @return A copy of the given source element 
 	 */
 	public static AbstractDataType copy(AbstractDataType element) {
 		TYPE type = element.getType();
@@ -150,17 +150,28 @@ public class Factory {
 	}
 	
 	/**
-	 * Gen CRDT.
+	 * Generate and return a CRDTManager for the given `node`.   
 	 *
-	 * @param node the node
-	 * @return the CRDT manager<? extends data type>
+	 * @param node The node for which the resulting CRDTManager is to be generated
+	 * @return The CRDTManager with the managed type 
 	 */
 	public static CRDTManager<? extends AbstractDataType> genCRDT(Node node) {
+		return genCRDT(node, pickType());
+	}
+		
+	/**
+	 * Generate and return a CRDTManager for the given `node` and of the given `type`   
+	 *
+	 * @param node The node for which the resulting CRDTManager is to be generated
+	 * @param type The enumeration corresponding to the concrete type of AbstractDataType to generate 
+	 * @return The CRDTManager with the managed type 
+	 */
+	public static CRDTManager<? extends AbstractDataType> genCRDT(Node node, TYPE type) {
 		String id = UUID.randomUUID().toString();
 		String nodeName = node.getNodeName();
 		String userName = node.pickUser();
 		
-		switch (pickType()) {
+		switch (type) {
 		case SIMPLE_A:
 			return new CRDTManager<SimpleA>(id, userName, nodeName, SimpleA.class);
 		case SIMPLE_B:
@@ -176,6 +187,5 @@ public class Factory {
 		default:
 			return null;
 		}
-		
 	}
 }

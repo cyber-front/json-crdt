@@ -25,17 +25,17 @@ package com.cyberfront.crdt.unittest.data;
 import com.cyberfront.crdt.unittest.data.Factory.TYPE;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class ${e}.
+ * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a Double value as its
+ * extension to the base type
  */
 public class SimpleC extends AbstractDataType {
 	
-	/** The double value. */
+	/** The Double value associated with the SimpleC type */
 	private Double doubleValue;
 
 	/**
-	 * Instantiates a new simple C.
+	 * Instantiates a new SimpleC instance with random values.
 	 */
 	public SimpleC() {
 		super();
@@ -43,9 +43,9 @@ public class SimpleC extends AbstractDataType {
 	}
 
 	/**
-	 * Instantiates a new simple C.
+	 * Copy constructor which uses `src` as the source content for the new instance
 	 *
-	 * @param src the src
+	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleC(SimpleC src) {
 		super(src);
@@ -53,18 +53,18 @@ public class SimpleC extends AbstractDataType {
 	}
 
 	/**
-	 * Gets the double value.
+	 * Gets the Double value associated with this instance.
 	 *
-	 * @return the double value
+	 * @return the Double value
 	 */
 	public Double getDoubleValue() {
 		return doubleValue;
 	}
 
 	/**
-	 * Sets the double value.
+	 * Sets the Double value associated with this instance.
 	 *
-	 * @param value the new double value
+	 * @param value The new Double value to set for this instance
 	 */
 	public void setDoubleValue(Double value) {
 		this.doubleValue = value;
@@ -105,21 +105,6 @@ public class SimpleC extends AbstractDataType {
 	@Override
 	public int hashCode() {
 		return super.hashCode() * 73 + this.getDoubleValue().hashCode();		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.data.DataType#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("{");
-		sb.append(super.toString());
-		sb.append("\"doubleValue\":" + this.getDoubleValue() + "");
-		sb.append("}");
-		
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

@@ -29,17 +29,18 @@ import java.util.Iterator;
 import com.cyberfront.crdt.unittest.data.Factory.TYPE;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SimpleCollection.
+ * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a collection of
+ * AbstractDataType derived class instances
  */
 public class SimpleCollection extends AbstractDataType {
 	
-	/** The collection value. */
+	/** The Collection of AbstractDataType derived values associated with this SimpleCollection instance */
 	Collection<AbstractDataType> collectionValue;
 
 	/**
-	 * Instantiates a new simple collection.
+	 * Instantiates a new SimpleCollection instance with a collection of random objects
+	 * derived from AbstractDataType.
 	 */
 	public SimpleCollection() {
 		super();
@@ -47,9 +48,9 @@ public class SimpleCollection extends AbstractDataType {
 	}
 	
 	/**
-	 * Instantiates a new simple collection.
+	 * Copy constructor which uses `src` as the source content for the new instance
 	 *
-	 * @param src the src
+	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleCollection(SimpleCollection src) {
 		super(src);
@@ -58,9 +59,9 @@ public class SimpleCollection extends AbstractDataType {
 	}
 
 	/**
-	 * Gets the collection value.
+	 * Gets the Collection of values associated with this instance.
 	 *
-	 * @return the collection value
+	 * @return The Collection of values
 	 */
 	public Collection<AbstractDataType> getCollectionValue() {
 		if (null == this.collectionValue) {
@@ -70,9 +71,9 @@ public class SimpleCollection extends AbstractDataType {
 	}
 
 	/**
-	 * Sets the collection value.
+	 * Sets the Collection of value associated with this instance.
 	 *
-	 * @param value the new collection value
+	 * @param value The new Collection of values to set for this instance
 	 */
 	public void setCollectionValue(Collection<AbstractDataType> value) {
 		this.getCollectionValue().clear();
@@ -147,40 +148,6 @@ public class SimpleCollection extends AbstractDataType {
 	@Override
 	public int hashCode() {
 		return super.hashCode() * 79 + this.getCollectionValue().hashCode();
-	}
-
-	/**
-	 * Builds the array string.
-	 *
-	 * @return the string
-	 */
-	private String buildArrayString() {
-		StringBuilder sb = new StringBuilder();
-		String delimiter = "[";
-		
-		for (AbstractDataType element : this.getCollectionValue()) {
-			sb.append(delimiter);
-			sb.append(element.toString());
-			delimiter = ",";
-		}
-		sb.append(']');
-		
-		return sb.toString();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.data.DataType#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("{");
-		sb.append(super.toString());
-		sb.append("\"collectionValue\":" + this.buildArrayString() + "");
-		sb.append("}");
-		
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

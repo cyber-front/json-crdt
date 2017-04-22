@@ -37,32 +37,32 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
 
+// TODO: Auto-generated Javadoc
 /**
- * This is a manager class for the LastWriteWins CRDT.  It references a specific Java type which can be processed to / from JSON objects
+ * The Class CRDTManager.
  *
- * @param <T> The type of object being managed
+ * @param <T> the generic type
  */
 public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> implements Comparable<CRDTManager<? extends AbstractDataType>> {
 
-	/** This is the ObjectMapper used to transform the managed object and convert it to / from JSON */
+	/** The Constant mapper. */
 	private static final ObjectMapper mapper = new ObjectMapper();
 	
-	/** This is used to generate log entries for the class */
+	/** The Constant logger. */
 	private static final Logger logger = LogManager.getLogger(CRDTManager.class);
 
-	/** This is the result of running the current set of operations in the LastWritWins CRDT.  This memoizes the 
-	 * operations so, as long as the operations remain unchanged, the object can be referenced directly */
+	/** The object. */
 	private T object = null;
 
-	/** The list of timestamped operations associated with the object */
+	/** The crdt. */
 	private LastWriteWins crdt;
 
 	/**
 	 * Instantiates a new CRDT manager.
 	 *
-	 * @param objectId A unique identifier for this CRDT Manager
-	 * @param user The user which notionally "owns" this CRDT
-	 * @param source The node in a notionally distributed architecture wh
+	 * @param objectId the object id
+	 * @param username the username
+	 * @param nodename the nodename
 	 * @param objectClass the object class
 	 */
 	public CRDTManager(String objectId, String username, String nodename, Class<T> objectClass) {
@@ -71,25 +71,25 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 	}
 
 	/**
-	 * Retrieve the CRDT instance this CRDTManager is managing
+	 * Gets the crdt.
 	 *
-	 * @return The CRDT instance this CRDTManager is managing
+	 * @return the crdt
 	 */
 	protected LastWriteWins getCrdt() {
 		return crdt;
 	}
 
 	/**
-	 * Establish the CRDT instance this CRDTManager is managing
+	 * Sets the crdt.
 	 *
-	 * @param New CRDT to manage
+	 * @param crdt the new crdt
 	 */
 	private void setCrdt(LastWriteWins crdt) {
 		this.crdt = crdt;
 	}
 
 	/**
-	 * Clear all of the operations associated with the CRDT this instance manages
+	 * Clear.
 	 */
 	public void clear() {
 		this.getCrdt().clear();
@@ -98,37 +98,36 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 	}
 	
 	/**
-	 * This checks to see if the CRDT contains a CreateOperation
+	 * Checks if is created.
 	 *
-	 * @return True if and only if this CRDT contains a CreateOperation
+	 * @return true, if is created
 	 */
 	public boolean isCreated() {
 		return this.getCrdt().isCreated();
 	}
 	
 	/**
-	 * This checks to see if the CRDT contains a DeleteOperation
+	 * Checks if is deleted.
 	 *
-	 * @return True if and only if this CRDT contains a DeleteOperation
+	 * @return true, if is deleted
 	 */
 	public boolean isDeleted() {
 		return this.getCrdt().isDeleted();
 	}
 
 	/**
-	 * Deliver an OperationManager to this CRDTManager by delivering the embedded AbstractOperation instance to the 
-	 * CRDT this instance manages
+	 * Deliver.
 	 *
-	 * @param op The OperationManager containing the operation to deliver to the CRDT this instance manages
+	 * @param op the op
 	 */
 	public void deliver(OperationManager<T> op){
 		this.deliver(op.getOperation());
 	}
 
 	/**
-	 * Deliver an AbstractOperation to the CRDT this instance manages
+	 * Deliver.
 	 *
-	 * @param op The AbstractOperation to deliver to the CRDT this instance manages
+	 * @param op the op
 	 */
 	private void deliver(AbstractOperation op){
 		this.getCrdt().addOperation(op);
@@ -136,29 +135,28 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 	}
 
 	/**
-	 * Cancel an OperationManager to this CRDTManager by canceling the embedded AbstractOperation instance to the 
-	 * CRDT this instance manages
+	 * Cancel.
 	 *
-	 * @param op The OperationManager containing the operation to cancel from the CRDT this instance manages
+	 * @param op the op
 	 */
 	public void cancel(OperationManager<T> op){
 		this.cancel(op.getOperation());
 	}
 
 	/**
-	 * Cancel an AbstractOperation to the CRDT this instance manages
+	 * Cancel.
 	 *
-	 * @param op The AbstractOperation to cancel from the CRDT this instance manages
+	 * @param op the op
 	 */
 	private void cancel(AbstractOperation op){
 		this.getCrdt().remOperation(op);
 	}
 
 	/**
-	 * Generate and return an OperationManager instance given a AbstractOperation
+	 * Gets the manager.
 	 *
-	 * @param op The operation to use as the basis to generate the OperationManager instance
-	 * @return The OperationManager instance built from the give AbstractOperation instance
+	 * @param op the op
+	 * @return the manager
 	 */
 	protected OperationManager<T> getManager(AbstractOperation op) {
 		return new OperationManager<>(this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass(), op);
@@ -188,12 +186,11 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 	}
 	
 	/**
-	 * This method generates a CreateOperation and embeds it in the returned OperationManager.  The object managed is
-	 * generated as a starting base for the sequence of operations. 
+	 * Process create.
 	 *
-	 * @param timestamp The timestamp corresponding to the time the object was created
-	 * @return The OperationManager which contains the CreateOperation generated
-	 * @throws ReflectiveOperationException when the initial object cannot be generated
+	 * @param timestamp the timestamp
+	 * @return the operation manager
+	 * @throws ReflectiveOperationException the reflective operation exception
 	 */
 	public OperationManager<T> processCreate(long timestamp) throws ReflectiveOperationException {
 		return this.processCreate(timestamp, this.getObjectClass().newInstance());
@@ -241,12 +238,11 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 	}
 
 	/**
-	 * Generate an update of the currently managed object with the given probability of change applied to 
-	 * each mutable field in the object
+	 * Process update.
 	 *
-	 * @param timestamp The timestamp the update is to occur
-	 * @param pChange Probability of changing a mutable field in the managed object
-	 * @return The OperationManager which wraps the UpdateOperation
+	 * @param timestamp the timestamp
+	 * @param pChange the change
+	 * @return the operation manager
 	 */
 	public OperationManager<T> processUpdate(long timestamp, Double pChange) {
 		if (!this.isCreated() || this.isDeleted()) {

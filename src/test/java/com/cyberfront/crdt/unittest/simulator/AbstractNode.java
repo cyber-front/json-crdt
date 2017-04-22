@@ -32,7 +32,7 @@ import com.cyberfront.crdt.unittest.support.WordFactory;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class BaseNode.
+ * The Class AbstractNode.
  *
  * @param <T> the generic type
  */
@@ -51,7 +51,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	private Map<String, CRDTManager<? extends T>> datastore;
 
 	/**
-	 * Instantiates a new base node.
+	 * Instantiates a new abstract node.
 	 *
 	 * @param nodeName the node name
 	 */
@@ -60,7 +60,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	}
 
 	/**
-	 * Instantiates a new base node.
+	 * Instantiates a new abstract node.
 	 *
 	 * @param nodeName the node name
 	 * @param userNames the user names
@@ -191,7 +191,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	/**
 	 * Pick CRDT.
 	 *
-	 * @return the CRDT manager<? extends t>
+	 * @return the CRDTManager
 	 */
 	public CRDTManager<? extends T> pickCRDT() {
 		return this.getDatastore(this.pickCrdtId());
@@ -270,14 +270,14 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	/**
 	 * Creates the CRDT.
 	 *
-	 * @return the CRDT manager<? extends t>
+	 * @return the CRDTManager
 	 */
 	protected abstract CRDTManager<? extends T> createCRDT();
 	
 	/**
 	 * Creates the datastore.
 	 *
-	 * @return the map< string, CRDT manager<? extends t>>
+	 * @return the map
 	 */
 	protected abstract Map<String, CRDTManager<? extends T>> createDatastore();
 }

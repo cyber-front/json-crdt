@@ -38,9 +38,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Test03Clone.
+ * This contains a class used for performing unit tests designed to create and clone a number of 
+ * AbstractDataType instances using the factory.  It is successful if it creates and updates these
+ * objects, neither of which result in null.
  */
 public class Test03Clone {
 	
@@ -130,9 +131,8 @@ public class Test03Clone {
 		logger.info("   SUCCESS");
 	}
 	
-	
 	/**
-	 * Clone data test.
+	 * The main unit test routine used to perform the actual test execution 
 	 */
 	@Test
 	public void cloneDataTest() {

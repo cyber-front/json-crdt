@@ -73,7 +73,7 @@ public class Test04Json {
 	}
 
 	/**
-	 * Json test.
+	 * The main unit test routine used to perform the actual test execution 
 	 */
 	@Test
 	public void jsonTest() {

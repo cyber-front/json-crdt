@@ -25,28 +25,27 @@ package com.cyberfront.crdt.unittest.data;
 import com.cyberfront.crdt.unittest.data.Factory.TYPE;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SimpleA.
+ * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a String value as its
+ * extension to the base type
  */
 public class SimpleA extends AbstractDataType {
 	
-	/** The string value. */
+	/** The String value associated with the SimpleA type */
 	private String stringValue;
 
 	/**
-	 * Instantiates a new simple A.
+	 * Instantiates a new SimpleA instance with random values.
 	 */
 	public SimpleA() {
 		super();
-
 		this.setStringValue(WordFactory.getLongSequence('-'));
 	}
 	
 	/**
-	 * Instantiates a new simple A.
+	 * Copy constructor which uses `src` as the source content for the new instance
 	 *
-	 * @param src the src
+	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleA(SimpleA src) {
 		super(src);
@@ -54,7 +53,7 @@ public class SimpleA extends AbstractDataType {
 	}
 
 	/**
-	 * Gets the string value.
+	 * Gets the String value associated with this instance.
 	 *
 	 * @return the string value
 	 */
@@ -63,9 +62,9 @@ public class SimpleA extends AbstractDataType {
 	}
 
 	/**
-	 * Sets the string value.
+	 * Sets the String value associated with this instance.
 	 *
-	 * @param value the new string value
+	 * @param value The new String value to set for this instance
 	 */
 	public void setStringValue(String value) {
 		this.stringValue = value;
@@ -106,21 +105,6 @@ public class SimpleA extends AbstractDataType {
 	@Override
 	public int hashCode() {
 		return super.hashCode() * 67 + this.getStringValue().hashCode();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.data.DataType#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("{");
-		sb.append(super.toString());
-		sb.append("\"stringValue\":\"" + this.getStringValue() + "\"");
-		sb.append("}");
-		
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

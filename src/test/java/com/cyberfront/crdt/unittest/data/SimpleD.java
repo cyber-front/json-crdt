@@ -25,17 +25,17 @@ package com.cyberfront.crdt.unittest.data;
 import com.cyberfront.crdt.unittest.data.Factory.TYPE;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SimpleD.
+ * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a Boolean value as its
+ * extension to the base type
  */
 public class SimpleD extends AbstractDataType {
 	
-	/** The boolean value. */
+	/** The Boolean value associated with the SimpleD type */
 	private Boolean booleanValue;
 
 	/**
-	 * Instantiates a new simple D.
+	 * Instantiates a new SimpleD instance with random values.
 	 */
 	public SimpleD() {
 		super();
@@ -43,9 +43,9 @@ public class SimpleD extends AbstractDataType {
 	}
 
 	/**
-	 * Instantiates a new simple D.
+	 * Copy constructor which uses `src` as the source content for the new instance
 	 *
-	 * @param src the src
+	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleD(SimpleD src) {
 		super(src);
@@ -54,18 +54,18 @@ public class SimpleD extends AbstractDataType {
 	}
 
 	/**
-	 * Gets the boolean value.
+	 * Gets the Boolean value associated with this instance.
 	 *
-	 * @return the boolean value
+	 * @return the Boolean value
 	 */
 	public Boolean getBooleanValue() {
 		return booleanValue;
 	}
 
 	/**
-	 * Sets the boolean value.
+	 * Sets the Boolean value associated with this instance.
 	 *
-	 * @param value the new boolean value
+	 * @param value The new Boolean value to set for this instance
 	 */
 	public void setBooleanValue(Boolean value) {
 		this.booleanValue = value;
@@ -106,21 +106,6 @@ public class SimpleD extends AbstractDataType {
 	@Override
 	public int hashCode() {
 		return super.hashCode() * 83 + this.getBooleanValue().hashCode();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.data.DataType#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("{");
-		sb.append(super.toString());
-		sb.append("\"booleanValue\":" + this.getBooleanValue() + "");
-		sb.append("}");
-		
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

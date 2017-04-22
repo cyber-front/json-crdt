@@ -25,17 +25,18 @@ package com.cyberfront.crdt.unittest.data;
 import com.cyberfront.crdt.unittest.data.Factory.TYPE;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SimpleReference.
+ * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a reference to another
+ * AbstractDataType derived class instances
  */
 public class SimpleReference extends AbstractDataType {
 	
-	/** The reference value. */
+	/** The reference to an AbstractDataType derived values associated with this SimpleReference instance */
 	AbstractDataType referenceValue;
 
 	/**
-	 * Instantiates a new simple reference.
+	 * Instantiates a new SimpleReference instance with a collection of random objects
+	 * derived from AbstractDataType.
 	 */
 	public SimpleReference() {
 		super();
@@ -43,9 +44,9 @@ public class SimpleReference extends AbstractDataType {
 	}
 
 	/**
-	 * Instantiates a new simple reference.
+	 * Copy constructor which uses `src` as the source content for the new instance
 	 *
-	 * @param src the src
+	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleReference(SimpleReference src) {
 		super(src);
@@ -53,18 +54,18 @@ public class SimpleReference extends AbstractDataType {
 	}
 
 	/**
-	 * Gets the reference value.
+	 * Gets the Reference value associated with this instance.
 	 *
-	 * @return the reference value
+	 * @return The Reference values
 	 */
 	public AbstractDataType getReferenceValue() {
 		return referenceValue;
 	}
 
 	/**
-	 * Sets the reference value.
+	 * Sets the Reference value associated with this instance.
 	 *
-	 * @param value the new reference value
+	 * @param value The new Reference value to set for this instance
 	 */
 	public void setReferenceValue(AbstractDataType value) {
 		this.referenceValue = Factory.copy(value);
@@ -106,21 +107,6 @@ public class SimpleReference extends AbstractDataType {
 	@Override
 	public int hashCode() {
 		return super.hashCode() * 89 + this.getReferenceValue().hashCode();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.data.DataType#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("{");
-		sb.append(super.toString());
-		sb.append("\"referenceValue\":" + this.getReferenceValue() + "");
-		sb.append("}");
-		
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

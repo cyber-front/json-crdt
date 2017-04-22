@@ -31,26 +31,28 @@ import org.junit.Test;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Test02Update.
+ * This contains a class used for performing unit tests designed to create and update a number of 
+ * AbstractDataType instances using the factory.  It is successful if it creates and updates these
+ * objects, neither of which result in null.
  */
 public class Test02Update {
 	
-	/** The Constant COUNT. */
+	/** Constant defining the number of AbstractDataType elements to create and test in the unit test */
 	private static final long COUNT=100L; 
 	
-	/** The Constant UPDATE_PROBABILITY. */
+	/** Constant to define the default update probability to use */
 	private static final double UPDATE_PROBABILITY = 0.2;
 	
-	/** The logger. */
+	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class.getName());
 	
 	/**
-	 * Update data test.
+	 * This performs the actual create and update test given a count and update probability.  Each create is accompanied by only 
+	 * a single update session on the object.
 	 *
-	 * @param count the count
-	 * @param updateProb the update prob
+	 * @param count The number of create operations to perform; there will be one update per create
+	 * @param updateProb The probability for a particular field in the generated AbstractDataType to be randomly changed
 	 */
 	private void updateDataTest(long count, Double updateProb) {
 		logger.info("\n** Test02Update: {\"count\":" + count + ",\"updateProb\":" + updateProb + "}");
@@ -64,7 +66,7 @@ public class Test02Update {
 	}
 	
 	/**
-	 * Update data test.
+	 * The main unit test routine used to perform the actual test execution 
 	 */
 	@Test
 	public void updateDataTest() {

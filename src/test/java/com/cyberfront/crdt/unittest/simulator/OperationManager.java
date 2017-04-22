@@ -39,8 +39,11 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 	/**
 	 * Instantiates a new operation manager.
 	 *
-	 * @param operation the operation
+	 * @param objectId the object id
+	 * @param username the username
+	 * @param nodename the nodename
 	 * @param objectClass the object class
+	 * @param operation the operation
 	 */
 	public OperationManager(String objectId, String username, String nodename, Class<T> objectClass, AbstractOperation operation) {
 		super(objectId, username, nodename, objectClass);

@@ -106,9 +106,9 @@ public abstract class AbstractDataType {
 	}
 
 	/**
-	 * Sets the notes.
+	 * Sets the notes to the given value.
 	 *
-	 * @param notes the new notes
+	 * @param notes The new notes
 	 */
 	public void setNotes(String notes) {
 		this.notes = notes;
@@ -124,9 +124,9 @@ public abstract class AbstractDataType {
 	}
 
 	/**
-	 * Sets the description.
+	 * Sets the description to the given value.
 	 *
-	 * @param description the new description
+	 * @param description The new description
 	 */
 	public void setDescription(String description) {
 		this.description = description;
@@ -142,18 +142,18 @@ public abstract class AbstractDataType {
 	}
 
 	/**
-	 * Sets the id.
+	 * Sets the id to the given value.
 	 *
-	 * @param id the new id
+	 * @param id The new id
 	 */
 	public void setId(String id) {
 		this.id = id;
 	}
 	
 	/**
-	 * Gets the version.
+	 * Gets the version number.
 	 *
-	 * @return the version
+	 * @return the version number
 	 */
 	public Long getVersion() {
 		return version;
@@ -168,9 +168,9 @@ public abstract class AbstractDataType {
 	}
 	
 	/**
-	 * Sets the version.
+	 * Sets the version number to the given value.
 	 *
-	 * @param version the new version
+	 * @param version The new version
 	 */
 	public void setVersion(Long version) {
 		this.version = version;
@@ -196,7 +196,7 @@ public abstract class AbstractDataType {
 	/**
 	 * Gets the object mapper.
 	 *
-	 * @return the mapper
+	 * @return the object mapper
 	 */
 	protected static ObjectMapper getMapper() {
 		return mapper;
@@ -259,14 +259,6 @@ public abstract class AbstractDataType {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("\"id\":\"" + this.getId() + "\",");
-		sb.append("\"type\":\"" + this.getClass().getName() + "\",");
-		sb.append("\"description\":\"" + this.getDescription() + "\",");
-		sb.append("\"notes\":\"" + this.getNotes() + "\",");
-		sb.append("\"version\":" + this.getVersion() + ",");
-		
-		return sb.toString();
+		return mapper.valueToTree(this).asText();
 	}
 }

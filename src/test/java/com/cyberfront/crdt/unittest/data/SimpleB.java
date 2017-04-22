@@ -25,17 +25,17 @@ package com.cyberfront.crdt.unittest.data;
 import com.cyberfront.crdt.unittest.data.Factory.TYPE;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SimpleB.
+ * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a Integer value as its
+ * extension to the base type
  */
 public class SimpleB extends AbstractDataType {
 	
-	/** The int value. */
+	/** The Integer value associated with the SimpleB type */
 	private Integer intValue;
 
 	/**
-	 * Instantiates a new simple B.
+	 * Instantiates a new SimpleB instance with random values.
 	 */
 	public SimpleB() {
 		super();
@@ -44,9 +44,9 @@ public class SimpleB extends AbstractDataType {
 	}
 
 	/**
-	 * Instantiates a new simple B.
+	 * Copy constructor which uses `src` as the source content for the new instance
 	 *
-	 * @param src the src
+	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleB(SimpleB src) {
 		super(src);
@@ -54,18 +54,18 @@ public class SimpleB extends AbstractDataType {
 	}
 
 	/**
-	 * Gets the int value.
+	 * Gets the Integer value associated with this instance.
 	 *
-	 * @return the int value
+	 * @return the Integer value
 	 */
 	public Integer getIntValue() {
 		return intValue;
 	}
 
 	/**
-	 * Sets the int value.
+	 * Sets the Integer value associated with this instance.
 	 *
-	 * @param value the new int value
+	 * @param value The new Integer value to set for this instance
 	 */
 	public void setIntValue(Integer value) {
 		this.intValue = value;
@@ -106,21 +106,6 @@ public class SimpleB extends AbstractDataType {
 	@Override
 	public int hashCode() {
 		return super.hashCode() * 71 + this.getIntValue().hashCode();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.data.DataType#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("{");
-		sb.append(super.toString());
-		sb.append("\"intValue\":" + this.getIntValue());
-		sb.append("}");
-		
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

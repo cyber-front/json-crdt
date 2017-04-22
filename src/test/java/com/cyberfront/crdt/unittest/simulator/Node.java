@@ -152,7 +152,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * Builds the messages.
 	 *
 	 * @param op the op
-	 * @return the collection< message<? extends data type>>
+	 * @return the collection< message<? extends abstract data type>>
 	 */
 	private Collection<Message<? extends AbstractDataType>> buildMessages(OperationManager<? extends AbstractDataType> op) {
 		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
@@ -179,14 +179,10 @@ public class Node extends AbstractNode<AbstractDataType> {
 		this.getDatastore().clear();
 	}
 
-//	private static <T extends DataType> OperationManager<T> convert(OperationManager<T> mgr, CRDTManager<? extends DataType> crdt) {
-//		return new OperationManager<>(mgr.getOperation(), mgr.getObjectClass(), crdt.getId(), crdt.getUsername(), crdt.getNodename());
-//	}
-
 	/**
 	 * Generate create operation.
 	 *
-	 * @return The collection of 
+	 * @return the collection
 	 * @throws ReflectiveOperationException the reflective operation exception
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateCreateOperation() throws ReflectiveOperationException {
@@ -208,7 +204,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	/**
 	 * Generate read operation.
 	 *
-	 * @return the collection< message<? extends data type>>
+	 * @return the collection
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateReadOperation() {
 		CRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
@@ -225,7 +221,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * Generate update operation.
 	 *
 	 * @param pChange the change
-	 * @return the collection< message<? extends data type>>
+	 * @return the collection
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateUpdateOperation(Double pChange) {
 		CRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
@@ -241,7 +237,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	/**
 	 * Generate delete operation.
 	 *
-	 * @return the collection< message<? extends data type>>
+	 * @return the collection
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateDeleteOperation() {
 		CRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
@@ -270,7 +266,6 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * @param <T> the generic type
 	 * @param mgr the mgr
 	 */
-	@SuppressWarnings("unchecked")
 	protected <T extends AbstractDataType> void deliver(OperationManager<T> mgr) {
 		String id = mgr.getObjectId();
 		
@@ -281,6 +276,8 @@ public class Node extends AbstractNode<AbstractDataType> {
 		String node = (null == ownerNode ? mgr.getNodename() : ownerNode);
 		
 		CRDTManager<? extends AbstractDataType> crdt = this.getDatastore(id);
+		
+		@SuppressWarnings("unchecked")
 		CRDTManager<T> castCrdt = null == crdt
 				? new CRDTManager<>(id, user, node, mgr.getObjectClass())
 				: (CRDTManager<T>) crdt;

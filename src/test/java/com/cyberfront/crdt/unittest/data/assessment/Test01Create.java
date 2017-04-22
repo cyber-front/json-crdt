@@ -31,22 +31,23 @@ import org.junit.Test;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Test01Create.
+ * This contains a class used for performing unit tests designed to create a number of 
+ * AbstractDataType instances using the factory.  It is successful if it creates these
+ * objects and doesn't return null.
  */
 public class Test01Create {
 	
-	/** The Constant COUNT. */
+	/** Constant defining the number of AbstractDataType elements to create in the unit test */
 	private static final long COUNT=100L;
 	
-	/** The logger. */
+	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class);
 
 	/**
-	 * Creates the data test.
+	 * Perform the create test
 	 *
-	 * @param count the count
+	 * @param count The number of create operations to perform to generate random AbstractDataType instances
 	 */
 	private void createDataTest(long count) {
 		logger.info("\n** Test01Create: {\"count\":" + count + "}");
@@ -58,7 +59,7 @@ public class Test01Create {
 	}
 
 	/**
-	 * Creates the data test.
+	 * The main unit test routine used to perform the actual test execution 
 	 */
 	@Test
 	public void createDataTest() {
