@@ -34,27 +34,30 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Test04Json.
+ * This contains a class used for performing unit tests designed to create an element and a copy and then assess the
+ * performance and ability of object and its clone to be compared using JsonDiff.  It is successful if it creates
+ * and updates these objects, neither of which result in null.
  */
 public class Test04Json {
 	
-	/** The Constant COUNT. */
+	/** Constant defining the number of AbstractDataType elements to create and clone test in the unit test */
 	private static final long COUNT=100;
 
-	/** The logger. */
+	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class.getName());
 	
-	/** The mapper. */
+	/** The ObjectMapper used to translate between JSON and any of the classes derived from
+	 * com.cyberfront.crdt.unittest.data.AbstractDataType */
 	private ObjectMapper mapper = new ObjectMapper();
 	
 	/**
-	 * Json test.
+	 * Perform the actual test the specified number of times, whereby each test compares an object created and its clone
+	 * as JSON objects using JsonDiff. 
 	 *
-	 * @param count the count
+	 * @param count The number of times to perform the test 
 	 */
-	public void jsonTest(long count) {
+	private void jsonTest(long count) {
 		logger.info("\n** Test04Json: {\"count\":" + count + "}");
 		
 		for (long i=0; i<count; ++i) {
@@ -79,5 +82,4 @@ public class Test04Json {
 	public void jsonTest() {
 		this.jsonTest(COUNT);
 	}
-
 }

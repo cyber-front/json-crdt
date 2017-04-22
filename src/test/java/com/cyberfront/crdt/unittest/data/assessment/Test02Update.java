@@ -38,7 +38,7 @@ import com.cyberfront.crdt.unittest.data.Factory;
  */
 public class Test02Update {
 	
-	/** Constant defining the number of AbstractDataType elements to create and test in the unit test */
+	/** Constant defining the number of AbstractDataType elements to create and update test in the unit test */
 	private static final long COUNT=100L; 
 	
 	/** Constant to define the default update probability to use */

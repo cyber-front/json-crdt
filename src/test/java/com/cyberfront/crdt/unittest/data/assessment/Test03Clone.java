@@ -23,10 +23,10 @@
 package com.cyberfront.crdt.unittest.data.assessment;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,26 +45,27 @@ import com.flipkart.zjsonpatch.JsonDiff;
  */
 public class Test03Clone {
 	
-	/** The Constant COUNT. */
+	/** Constant defining the number of AbstractDataType elements to create and clone test in the unit test */
 	private static final long COUNT=100;
 	
 	/** The Constant INSTANCE_COUNT. */
 	private static final long INSTANCE_COUNT = 100;
 
-	/** The logger. */
+	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class.getName());
 
-	/** The mapper. */
+	/** The ObjectMapper used to translate between JSON and any of the classes derived from
+	 * com.cyberfront.crdt.unittest.data.AbstractDataType */
 	private ObjectMapper mapper = new ObjectMapper();
 
 	/**
-	 * Builds the instances.
+	 * Build a collection of instances and return them to the calling routine
 	 *
-	 * @param count the count
-	 * @return the array list
+	 * @param count The number of instances to create and deposit into the collection
+	 * @return The collection of data objects which was created
 	 */
-	private static ArrayList<AbstractDataType> buildInstances(long count) {
-		ArrayList<AbstractDataType> rv = new ArrayList<>();
+	private static Collection<AbstractDataType> buildInstances(long count) {
+		Collection<AbstractDataType> rv = new ArrayList<>();
 		
 		for (int i=0; i<count; ++i) {
 			rv.add(Factory.getInstance());
@@ -74,14 +75,13 @@ public class Test03Clone {
 	}
 	
 	/**
-	 * Clone instances.
+	 * Given a collection of objects return a copy of those objects
 	 *
-	 * @param source the source
-	 * @return the array list
-	 * @throws CloneNotSupportedException the clone not supported exception
+	 * @param source The source list of objects to copy
+	 * @return The collection containing the copied data objects
 	 */
-	private static ArrayList<AbstractDataType> cloneInstances(ArrayList<AbstractDataType> source) throws CloneNotSupportedException {
-		ArrayList<AbstractDataType> rv = new ArrayList<>();
+	private static Collection<AbstractDataType> cloneInstances(Collection<AbstractDataType> source) {
+		Collection<AbstractDataType> rv = new ArrayList<>();
 		
 		for (AbstractDataType element : source) {
 			rv.add(Factory.copy(element));
@@ -89,44 +89,52 @@ public class Test03Clone {
 		
 		return rv;
 	}
+
+	/**
+	 * Assess the results of the clone test to ensure the two arrays are an exact copy of each other and that no 
+	 * two non-corresponding elements of the two arrays are the same. 
+	 * @param iteration Iteration for which this assessment is occurring; used for display purposes only
+	 * @param source Source collection
+	 * @param clones Clone collection derived from the given source
+	 */
+	private void assessCloneTest(int iteration, Collection<AbstractDataType> source, Collection<AbstractDataType> clones) {
+		int sourceIndex = 0;
+		for (AbstractDataType el0 : source) {
+			int cloneIndex = 0;
+			for (AbstractDataType el1 : clones) {
+				boolean expected = sourceIndex == cloneIndex;
+				boolean actual = el0.equals(el1);
+
+				if (expected != actual) {
+					logger.error("{\"iteration\":" + iteration + ",\"expected\":" + expected + ",\"actual\":" + actual + ",\"originalCount\":" + sourceIndex + ",\"cloneCount\":" + cloneIndex + "}");
+					logger.error("{\"el0\":" + el0.toString());
+					logger.error("{\"el1\":" + el1.toString());
+				}
+				assertEquals(expected, actual);
+
+				JsonNode diff = JsonDiff.asJson(mapper.valueToTree(el0), mapper.valueToTree(el1));
+				if (actual && diff.size() > 0) {
+					logger.error("unexpected difference: " + diff);
+				}
+				assertTrue("Unexpected Difference:", !actual || diff.size()==0);
+				++cloneIndex;
+			}
+			++sourceIndex;
+		}
+	}
 	
 	/**
-	 * Clone data test.
+	 * Perform the clone test and assess the results
 	 *
-	 * @param count the count
-	 * @param instances the instances
+	 * @param count Number of times to run the test 
+	 * @param instances Number of instances to create and clone during each test
 	 */
 	private void cloneDataTest(long count, long instances) {
 		logger.info("\n** Test03Clone: {\"count\":" + count + ",\"instances\":" + instances + "}");
-		try {
-			for (int i=0; i<count; ++ i) {
-				ArrayList<AbstractDataType> corpus = buildInstances(instances);
-				ArrayList<AbstractDataType> clones = cloneInstances(corpus);
-				int originalCount = 0;
-				for (AbstractDataType el0 : corpus) {
-					int cloneCount = 0;
-					for (AbstractDataType el1 : clones) {
-						boolean expected = originalCount == cloneCount;
-						boolean actual = el0.equals(el1);
-						if (expected != actual) {
-							logger.error("{\"iteration\":" + i + ",\"expected\":" + expected + ",\"actual\":" + actual + ",\"originalCount\":" + originalCount + ",\"cloneCount\":" + cloneCount + "}");
-							logger.error("{\"el0\":" + el0.toString());
-							logger.error("{\"el1\":" + el1.toString());
-						}
-						assertEquals(expected, actual);
-						JsonNode diff = JsonDiff.asJson(mapper.valueToTree(el0), mapper.valueToTree(el1));
-						if (actual && diff.size() > 0) {
-							logger.error("unexpected difference: " + diff);
-						}
-						assertTrue("Unexpected Difference:", !actual || diff.size()==0);
-						++cloneCount;
-					}
-					++originalCount;
-				}
-			}
-		} catch (CloneNotSupportedException e) {
-			logger.error(e);
-			fail("Failed to clone something.");
+		for (int i=0; i<count; ++ i) {
+			Collection<AbstractDataType> source = buildInstances(instances);
+			Collection<AbstractDataType> clones = cloneInstances(source);
+			assessCloneTest(i, source, clones);
 		}
 		logger.info("   SUCCESS");
 	}
