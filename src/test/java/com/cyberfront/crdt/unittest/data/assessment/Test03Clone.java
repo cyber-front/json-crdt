@@ -46,7 +46,7 @@ import com.flipkart.zjsonpatch.JsonDiff;
 public class Test03Clone {
 	
 	/** Constant defining the number of AbstractDataType elements to create and clone test in the unit test */
-	private static final long COUNT=100;
+	private static final long TRIAL_COUNT=100;
 	
 	/** The Constant INSTANCE_COUNT. */
 	private static final long INSTANCE_COUNT = 100;
@@ -144,6 +144,6 @@ public class Test03Clone {
 	 */
 	@Test
 	public void cloneDataTest() {
-		this.cloneDataTest(COUNT, INSTANCE_COUNT);
+		this.cloneDataTest(TRIAL_COUNT, INSTANCE_COUNT);
 	}
 }

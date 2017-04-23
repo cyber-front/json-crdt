@@ -40,7 +40,6 @@ import com.flipkart.zjsonpatch.JsonPatchApplicationException;
 public class LastWriteWins extends OperationTwoSet {
 	
 	/** Logger for writing data to the log. */
-//	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(LastWriteWins.class);
 	
 	/** The collection of invalid operations. */

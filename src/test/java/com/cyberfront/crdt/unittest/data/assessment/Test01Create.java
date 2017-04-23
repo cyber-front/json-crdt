@@ -39,7 +39,7 @@ import com.cyberfront.crdt.unittest.data.Factory;
 public class Test01Create {
 	
 	/** Constant defining the number of AbstractDataType elements to create in the unit test */
-	private static final long COUNT=100L;
+	private static final long TRIAL_COUNT = 100L;
 	
 	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class);
@@ -63,6 +63,6 @@ public class Test01Create {
 	 */
 	@Test
 	public void createDataTest() {
-		this.createDataTest(COUNT);
+		this.createDataTest(TRIAL_COUNT);
 	}
 }

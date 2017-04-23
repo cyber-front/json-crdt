@@ -42,7 +42,7 @@ import com.flipkart.zjsonpatch.JsonDiff;
 public class Test04Json {
 	
 	/** Constant defining the number of AbstractDataType elements to create and clone test in the unit test */
-	private static final long COUNT=100;
+	private static final long TRIAL_COUNT=100;
 
 	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class.getName());
@@ -80,6 +80,6 @@ public class Test04Json {
 	 */
 	@Test
 	public void jsonTest() {
-		this.jsonTest(COUNT);
+		this.jsonTest(TRIAL_COUNT);
 	}
 }
