@@ -217,6 +217,23 @@ public abstract class AbstractDataType {
 	 * @return The type of this object
 	 */
 	public abstract TYPE getType();
+	
+	/**
+	 * Generate a string representation of this AbstractDataType
+	 * @return String representation of this AbstractDataType
+	 */
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("\"id\":\"" + this.getId() + "\",");
+		sb.append("\"objectClass\":\"" + this.getClass().getName() + "\",");
+		sb.append("\"version\":\"" + this.getVersion() + "\",");
+		sb.append("\"type\":\"" + this.getType() + "\",");
+		sb.append("\"description\":\"" + this.getDescription() + "\",");
+		sb.append("\"notes\":\"" + this.getNotes() + "\"");
+		
+		return sb.toString();
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -259,6 +276,6 @@ public abstract class AbstractDataType {
 	 */
 	@Override
 	public String toString() {
-		return mapper.valueToTree(this).asText();
+		return "{" + this.getSegment() + "}";
 	}
 }

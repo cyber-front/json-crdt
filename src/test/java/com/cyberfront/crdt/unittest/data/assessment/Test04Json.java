@@ -65,9 +65,12 @@ public class Test04Json {
 			AbstractDataType el1 = Factory.copy(el0);
 			el1.update(0.2);
 			
-			JsonNode patch = JsonDiff.asJson(mapper.valueToTree(el0), mapper.valueToTree(el1));
+			JsonNode source = mapper.valueToTree(el0);
+			JsonNode target = mapper.valueToTree(el1);
 
-			boolean sizeCompare = patch.size() == 0;
+			JsonNode diff = JsonDiff.asJson(source, target);
+
+			boolean sizeCompare = diff.size() == 0;
 			boolean countCompare = el0.equals(el1);
 			assertEquals(sizeCompare, countCompare);
 		}

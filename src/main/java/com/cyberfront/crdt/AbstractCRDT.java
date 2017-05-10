@@ -56,7 +56,7 @@ public abstract class AbstractCRDT {
 	 * @param timestamp The timestamp up to which to process the operations
 	 * @return The JSON document resulting from processing the operations up to the given timestamp
 	 */
-	public abstract JsonNode readValue(long timestamp);
+//	public abstract JsonNode readValue(long timestamp);
 
 	/**
 	 * This is used to create a string representation of the CRDT in support of the toString() method
@@ -65,10 +65,11 @@ public abstract class AbstractCRDT {
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
+		JsonNode value = this.readValue();
 		
 		sb.append("\"created\":\"" + this.isCreated() + "\",");
 		sb.append("\"deleted\":\"" + this.isDeleted() + "\",");
-		sb.append("\"value\":" + this.readValue().toString());
+		sb.append("\"value\":" + (null == value ? "null" : value));
 
 		return sb.toString();
 	}

@@ -69,7 +69,20 @@ public class SimpleA extends AbstractDataType {
 	public void setStringValue(String value) {
 		this.stringValue = value;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
+	 */
+	@Override
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(super.getSegment() + ",");
+		sb.append("\"stringValue\":\"" + this.getStringValue() + "\"");
+		
+		return sb.toString();
+	}
+
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.data.DataType#update(java.lang.Double)
 	 */

@@ -22,7 +22,9 @@
  */
 package com.cyberfront.crdt.unittest.simulator;
 
+import java.util.Collection;
 import java.util.PriorityQueue;
+import java.util.TreeSet;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 
@@ -90,12 +92,14 @@ public class MessageRouter {
 	/**
 	 * Deliver next message.
 	 */
-	public void deliverNextMessage() {
-		if (!this.isEmpty()) {
-			Message<? extends AbstractDataType> msg = this.getMessages().poll();
-			Node node = getExecutive().getNodes().get(msg.getDestination());
-			node.deliver(msg);
+	public Collection<Message <? extends AbstractDataType>> deliverNextMessage(Double pReject) {
+		if (this.isEmpty()) {
+			return new TreeSet<>();
 		}
+			
+		Message<? extends AbstractDataType> msg = this.getMessages().poll();
+		Node node = getExecutive().getNodes().get(msg.getDestination());
+		return node.deliver(msg, pReject);
 	}
 
 	/**

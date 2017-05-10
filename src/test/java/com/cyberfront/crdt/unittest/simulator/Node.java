@@ -30,6 +30,7 @@ import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.cyberfront.crdt.operations.AbstractOperation.StatusType;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
 import com.cyberfront.crdt.unittest.support.WordFactory;
@@ -42,7 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Node extends AbstractNode<AbstractDataType> {
 	
 	/** The Constant logger. */
-	@SuppressWarnings("unused")
+//	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(Node.class);
 	
 	/** The Constant mapper. */
@@ -148,6 +149,18 @@ public class Node extends AbstractNode<AbstractDataType> {
 		return Executive.getExecutive();
 	}
 
+//	private Collection<Message<? extends AbstractDataType>> buildMessages(Collection<OperationManager<? extends AbstractDataType>> ops) {
+//		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
+//		
+//		if (null != ops) {
+//			for (OperationManager<? extends AbstractDataType> op : ops) {
+//				rv.addAll(buildMessages(op));
+//			}
+//		}
+//		
+//		return rv;
+//	}
+	
 	/**
 	 * Builds the messages.
 	 *
@@ -155,6 +168,37 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * @return the collection< message<? extends abstract data type>>
 	 */
 	private Collection<Message<? extends AbstractDataType>> buildMessages(OperationManager<? extends AbstractDataType> op) {
+		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
+		
+		if (null != op) {
+			for (Map.Entry<String, Node> entry : getExecutive().getNodes().entrySet()) {
+				if (!entry.getKey().equals(this.getNodeName())) {
+					rv.add(new Message<>(entry.getKey(), op));
+				}
+			}
+		}
+
+		// TODO Remove before flight
+//		logger.info("\n*** Node.buildMessages(OperationManager<? extends AbstractDataType> op)");
+//		logger.info("    op: " + (null == op ? "null" : op.toString()));
+//		logger.info("    rv: " + WordFactory.convert(rv));
+		
+		return rv;
+	}
+	
+	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> buildKnownMessages(Collection<OperationManager<T>> ops) {
+		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
+		
+		if (null != ops) {
+			for (OperationManager<T> op : ops) {
+				rv.addAll(buildKnownMessages(op));
+			}
+		}
+		
+		return rv;
+	}
+	
+	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> buildKnownMessages(OperationManager<T> op) {
 		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
 		
 		if (null != op) {
@@ -186,19 +230,21 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * @throws ReflectiveOperationException the reflective operation exception
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateCreateOperation() throws ReflectiveOperationException {
+		Collection<Message<? extends AbstractDataType>> rv = null;
 		CRDTManager<? extends AbstractDataType> crdt = Factory.genCRDT(this);
 		this.addCRDT(crdt);
 
 		OperationManager<? extends AbstractDataType> mgr = crdt.processCreate(Executive.getExecutive().getTimeStamp());
 
 		if (null != mgr) {
-			this.deliver(mgr);
-			Collection<Message<? extends AbstractDataType>> rv = this.buildMessages(mgr);
-
-			return rv;
+			mgr.setStatus(StatusType.APPROVED);
+			this.deliver(mgr, 0.0);
+			rv = this.buildMessages(mgr);
+		} else {
+			rv = new ArrayList<>();
 		}
 
-		return new ArrayList<>();
+		return rv;
 	}
 
 	/**
@@ -207,14 +253,19 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * @return the collection
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateReadOperation() {
+		Collection<Message<? extends AbstractDataType>> rv = null;
 		CRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
 		OperationManager<? extends AbstractDataType> mgr = crdt.processRead(Executive.getExecutive().getTimeStamp());
 		
 		if (null != mgr) {
-			this.deliver(mgr);
-			return this.buildMessages(mgr);
+			mgr.setStatus(StatusType.APPROVED);
+			this.deliver(mgr, 0.0);
+			rv =  this.buildMessages(mgr);
+		} else {
+			rv = new ArrayList<>(); 
 		}
-		return new ArrayList<>();
+		
+		return rv;
 	}
 
 	/**
@@ -224,14 +275,20 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * @return the collection
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateUpdateOperation(Double pChange) {
+		Collection<Message<? extends AbstractDataType>> rv = null;
 		CRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
 		OperationManager<? extends AbstractDataType> mgr = crdt.processUpdate(Executive.getExecutive().getTimeStamp(), pChange);
 
 		if (null != mgr) {
-			this.deliver(mgr);
-			return this.buildMessages(mgr);
+			StatusType type = crdt.getNodename().equals(this.getNodeName()) ? StatusType.APPROVED : StatusType.PENDING;
+			mgr.setStatus(type);
+			this.deliver(mgr, 0.0);
+			rv =  this.buildMessages(mgr);
+		} else {
+			rv = new ArrayList<>(); 
 		}
-		return new ArrayList<>();
+		
+		return rv;
 	}
 
 	/**
@@ -240,15 +297,50 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * @return the collection
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateDeleteOperation() {
+		Collection<Message<? extends AbstractDataType>> rv = null;
 		CRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
 		OperationManager<? extends AbstractDataType> mgr = crdt.processDelete(Executive.getExecutive().getTimeStamp());
 		
 		if (null != mgr) {
-			this.deliver(mgr);
-			return this.buildMessages(mgr);
+			StatusType type = crdt.getNodename().equals(this.getNodeName()) ? StatusType.APPROVED : StatusType.PENDING;
+			mgr.setStatus(type);
+			this.deliver(mgr, 0.0);
+			rv =  this.buildMessages(mgr);
+		} else {
+			rv = new ArrayList<>(); 
 		}
-		return new ArrayList<>();
+		
+		return rv;
 	}
+
+//	private String convert(Map<Long, Message<? extends AbstractDataType>> map) {
+//		StringBuilder sb = new StringBuilder();
+//		String separator = "[";
+//		
+//		if (map.isEmpty()) {
+//			sb.append(separator);
+//		} else {
+//			for (Map.Entry<Long, Message<? extends AbstractDataType>> entry : map.entrySet()) {
+//			    sb.append(separator + entry.getKey() + ":" + entry.getValue());
+//			    separator = ",";
+//			}
+//		}
+//		
+//		sb.append(']');
+//		return sb.toString();
+//	}
+	
+//	@Override
+//	protected String getSegment() {
+//		StringBuilder sb = new StringBuilder();
+//
+//		sb.append(super.getSegment() + ",");
+//		sb.append("\"approvedMessages\":" + convert(this.getApprovedMessages()) + ",");
+//		sb.append("\"pendingMessages\":" + convert(this.getPendingMessages()) + ",");
+//		sb.append("\"rejectedMessages\":" + convert(this.getRejectedMessages()));
+//		
+//		return sb.toString();
+//	}
 
 	/**
 	 * Deliver.
@@ -256,17 +348,70 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 * @param <T> the generic type
 	 * @param msg the msg
 	 */
-	public <T extends AbstractDataType> void deliver(Message<T> msg) {
-		this.deliver(msg.getManager());
-	}
+//	public <T extends AbstractDataType> void deliver(Message<T> msg) {
+//		this.deliver(msg.getManager());
+//	}
 
+//	private Map<Long, Message<? extends AbstractDataType>> getApprovedMessages() {
+//		if (null == this.approvedMessages) {
+//			this.approvedMessages = new TreeMap<>();
+//		}
+//		return this.approvedMessages;
+//	}
+//	
+//	private Map<Long, Message<? extends AbstractDataType>> getRejectedMessages() {
+//		if (null == this.rejectedMessages) {
+//			this.rejectedMessages = new TreeMap<>();
+//		}
+//		return this.rejectedMessages;
+//	}
+//	
+//	private Map<Long, Message<? extends AbstractDataType>> getPendingMessages() {
+//		if (null == this.pendingMessages) {
+//			this.pendingMessages = new TreeMap<>();
+//		}
+//		return this.pendingMessages;
+//	}
+	
+	/**
+	 * Preserve the message in the appropriate list for forensic purposes
+	 * @param msg
+	 */
+//	private void post(Message<? extends AbstractDataType> msg) {
+//		switch(msg.getManager().getStatus()){
+//		case APPROVED:
+//			this.getApprovedMessages().put(Executive.getExecutive().getTimeStamp(), msg);
+//			break;
+//		case PENDING:
+//			this.getPendingMessages().put(Executive.getExecutive().getTimeStamp(), msg);
+//			break;
+//		case REJECTED:
+//			this.getRejectedMessages().put(Executive.getExecutive().getTimeStamp(), msg);
+//			break;
+//		default:
+//			break;
+//		}
+//	}
+
+	/**
+	 * Deliver.
+	 *
+	 * @param <T> the generic type
+	 * @param msg the msg
+	 */
+	public <T extends AbstractDataType> Collection<Message <? extends AbstractDataType>> deliver(Message<T> msg, Double pReject) {
+//		post(msg);
+		return this.deliver(msg.getManager(), pReject);
+	}
+	
 	/**
 	 * Deliver.
 	 *
 	 * @param <T> the generic type
 	 * @param mgr the mgr
 	 */
-	protected <T extends AbstractDataType> void deliver(OperationManager<T> mgr) {
+	protected <T extends AbstractDataType> Collection<Message <? extends AbstractDataType>> deliver(OperationManager<T> mgr, Double pReject) {
+		
 		String id = mgr.getObjectId();
 		
 		String ownerUser = getExecutive().getOwnerUser(id); 
@@ -286,6 +431,20 @@ public class Node extends AbstractNode<AbstractDataType> {
 			this.addCRDT(castCrdt);
 		}
 		
-		castCrdt.deliver(mgr);
+		Collection<OperationManager<T>> operations = castCrdt.deliver(mgr, pReject, this);
+		for (OperationManager<T> op : operations) {
+			castCrdt.deliver(op);
+		}
+		
+		Collection<Message <? extends AbstractDataType>> rv = this.buildKnownMessages(operations);
+		
+		// TODO Remove before flight
+//		logger.info("\n*** Node.deliver(OperationManager<T> mgr, Double pReject)");
+//		logger.info("       this: " + this.toString());
+//		logger.info("        mgr: " + (null == mgr ? "null" : mgr.toString()));
+//		logger.info("    pReject: " + pReject);
+//		logger.info("         rv: " + WordFactory.convert(rv));
+
+		return rv;
 	}
 }

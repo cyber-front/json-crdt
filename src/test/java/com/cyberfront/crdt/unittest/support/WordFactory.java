@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -34,37 +35,35 @@ import org.apache.logging.log4j.Logger;
 
 import com.thedeanda.lorem.LoremIpsum;
 
-// TODO: Auto-generated Javadoc
 /**
- * A factory for creating Word objects.
+ * This is a helper class for generating a number of random values useful for testing the CRDTs
  */
 public class WordFactory {
 	
-	/** The rnd. */
+	/** A random number generator used to choose values for testing purposes */
 	private static Random rnd = new Random();
 
-	/** The Constant logger. */
+	/** Logger to use when displaying state information */
 	private static final Logger logger = LogManager.getLogger(WordFactory.class);
 
 	/**
-	 * The Enum WordTypes.
+	 * An enumeration used to describe different parts of speech
 	 */
 	public enum WordTypes {
-		
-		/** The adjective. */
+		/** An enumeration value for adjectives */
 		ADJECTIVE,
 		
-		/** The adverb. */
+		/** An enumeration value for adverbs */
 		ADVERB,
 		
-		/** The noun. */
+		/** An enumeration value for nouns */
 		NOUN,
 		
-		/** The verb. */
+		/** An enumeration value for verbs */
 		VERB
 	}
 	
-	/** The Constant LONG_SEQUENCE. */
+	/** A pattern for generating a sequence of words four words*/
 	protected static final WordTypes[] LONG_SEQUENCE = {
 			WordTypes.ADJECTIVE,
 			WordTypes.NOUN,
@@ -72,29 +71,30 @@ public class WordFactory {
 			WordTypes.ADVERB
 	};
 	
-	/** The Constant SHORT_SEQUENCE. */
+	/** A pattern for generating a sequence of words two words*/
 	protected static final WordTypes[] SHORT_SEQUENCE = {
 			WordTypes.NOUN,
 			WordTypes.VERB,
 	};
 
-	/** The Constant NOUNS. */
+	/** List of nouns read from the nouns.txt file */
 	private static final List<String> NOUNS = readLines("src/main/resources/nouns.txt");
 
-	/** The Constant VERBS. */
+	/** List of verbs read from the verbs.txt file */
 	private static final List<String> VERBS = readLines("src/main/resources/verbs.txt");
 	
-	/** The Constant ADVERBS. */
+	/** List of adverbs read from the adverbs.txt file */
 	private static final List<String> ADVERBS = readLines("src/main/resources/adverbs.txt");
 	
-	/** The Constant ADJECTIVES. */
+	/** List of adjectives read from the adjectives.txt file */
 	private static final List<String> ADJECTIVES = readLines("src/main/resources/adjectives.txt");
 
 	/**
-	 * Read lines.
+	 * Read the contents of the given file and create a string list containing the elements of the 
+	 * file.
 	 *
-	 * @param filename the filename
-	 * @return the list
+	 * @param filename The name of the file from which to read the elements to populate the returned string list
+	 * @return The string list containing all of the lines in the file
 	 */
 	private static List<String> readLines(String filename) {
 		List<String> list = null;
@@ -108,20 +108,20 @@ public class WordFactory {
 	}
 	
 	/**
-	 * Gets the word.
+	 * Randomly select an element from the string list passed to it
 	 *
-	 * @param list the list
-	 * @return the word
+	 * @param list The list from which to select a random element
+	 * @return The string which was randomly selected
 	 */
 	public static String getWord(List<String> list) {
 		return list.get(getRandom().nextInt(list.size()));
 	}
 
 	/**
-	 * Gets the word.
+	 * Get a word from the available collections of words
 	 *
-	 * @param type the type
-	 * @return the word
+	 * @param type The word type to return
+	 * @return The word of the given type which was randomly selected
 	 */
 	public static String getWord(WordTypes type) {
 		switch (type) {
@@ -139,47 +139,47 @@ public class WordFactory {
 	}
 
 	/**
-	 * Gets the noun.
+	 * Randomly select a noun from the list of nouns 
 	 *
-	 * @return the noun
+	 * @return A randomly selected noun
 	 */
 	public static String getNoun() {
 		return getWord(NOUNS);
 	}
 	
 	/**
-	 * Gets the verb.
+	 * Randomly select a verb from the list of verbs 
 	 *
-	 * @return the verb
+	 * @return A randomly selected verb
 	 */
 	public static String getVerb() {
 		return getWord(VERBS);
 	}
 	
 	/**
-	 * Gets the adverb.
+	 * Randomly select a adverb from the list of adverbs 
 	 *
-	 * @return the adverb
+	 * @return A randomly selected adverb
 	 */
 	public static String getAdverb() {
 		return getWord(ADVERBS);
 	}
 	
 	/**
-	 * Gets the adjective.
+	 * Randomly select a adjective from the list of adjectives 
 	 *
-	 * @return the adjective
+	 * @return A randomly selected adjective
 	 */
 	public static String getAdjective() {
 		return getWord(ADJECTIVES);
 	}
 
 	/**
-	 * Gets the sequence.
+	 * Generate and return a sequence of words of the given type separated by a delimiter
 	 *
-	 * @param types the types
-	 * @param delimiter the delimiter
-	 * @return the sequence
+	 * @param types List of word types to to select
+	 * @param delimiter The delimiter used to separate the selected words
+	 * @return The sequence of words selected
 	 */
 	public static String getSequence(WordTypes[] types, char delimiter) {
 		boolean first = true;
@@ -199,95 +199,125 @@ public class WordFactory {
 	}
 
 	/**
-	 * Gets the long sequence.
+	 * Generate and return a sequence of words chosen with WordFactory.LONG_SEQUENCE with each word separated by
+	 * the given delimiter.
 	 *
-	 * @param delimiter the delimiter
-	 * @return the long sequence
+	 * @param delimiter The delimiter to separate each word from the next
+	 * @return The sequence of words generated using WordFactory.LONG_SEQUENCE as the pattern 
 	 */
 	public static String getLongSequence(char delimiter) {
 		return getSequence(WordFactory.LONG_SEQUENCE, delimiter);
 	}
 	
 	/**
-	 * Gets the short sequence.
+	 * Generate and return a sequence of words chosen with WordFactory.SHORT_SEQUENCE with each word separated by
+	 * the given delimiter.
 	 *
-	 * @param delimiter the delimiter
-	 * @return the short sequence
+	 * @param delimiter The delimiter to separate each word from the next
+	 * @return The sequence of words generated using WordFactory.SHORT_SEQUENCE as the pattern 
 	 */
 	public static String getShortSequence(char delimiter) {
 		return getSequence(WordFactory.SHORT_SEQUENCE, delimiter);
 	}
 	
 	/**
-	 * Gets the sequence.
+	 * Generate and return a sequence of words of the given type separated by a space ' ' as the delimiter
 	 *
-	 * @param types the types
-	 * @return the sequence
+	 * @param types List of word types to to select
+	 * @return The sequence of words selected
 	 */
 	public static String getSequence(WordTypes[] types) {
 		return getSequence(types,' ');
 	}
 	
 	/**
-	 * Gets the long sequence.
+	 * Generate and return a sequence of words chosen with WordFactory.LONG_SEQUENCE with each word separated by
+	 * a space ' ' as the delimiter.
 	 *
-	 * @return the long sequence
+	 * @return The sequence of words generated using WordFactory.LONG_SEQUENCE as the pattern 
 	 */
 	public static String getLongSequence() {
 		return getSequence(WordFactory.LONG_SEQUENCE);
 	}
 	
 	/**
-	 * Gets the short sequence.
+	 * Generate and return a sequence of words chosen with WordFactory.SHORT_SEQUENCE with each word separated by
+	 * a space ' ' as the delimiter.
 	 *
-	 * @return the short sequence
+	 * @return The sequence of words generated using WordFactory.SHORT_SEQUENCE as the pattern 
 	 */
 	public static String getShortSequence() {
 		return getSequence(WordFactory.SHORT_SEQUENCE);
 	}
 	
 	/**
-	 * Gets the full male name.
+	 * Generate and return a male first, middle and last name
 	 *
-	 * @return the full male name
+	 * @return The generated male name
 	 */
 	public static String getFullMaleName() {
 		return LoremIpsum.getInstance().getLastName() + ", " + LoremIpsum.getInstance().getFirstNameMale() + " " + LoremIpsum.getInstance().getFirstNameMale();
 	}
 	
 	/**
-	 * Gets the full female name.
+	 * Generate and return a female first, middle and last name
 	 *
-	 * @return the full female name
+	 * @return The generated female name
 	 */
 	public static String getFullFemaleName() {
 		return LoremIpsum.getInstance().getLastName() + ", " + LoremIpsum.getInstance().getFirstNameFemale() + " " + LoremIpsum.getInstance().getFirstNameFemale();
 	}
 	
 	/**
-	 * Gets the full name.
+	 * Generate and return a first, middle and last name; the gender is randomly selected
 	 *
-	 * @return the full name
+	 * @return The generated name
 	 */
 	public static String getFullName() {
 		return getRandom().nextBoolean() ? getFullMaleName() : getFullFemaleName();
 	}
 
 	/**
-	 * Gets the random.
+	 * Retrieve the random number generator
 	 *
-	 * @return the random
+	 * @return The random number generator
 	 */
 	public static Random getRandom() {
 		return rnd;
 	}
 	
 	/**
-	 * Gets the username.
+	 * Generate and return a user name comprised of a first and last name, separated with a period '.'
 	 *
-	 * @return the username
+	 * @return The randomly generated username
 	 */
 	public static String getUsername() {
 		return LoremIpsum.getInstance().getFirstName() + "." + LoremIpsum.getInstance().getLastName();
+	}
+	
+	/**
+	 * Generate a string as a JSON formated array based on elements of a collection
+	 * 
+	 * @param collection Collection of items to form into JSON formated string
+	 * @return The JSON formated string representation of the given collection
+	 */
+	public static <T> String convert(Collection<T> collection) {
+		if (null == collection) {
+			return "null";
+		} else if (collection.isEmpty()) {
+			return "[]";
+		}
+
+		StringBuilder sb = new StringBuilder();
+		String delimiter = "[";
+
+		for (T element : collection) {
+			sb.append(delimiter + element.toString());
+			delimiter = ",";
+		}
+		
+		sb.append("]");
+
+		return sb.toString();
 	}
 }

@@ -55,7 +55,7 @@ public class Test02Simulation {
 	private static final ObjectMapper mapper = new ObjectMapper();
 
 	/** Number of test iterations to perform on tests related to internodal synchronization quality */
-	private static final long TRIAL_COUNT = 4;
+	private static final long TRIAL_COUNT = 16;
 	
 	/** Number of creation operations to perform on tests related to internodal synchronization quality */
 	private static final long CREATION_COUNT = 64;
@@ -92,10 +92,16 @@ public class Test02Simulation {
 	
 	/** Probability of rejecting an update or delete event once it reaches the "owner" node */
 	private static final double REJECTION_PROBABILITY = 0.10d;
+	
+	/** Flag used to indicate whether or not to abbreviate the test */
+	private static final boolean ABBREVIATED = true;
+	
+	/** Division factor to apply to abbreviated tests */
+	private static final long ABBREVIATION_FACTOR = 8;
 
 	/** Flag to indicate the type of testing to perform */ 
 	private static boolean stressTest = false;
-	
+
 	/**
 	 * Retrieve the value of the stressTest flag, which is used to determine the focus of the
 	 * particular test run.
@@ -113,13 +119,21 @@ public class Test02Simulation {
 		stressTest = value;
 	}
 	
+	public static boolean isAbbreviated() {
+		return ABBREVIATED;
+	}
+
+	public static long getAbbreviationFactor() {
+		return isAbbreviated() ? ABBREVIATION_FACTOR : 1;
+	}
+	
 	/**
 	 * Gets the trial count based on the stress test state.
 	 *
 	 * @return the trial count
 	 */
 	private static long getTrialCount() {
-		return isStressTest() ? STRESS_TRIAL_COUNT : TRIAL_COUNT;
+		return (isStressTest() ? STRESS_TRIAL_COUNT : TRIAL_COUNT) / getAbbreviationFactor();
 	}
 
 	/**
@@ -128,7 +142,7 @@ public class Test02Simulation {
 	 * @return the creation count
 	 */
 	private static long getCreationCount() {
-		return isStressTest() ? STRESS_CREATION_COUNT : CREATION_COUNT;
+		return (isStressTest() ? STRESS_CREATION_COUNT : CREATION_COUNT) / getAbbreviationFactor();
 	}
 
 	/**
@@ -137,7 +151,7 @@ public class Test02Simulation {
 	 * @return the read count
 	 */
 	private static long getReadCount() {
-		return isStressTest() ? STRESS_READ_COUNT : READ_COUNT;
+		return (isStressTest() ? STRESS_READ_COUNT : READ_COUNT) / getAbbreviationFactor();
 	}
 
 	/**
@@ -146,7 +160,7 @@ public class Test02Simulation {
 	 * @return the update count
 	 */
 	private static long getUpdateCount() {
-		return isStressTest() ? STRESS_UPDATE_COUNT : UPDATE_COUNT;
+		return (isStressTest() ? STRESS_UPDATE_COUNT : UPDATE_COUNT) / getAbbreviationFactor();
 	}
 
 	/**
@@ -155,7 +169,7 @@ public class Test02Simulation {
 	 * @return the delete count
 	 */
 	private static long getDeleteCount() {
-		return isStressTest() ? STRESS_DELETE_COUNT : DELETE_COUNT;
+		return (isStressTest() ? STRESS_DELETE_COUNT : DELETE_COUNT) / getAbbreviationFactor();
 	}
 
 	/**
@@ -164,7 +178,7 @@ public class Test02Simulation {
 	 * @return the node count
 	 */
 	private static long getNodeCount() {
-		return isStressTest() ? STRESS_NODE_COUNT : NODE_COUNT;
+		return (isStressTest() ? STRESS_NODE_COUNT : NODE_COUNT) / getAbbreviationFactor();
 	}
 
 	/**
@@ -203,8 +217,10 @@ public class Test02Simulation {
 			assertNotNull("baseNode found to be null", baseNode);
 
 			for (Entry<String, CRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
-				assessDataElementContent(baseEntry.getValue());
-
+				CRDTManager<? extends AbstractDataType> crdt = baseEntry.getValue();
+				if (crdt.getNodename().equals(baseNode.getNodeName())) {
+					assessDataElementContent(baseEntry.getValue());
+				}
 			}
 		}
 	}
@@ -245,8 +261,37 @@ public class Test02Simulation {
 			if (compCRDT.isDeleted()) {
 				assertNull("Deleted compValue should be null, but isn't", compValue);
 			} else {
+				
+				// TODO Remove before flight
+//				if (null == compValue) {
+//					Node baseNode = Executive.getExecutive().getNode(crdt.getNodename());
+//					logger.info("\n*** Test02Simulation.assessDataElementContent(CRDTManager<T> crdt)");
+//					logger.info("    baseNode: " + (null == baseNode ? "null" : baseNode.toString()));
+//					logger.info("    baseCrdt: " + (null == crdt ? "null" : crdt.toString()));
+//					logger.info("    baseValue: " + (null == baseValue ? "null" : baseValue.toString()));
+//					logger.info("    compNode: " + (null == compNode ? "null" : compNode.toString()));
+//					logger.info("    compCrdt: " + (null == compCRDT ? "null" : compCRDT.toString()));
+//					logger.info("    compValue: " + (null == compValue ? "null" : compValue.toString()));
+//				}
+
 				assertNotNull("Undeleted compValue should not be null, but is", compValue);
-				JsonNode diff = JsonDiff.asJson(mapper.valueToTree(baseValue), mapper.valueToTree(compValue));
+				JsonNode source = mapper.valueToTree(baseValue);
+				JsonNode target = mapper.valueToTree(compValue);
+				
+				JsonNode diff = JsonDiff.asJson(source, target);
+				
+				// TODO Remove before flight
+//				if (null == diff) {
+//					Node baseNode = Executive.getExecutive().getNode(crdt.getNodename());
+//					logger.info("\n*** Test02Simulation.assessDataElementContent(CRDTManager<T> crdt)");
+//					logger.info("    baseNode: " + (null == baseNode ? "null" : baseNode.toString()));
+//					logger.info("    baseCrdt: " + (null == crdt ? "null" : crdt.toString()));
+//					logger.info("    baseValue: " + (null == baseValue ? "null" : baseValue.toString()));
+//					logger.info("    compNode: " + (null == compNode ? "null" : compNode.toString()));
+//					logger.info("    compCrdt: " + (null == compCRDT ? "null" : compCRDT.toString()));
+//					logger.info("    compValue: " + (null == compValue ? "null" : compValue.toString()));
+//				}
+
 				assertNotNull("diff found to be null", diff);
 
 				StringBuilder sb = new StringBuilder();

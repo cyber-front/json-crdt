@@ -95,7 +95,9 @@ public class Test01Build {
 			}
 			assertNotNull("Could not locate record; null retrieved", record);
 
-			diff = JsonDiff.asJson(mapper.valueToTree(record), mapper.valueToTree(value));
+			JsonNode source = mapper.valueToTree(record);
+			JsonNode target = mapper.valueToTree(value);
+			diff = JsonDiff.asJson(source, target);
 
 			if (diff.size() != 0) {
 				logger.info("\npending failure - value and record are mismatched:");
@@ -114,7 +116,10 @@ public class Test01Build {
 		}
 
 		record = crdt.getObject();
-		diff = JsonDiff.asJson(mapper.valueToTree(record), mapper.valueToTree(value));
+		JsonNode source = mapper.valueToTree(record);
+		JsonNode target = mapper.valueToTree(value);
+		
+		diff = JsonDiff.asJson(source, target);
 
 		if (diff.size() != 0) {
 			logger.info("\npending failure - value and record are mismatched:");

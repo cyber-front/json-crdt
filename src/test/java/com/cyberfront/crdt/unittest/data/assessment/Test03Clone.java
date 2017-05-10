@@ -94,12 +94,12 @@ public class Test03Clone {
 	 * Assess the results of the clone test to ensure the two arrays are an exact copy of each other and that no 
 	 * two non-corresponding elements of the two arrays are the same. 
 	 * @param iteration Iteration for which this assessment is occurring; used for display purposes only
-	 * @param source Source collection
+	 * @param value Source collection
 	 * @param clones Clone collection derived from the given source
 	 */
-	private void assessCloneTest(int iteration, Collection<AbstractDataType> source, Collection<AbstractDataType> clones) {
+	private void assessCloneTest(int iteration, Collection<AbstractDataType> value, Collection<AbstractDataType> clones) {
 		int sourceIndex = 0;
-		for (AbstractDataType el0 : source) {
+		for (AbstractDataType el0 : value) {
 			int cloneIndex = 0;
 			for (AbstractDataType el1 : clones) {
 				boolean expected = sourceIndex == cloneIndex;
@@ -112,7 +112,10 @@ public class Test03Clone {
 				}
 				assertEquals(expected, actual);
 
-				JsonNode diff = JsonDiff.asJson(mapper.valueToTree(el0), mapper.valueToTree(el1));
+				JsonNode source = mapper.valueToTree(el0);
+				JsonNode target = mapper.valueToTree(el1);
+				JsonNode diff = JsonDiff.asJson(source, target);
+
 				if (actual && diff.size() > 0) {
 					logger.error("unexpected difference: " + diff);
 				}

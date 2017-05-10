@@ -22,16 +22,23 @@
  */
 package com.cyberfront.crdt.unittest.simulator;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.TreeSet;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.LastWriteWins;
 import com.cyberfront.crdt.operations.AbstractOperation;
+import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
+import com.cyberfront.crdt.operations.AbstractOperation.StatusType;
 import com.cyberfront.crdt.operations.CreateOperation;
 import com.cyberfront.crdt.operations.DeleteOperation;
 import com.cyberfront.crdt.operations.ReadOperation;
 import com.cyberfront.crdt.operations.UpdateOperation;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
+import com.cyberfront.crdt.unittest.support.WordFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +50,7 @@ import com.flipkart.zjsonpatch.JsonDiff;
  *
  * @param <T> the generic type
  */
-public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> implements Comparable<CRDTManager<? extends AbstractDataType>> {
+public class CRDTManager <T extends AbstractDataType> extends BaseManager<T> implements Comparable<CRDTManager<? extends AbstractDataType>> {
 
 	/** The Constant mapper. */
 	private static final ObjectMapper mapper = new ObjectMapper();
@@ -56,6 +63,9 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 
 	/** The crdt. */
 	private LastWriteWins crdt;
+	
+	/** List of operations and the associated metadata this CRDTManager received */
+	private Collection<OperationManager<T>> received;
 
 	/**
 	 * Instantiates a new CRDT manager.
@@ -120,10 +130,208 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 	 *
 	 * @param op the op
 	 */
-	public void deliver(OperationManager<T> op){
-		this.deliver(op.getOperation());
+	public void deliver(OperationManager<T> op) {
+		switch(op.getStatus()) {
+		case APPROVED:
+			this.deliver(op.getOperation());
+			break;
+		case PENDING:
+			this.deliver(op.getOperation());
+			break;
+		case REJECTED:
+			this.cancel(op.getOperation());
+			break;
+		default:
+			break;
+		}
 	}
 
+	private boolean isOwner(OperationManager<T> op) {
+		return Executive.getExecutive().getCrdtLookup().get(this.getObjectId()).equals(this.getNodename());
+	}
+	
+	private Collection<OperationManager<T>> deliverCreatePending(OperationManager<T> op, Double pReject) {
+		Collection<OperationManager<T>> operations = new ArrayList<>();
+
+		if (StatusType.PENDING != op.getStatus() ||
+			OperationType.CREATE != op.getOperation().getType() ||
+			!isOwner(op)) {
+			return operations;
+		}
+
+		OperationManager<T> rejection = new OperationManager<>(op);
+		rejection.setStatus(StatusType.REJECTED);
+		operations.add(rejection);
+
+		if (WordFactory.getRandom().nextDouble() > pReject || !this.isCreated()) {
+			CreateOperation creOp = (CreateOperation) op.getOperation();
+			OperationManager<T> create = new OperationManager<T>(this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass(), creOp);
+			create.setStatus(StatusType.APPROVED);
+
+			this.deliver(create.getOperation());
+			operations.add(create);
+		}
+
+		// TODO Remove Before Flight
+//		logger.info("\n*** CRDTManager.deliverCreatePending(OperationManager<T> op, Double pReject)");
+//		logger.info("    this: " + this.toString());
+//		logger.info("    op: " + (null == op ? "null" : op.toString()));
+//		logger.info("    pReject: " + (null == pReject ? "null" : pReject.toString()));
+//		logger.info("    rejection: " + (null == rejection ? "null" : rejection.toString()));
+//		logger.info("    operations: " + (null == operations ? "null" : toString(operations)));
+
+		return operations;
+	}
+	
+	private Collection<OperationManager<T>> deliverReadPending(OperationManager<T> op, Double pReject) {
+		Collection<OperationManager<T>> operations = new ArrayList<>();
+		
+		if (StatusType.PENDING != op.getStatus() ||
+			OperationType.READ != op.getOperation().getType() ||
+			!isOwner(op)) {
+			return operations;
+		}
+
+		OperationManager<T> rejection = new OperationManager<>(op);
+		rejection.setStatus(StatusType.REJECTED);
+		operations.add(rejection);
+
+		if (WordFactory.getRandom().nextDouble() > pReject && this.isCreated() && !this.isDeleted()) {
+			ReadOperation readOp = (ReadOperation) op.getOperation();
+			OperationManager<T> read = new OperationManager<T>(this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass(), readOp);
+			read.setStatus(StatusType.APPROVED);
+
+			this.deliver(read.getOperation());
+			operations.add(read);
+		}
+
+		// TODO Remove Before Flight
+//		logger.info("\n*** CRDTManager.deliverReadPending(OperationManager<T> op, Double pReject)");
+//		logger.info("          this: " + this.toString());
+//		logger.info("            op: " + (null == op ? "null" : op.toString()));
+//		logger.info("       pReject: " + (null == pReject ? "null" : pReject.toString()));
+//		logger.info("     rejection: " + (null == rejection ? "null" : rejection.toString()));
+//		logger.info("    operations: " + WordFactory.convert(operations));
+
+		return operations;
+	}
+	
+	private Collection<OperationManager<T>> deliverUpdatePending(OperationManager<T> op, Double pReject) {
+		Collection<OperationManager<T>> operations = new ArrayList<>();
+
+		if (StatusType.PENDING != op.getStatus() ||
+			OperationType.UPDATE != op.getOperation().getType() ||
+			!isOwner(op)) {
+			return operations;
+		}
+
+		OperationManager<T> rejection = new OperationManager<>(op);
+		rejection.setStatus(StatusType.REJECTED);
+
+		operations.add(rejection);
+		if (WordFactory.getRandom().nextDouble() > pReject) {
+			JsonNode source = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : mapper.createObjectNode());
+			this.deliver(op.getOperation());
+			JsonNode target = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : mapper.createObjectNode());
+			JsonNode diff = JsonDiff.asJson(source, target);
+
+			if (this.getCrdt().getInvalidOperations().isEmpty() && diff.size() > 0) {
+				OperationManager<T> update = new OperationManager<T>(this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass(), new UpdateOperation(diff, Executive.getExecutive().getTimeStamp()));
+				update.setStatus(StatusType.APPROVED);
+
+				operations.add(update);
+			}
+		}
+
+		// TODO Remove Before Flight
+//		logger.info("\n*** CRDTManager.deliverUpdatePending(OperationManager<T> op, Double pReject)");
+//		logger.info("          this: " + this.toString());
+//		logger.info("            op: " + (null == op ? "null" : op.toString()));
+//		logger.info("       pReject: " + (null == pReject ? "null" : pReject.toString()));
+//		logger.info("     rejection: " + (null == rejection ? "null" : rejection.toString()));
+//		logger.info("    operations: " + WordFactory.convert(operations));
+
+		return operations;
+	}
+	
+	private Collection<OperationManager<T>> deliverDeletePending(OperationManager<T> op, Double pReject) {
+		Collection<OperationManager<T>> operations = new ArrayList<>();
+		
+		if (StatusType.PENDING != op.getStatus() ||
+			OperationType.DELETE != op.getOperation().getType() ||
+			!isOwner(op)) {
+			return operations;
+		}
+
+		OperationManager<T> rejection = new OperationManager<>(op);
+		rejection.setStatus(StatusType.REJECTED);
+		operations.add(rejection);
+
+		if (WordFactory.getRandom().nextDouble() > pReject || !this.isCreated()) {
+			DeleteOperation delOp = (DeleteOperation) op.getOperation();
+			OperationManager<T> delete = new OperationManager<T>(this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass(), delOp);
+			delete.setStatus(StatusType.APPROVED);
+
+			this.deliver(delete.getOperation());
+			operations.add(delete);
+		}
+
+		// TODO Remove Before Flight
+//		logger.info("\n*** CRDTManager.deliverDeletePending(OperationManager<T> op, Double pReject)");
+//		logger.info("          this: " + this.toString());
+//		logger.info("            op: " + (null == op ? "null" : op.toString()));
+//		logger.info("       pReject: " + (null == pReject ? "null" : pReject.toString()));
+//		logger.info("     rejection: " + (null == rejection ? "null" : rejection.toString()));
+//		logger.info("    operations: " + WordFactory.convert(operations));
+
+		return operations;
+	}
+	
+	private Collection<OperationManager<T>> deliverPending(OperationManager<T> op, Double pReject) {
+		switch (op.getOperation().getType()) {
+		case CREATE:
+			return this.deliverCreatePending(op, pReject);
+		case READ:
+			return this.deliverReadPending(op, pReject);
+		case UPDATE:
+			return this.deliverUpdatePending(op, pReject);
+		case DELETE:
+			return this.deliverDeletePending(op, pReject);
+		default:
+			return new ArrayList<>();
+		
+		}
+	}
+	
+	public Collection<OperationManager<T>> deliver(OperationManager<T> op, Double pReject, Node node) {
+		this.getReceived().add(op);
+
+		// TODO Remove before flight
+//		logger.info("\n*** CRDTManager.deliver(OperationManager<T> op, Double pReject)");
+//		logger.info("       node: " + (null == node ? "null" : node.toString()));
+//		logger.info("       this: " + this.toString());
+//		logger.info("         op: " + (null == op ? "null" : op.toString()));
+//		logger.info("    pReject: " + (null == pReject ? "null" : pReject.toString()));
+		
+		switch (op.getStatus()){
+		case APPROVED:
+			this.deliver(op.getOperation());
+			return new ArrayList<>();
+		case PENDING:
+			if (!this.isOwner(op)) {
+				this.deliver(op.getOperation());
+				return new ArrayList<>();
+			} else {
+				return deliverPending(op, pReject);
+			}
+		case REJECTED:
+			this.cancel(op.getOperation());
+			return new ArrayList<>();
+		default:
+			return new ArrayList<>();
+		}
+	}
+	
 	/**
 	 * Deliver.
 	 *
@@ -207,14 +415,23 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 		OperationManager<T> rv = null;
 
 		if (!this.getCrdt().isCreated()) {
-			JsonNode json = JsonDiff.asJson(mapper.createObjectNode(), mapper.valueToTree(object));
-			CreateOperation op = new CreateOperation(json, timestamp);
+			JsonNode source = mapper.createObjectNode();
+			JsonNode target = mapper.valueToTree(object);
+			JsonNode diff = JsonDiff.asJson(source, target);
+			CreateOperation op = new CreateOperation(diff, timestamp);
 
 			rv = this.getManager(op);
+
 			this.deliver(rv);
 			this.setObject(null);
 			this.getCrdt().getInvalidOperations().clear();
 		}
+
+		// TODO Remove before flight
+//		logger.info("\n*** CRDTManager.processCreate(long timestamp, T object)");
+//		logger.info("    timestamp: " + timestamp);
+//		logger.info("    object: " + (null == object ? "null" : object.toString()));
+//		logger.info("    rv: " + (null == rv ? "null" : rv.toString()));
 
 		return rv;			
 	}
@@ -245,13 +462,23 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 	 * @return the operation manager
 	 */
 	public OperationManager<T> processUpdate(long timestamp, Double pChange) {
+
 		if (!this.isCreated() || this.isDeleted()) {
 			return null;
 		}
 
 		T obj = this.getObject();
 		obj.update(pChange);
-		return this.processUpdate(timestamp, obj);
+		OperationManager<T> rv = this.processUpdate(timestamp, obj);
+
+		// TODO Remove before flight
+//		logger.info("\n*** CRDTManager.processUpdate(long timestamp, Double pChange)");
+//		logger.info("         this: " + this.toString());
+//		logger.info("    timestamp: " + timestamp);
+//		logger.info("      pChange: " + pChange);
+//		logger.info("          obj: " + (null == obj ? "null" : obj.toString()));
+
+		return rv;
 	}
 	
 	/**
@@ -265,19 +492,26 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 		OperationManager<T> rv = null;
 		
 		if (this.getCrdt().isCreated() && !this.getCrdt().isDeleted()) {
-			this.setObject(object);
-			JsonNode jsonValue = this.getCrdt().readValue();
-			JsonNode jsonObject = mapper.valueToTree(object);
+//			this.setObject(object);
+			JsonNode source = this.getCrdt().readValue();
+			JsonNode target = mapper.valueToTree(object);
+			JsonNode diff = JsonDiff.asJson(source, target);
 
-			JsonNode jsonDiff = JsonDiff.asJson(jsonValue, jsonObject);
-			if (jsonDiff.size() > 0) {
-				UpdateOperation op = new UpdateOperation(jsonDiff, timestamp);
+			if (diff.size() > 0) {
+				UpdateOperation op = new UpdateOperation(diff, timestamp);
 				rv = this.getManager(op);
+
 				this.deliver(rv);
 				this.setObject(null);
 				this.getCrdt().getInvalidOperations().clear();
 			}
 		}
+		
+		// TODO Remove before flight
+//		logger.info("\n*** CRDTManager.processUpdet(long timestamp, T object)");
+//		logger.info("    timestamp: " + timestamp);
+//		logger.info("    object: " + (null == object ? "null" : object.toString()));
+//		logger.info("    rv: " + (null == rv ? "null" : rv.toString()));
 		
 		return rv;
 	}
@@ -376,9 +610,17 @@ public class CRDTManager<T extends AbstractDataType> extends BaseManager<T> impl
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(super.getSegment() + ",");
+		sb.append("\"received\":" + WordFactory.convert(this.getReceived()) + ",");
 		sb.append("\"crdt\":" + (null == this.getCrdt() ? "null" : this.getCrdt().toString()) + ",");
 		sb.append("\"object\":" + (null == this.object ? "null" : this.object.toString()));
 		
 		return sb.toString();
+	}
+
+	private Collection<OperationManager<T>> getReceived() {
+		if (null == this.received) {
+			this.received = new TreeSet<>();
+		}
+		return this.received;
 	}
 }

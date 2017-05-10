@@ -22,6 +22,9 @@
  */
 package com.cyberfront.crdt.unittest.simulator;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 
 // TODO: Auto-generated Javadoc
@@ -31,7 +34,10 @@ import com.cyberfront.crdt.unittest.data.AbstractDataType;
  * @param <T> the generic type
  */
 public abstract class BaseManager<T extends AbstractDataType> {
-	
+	/** The Constant logger. */
+	@SuppressWarnings("unused")
+	private static final Logger logger = LogManager.getLogger(BaseManager.class);
+
 	/** The object class. */
 	private Class<T> objectClass;
 	
@@ -193,7 +199,7 @@ public abstract class BaseManager<T extends AbstractDataType> {
 		sb.append("\"objectClass\":\"" + this.getObjectClass().getName() + "\",");
 		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
 		sb.append("\"username\":\"" + this.getUsername() + "\",");
-		sb.append("\"nodename\":\"" + this.getNodename() + "\",");
+		sb.append("\"nodename\":\"" + this.getNodename() + "\"");
 		
 		return sb.toString();
 	}
@@ -205,4 +211,17 @@ public abstract class BaseManager<T extends AbstractDataType> {
 	public String toString() {
 		return "{" + this.getSegment() + "}";
 	}
+	
+//	protected static <T> String toString(Collection<T> elements) {
+//		StringBuilder sb = new StringBuilder();
+//		String delimiter = "[";
+//		
+//		for (T element : elements) {
+//			sb.append(delimiter + element.toString());
+//			delimiter = ",";
+//		}
+//
+//		sb.append("]");
+//		return sb.toString();
+//	}
 }

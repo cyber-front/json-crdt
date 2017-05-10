@@ -23,6 +23,7 @@
 package com.cyberfront.crdt.unittest.simulator;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
+import com.cyberfront.crdt.operations.AbstractOperation.StatusType;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 
 // TODO: Auto-generated Javadoc
@@ -32,6 +33,10 @@ import com.cyberfront.crdt.unittest.data.AbstractDataType;
  * @param <T> the generic type
  */
 public class OperationManager<T extends AbstractDataType> extends BaseManager<T> implements Comparable<OperationManager<? extends AbstractDataType>> {
+
+
+	/** Flag for defining the status of the operation */
+	private StatusType status = StatusType.PENDING;
 
 	/** The operation. */
 	private AbstractOperation operation;
@@ -57,6 +62,7 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 	 */
 	public OperationManager(OperationManager<T> src) {
 		this(src.getObjectId(), src.getUsername(), src.getNodename(), src.getObjectClass(), src.getOperation());
+		this.setStatus(src.getStatus());
 	}
 
 	/**
@@ -76,6 +82,28 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 	private void setOperation(AbstractOperation operation) {
 		this.operation = operation;
 	}
+
+	public StatusType getStatus() {
+		return this.status;
+	}
+
+	public void setStatus(StatusType status) {
+		this.status = status;
+	}
+
+	/**
+	 * Checks if is created.
+	 *
+	 * @return true, if is created
+	 */
+	public boolean isCreated() { return this.getOperation().isCreated(); }
+
+	/**
+	 * Checks if is deleted.
+	 *
+	 * @return true, if is deleted
+	 */
+	public boolean isDeleted() { return this.getOperation().isDeleted(); }
 
 	/**
 	 * Copy.
@@ -128,22 +156,9 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
+		sb.append("\"status\":\"" + this.getStatus().toString() + "\",");
 		sb.append("\"operation\":" + this.getOperation());
 		
 		return sb.toString();
 	}
-
-	/**
-	 * Checks if is created.
-	 *
-	 * @return true, if is created
-	 */
-	public boolean isCreated() { return this.getOperation().isCreated(); }
-
-	/**
-	 * Checks if is deleted.
-	 *
-	 * @return true, if is deleted
-	 */
-	public boolean isDeleted() { return this.getOperation().isDeleted(); }
 }

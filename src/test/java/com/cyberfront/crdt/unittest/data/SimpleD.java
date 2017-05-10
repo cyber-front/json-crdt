@@ -72,6 +72,19 @@ public class SimpleD extends AbstractDataType {
 	}
 
 	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
+	 */
+	@Override
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(super.getSegment() + ",");
+		sb.append("\"booleanValue\":\"" + this.getBooleanValue() + "\"");
+		
+		return sb.toString();
+	}
+
+	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.data.DataType#update(java.lang.Double)
 	 */
 	@Override

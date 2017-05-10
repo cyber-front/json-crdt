@@ -25,6 +25,7 @@ package com.cyberfront.crdt.unittest.simulator;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +41,7 @@ import com.cyberfront.crdt.unittest.support.WordFactory;
 public class Executive implements ITimeStamp {
 	
 	/** The logger. */
-	@SuppressWarnings("unused")
+//	@SuppressWarnings("unused")
 	private Logger logger = LogManager.getLogger(AbstractOperation.class);
 
 	/** The Constant DEFAULT_NODE_COUNT. */
@@ -409,11 +410,10 @@ public class Executive implements ITimeStamp {
 	 * @param node the node
 	 * @throws ReflectiveOperationException the reflective operation exception
 	 */
-	private void doCreate(Node node) throws ReflectiveOperationException {
+	private Collection<Message<? extends AbstractDataType>> doCreate(Node node) throws ReflectiveOperationException {
 		Collection<Message<? extends AbstractDataType>> messages = node.generateCreateOperation();
-
-		this.transmit(messages);
 		--this.createCount;
+		return messages;
 	}
 
 	/**
@@ -421,16 +421,18 @@ public class Executive implements ITimeStamp {
 	 *
 	 * @param node the node
 	 */
-	private void doRead(Node node) {
-
-		if (node.getDatastore().size() > 0) {
-			Collection<Message<? extends AbstractDataType>> messages = node.generateReadOperation();
-			
-			if (!messages.isEmpty()) {
-				this.transmit(messages);
-				--this.readCount;
-			}
+	private Collection<Message<? extends AbstractDataType>> doRead(Node node) {
+		if (node.getDatastore().size() <= 0) {
+			return new TreeSet<>();
 		}
+		
+		Collection<Message<? extends AbstractDataType>> messages = node.generateReadOperation();
+		
+		if (!messages.isEmpty()) {
+			--this.readCount;
+		}
+		
+		return messages;
 	}
 	
 	/**
@@ -439,15 +441,18 @@ public class Executive implements ITimeStamp {
 	 * @param node the node
 	 * @param pChange the change
 	 */
-	private void doUpdate(Node node, double pChange) {
-		if (node.getDatastore().size() > 0) {
-			Collection<Message<? extends AbstractDataType>> messages = node.generateUpdateOperation(pChange);
-
-			if (!messages.isEmpty()) {
-				this.transmit(messages);
-				--this.updateCount;
-			}
+	private Collection<Message<? extends AbstractDataType>> doUpdate(Node node, Double pChange) {
+		if (node.getDatastore().size() <= 0) {
+			return new TreeSet<>();
 		}
+		
+		Collection<Message<? extends AbstractDataType>> messages = node.generateUpdateOperation(pChange);
+
+		if (!messages.isEmpty()) {
+			--this.updateCount;
+		}
+		
+		return messages;
 	}
 	
 	/**
@@ -455,24 +460,29 @@ public class Executive implements ITimeStamp {
 	 *
 	 * @param node the node
 	 */
-	private void doDelete(Node node) {
-		if (node.getDatastore().size() > 0) {
-			Collection<Message<? extends AbstractDataType>> messages = node.generateDeleteOperation();
-
-			if (!messages.isEmpty()) {
-				this.transmit(messages);
-				--this.deleteCount;
-			}
+	private Collection<Message<? extends AbstractDataType>> doDelete(Node node) {
+		if (node.getDatastore().size() <= 0) {
+			return new TreeSet<>();
 		}
+		
+		Collection<Message<? extends AbstractDataType>> messages = node.generateDeleteOperation();
+
+		if (!messages.isEmpty()) {
+			--this.deleteCount;
+		}
+		
+		return messages;
 	}
 	
 	/**
 	 * Do deliver.
 	 */
-	private void doDeliver() {
-		if (!this.getRouter().isEmpty()) {
-			this.getRouter().deliverNextMessage();
+	private Collection<Message<? extends AbstractDataType>> doDeliver() {
+		if (this.getRouter().isEmpty()) {
+			return new TreeSet<>();
 		}
+
+		return this.getRouter().deliverNextMessage(this.getRejectProbability());
 	}
 	
 	/**
@@ -482,25 +492,20 @@ public class Executive implements ITimeStamp {
 	 * @param node the node
 	 * @throws ReflectiveOperationException the reflective operation exception
 	 */
-	private void handleEvent(EventType type, Node node) throws ReflectiveOperationException {
+	private Collection<Message<? extends AbstractDataType>> handleEvent(EventType type, Node node) throws ReflectiveOperationException {
 		switch(type) {
 		case CREATE:
-			doCreate(node);
-			break;
+			return doCreate(node);
 		case READ:
-			doRead(node);
-			break;
+			return doRead(node);
 		case UPDATE:
-			doUpdate(node, 0.2);
-			break;
+			return doUpdate(node, 0.2);
 		case DELETE:
-			doDelete(node);
-			break;
+			return doDelete(node);
 		case DELIVER:
-			doDeliver();
-			break;
+			return doDeliver();
 		default:
-			break;
+			return new TreeSet<>();
 		}
 	}
 	
@@ -512,7 +517,25 @@ public class Executive implements ITimeStamp {
 	public void execute() throws ReflectiveOperationException {
 		this.generateNodes();
 		while (this.eventCount() > 0) {
-			this.handleEvent(this.pickEvent(), this.pickNode());
+
+			Node node = this.pickNode();
+			EventType event = this.pickEvent();
+
+			Collection<Message<? extends AbstractDataType>> messages = this.handleEvent(event, node);
+			
+			// TODO Remove Before Flight
+//			logger.info("\n*** Executive.execute()");
+//			logger.info("      createCount: " + this.getCreateCount());
+//			logger.info("      deleteCount: " + this.getDeleteCount());
+//			logger.info("    deliveryCount: " + this.getDeliveryCount());
+//			logger.info("        nodeCount: " + this.getNodeCount());
+//			logger.info("        readCount: " + this.getReadCount());
+//			logger.info("          pReject: " + this.getRejectProbability());
+//			logger.info("             node: " + (null == node ? "null" : node.toString()));
+//			logger.info("            event: " + (null == event ? "null" : event.toString()));
+//			logger.info("         messages:" + WordFactory.convert(messages));
+
+			this.transmit(messages);
 			this.incrementTimeSTamp();
 		}
 	}

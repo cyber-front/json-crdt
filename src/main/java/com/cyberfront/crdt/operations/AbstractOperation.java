@@ -62,6 +62,18 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 		/** The delete operation. */
 		DELETE	
 	}
+
+	/**	An enumeration of different status types */
+	public enum StatusType {
+		/** The status for operations which have been rejected */
+		REJECTED,
+		
+		/** The status for operations which have are pending */
+		PENDING,
+
+		/** The status for operations which have are approved */
+		APPROVED
+	}
 	
 	/** The time stamp associated with the operation */
 	private Long timeStamp;
@@ -74,6 +86,9 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	
 	/** The operation counter used to assign each operator a unique ID. */
 	private static Long operationCounter = 0L;
+	
+	/** Status associated with this operation to determine how it will be handled */
+//	private StatusType status = StatusType.PENDING;
 
 	/**
 	 * This constructor initializes elements of this abstract class instance given an operation and a 
@@ -137,6 +152,22 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	}
 
 	/**
+	 * Retrieve the status of this operation
+	 * @return The status of this operation
+	 */
+//	public StatusType getStatus() {
+//		return status;
+//	}
+
+	/**
+	 * Set the status of this operation instance
+	 * @param status New status value to define for this operation
+	 */
+//	public void setStatus(StatusType status) {
+//		this.status = status;
+//	}
+
+	/**
 	 * This is a private method which sets the operation ID value to the next operation ID.
 	 */
 	private void setOperationId() {
@@ -181,6 +212,7 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 		sb.append("\"type\":\"" + this.getType().toString() + "\",");
 		sb.append("\"timeStamp\":" + this.getTimeStamp() + ",");
 		sb.append("\"operationId\":" + this.getOperationId() + ",");
+//		sb.append("\"status\":\"" + this.getStatus().toString() + "\",");
 		sb.append("\"op\":" + (null == op ? "null" : this.getOp().toString()));
 
 		return sb.toString();

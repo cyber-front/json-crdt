@@ -82,6 +82,19 @@ public class SimpleCollection extends AbstractDataType {
 			this.getCollectionValue().add(Factory.copy(element));
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
+	 */
+	@Override
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(super.getSegment() + ",");
+		sb.append("\"collectionValue\":" + WordFactory.convert(this.getCollectionValue()));
+		
+		return sb.toString();
+	}
 	
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.data.DataType#update(java.lang.Double)

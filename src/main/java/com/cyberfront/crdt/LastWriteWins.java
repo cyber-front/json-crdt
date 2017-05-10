@@ -87,27 +87,6 @@ public class LastWriteWins extends OperationTwoSet {
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#readValue(long)
-	 */
-	@Override
-	public JsonNode readValue(long timestamp) {
-		this.getInvalidOperations().clear();
-		JsonNode value = null;
-		for (AbstractOperation update : this.getOperations()) {
-			if (timestamp > update.getTimeStamp()) {
-				try {
-					value = update.processOperation(value);
-				} catch (JsonPatchApplicationException e) {
-					logger.info(e);
-					this.getInvalidOperations().add(update);
-				}
-			}
-		}
-		
-		return value;
-	}
-	
-	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.manager.OperationTwoSet#clear()
 	 */
 	@Override
