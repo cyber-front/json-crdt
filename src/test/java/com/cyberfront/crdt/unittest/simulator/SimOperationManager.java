@@ -22,22 +22,19 @@
  */
 package com.cyberfront.crdt.unittest.simulator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import com.cyberfront.crdt.operations.AbstractOperation;
+import com.cyberfront.crdt.operations.OperationManager;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class BaseManager.
+ * The Class OperationManager.
  *
  * @param <T> the generic type
  */
-public abstract class BaseManager<T extends AbstractDataType> {
-	/** The Constant logger. */
-	@SuppressWarnings("unused")
-	private static final Logger logger = LogManager.getLogger(BaseManager.class);
-
+public class SimOperationManager<T extends AbstractDataType>
+	extends OperationManager {
+	
 	/** The object class. */
 	private Class<T> objectClass;
 	
@@ -51,18 +48,33 @@ public abstract class BaseManager<T extends AbstractDataType> {
 	private String nodename;
 	
 	/**
-	 * Instantiates a new base manager.
+	 * Instantiates a new operation manager.
 	 *
-	 * @param id the id
+	 * @param objectId the object id
 	 * @param username the username
 	 * @param nodename the nodename
 	 * @param objectClass the object class
+	 * @param operation the operation
 	 */
-	public BaseManager(String id, String username, String nodename, Class<T> objectClass) {
-		this.setObjectId(id);
+	public SimOperationManager(StatusType status, AbstractOperation operation, String objectId, String username, String nodename, Class<T> objectClass) {
+		super(status, operation);
+		this.setObjectId(objectId);
 		this.setUsername(username);
 		this.setNodename(nodename);
 		this.setObjectClass(objectClass);
+	}
+	
+	/**
+	 * Instantiates a new operation manager.
+	 *
+	 * @param src the src
+	 */
+	public SimOperationManager(SimOperationManager<T> src) {
+		super(src);
+		this.setObjectId(src.getObjectId());
+		this.setUsername(src.getUsername());
+		this.setNodename(src.getNodename());
+		this.setObjectClass(src.getObjectClass());
 	}
 	
 	/**
@@ -100,7 +112,7 @@ public abstract class BaseManager<T extends AbstractDataType> {
 	public String getNodename() {
 		return this.nodename;
 	}
-	
+
 	/**
 	 * Sets the object class.
 	 *
@@ -138,40 +150,44 @@ public abstract class BaseManager<T extends AbstractDataType> {
 	}
 
 	/**
-	 * Base compare.
+	 * Copy.
 	 *
-	 * @param o the o
-	 * @return the int
+	 * @return the operation manager
 	 */
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	protected int baseCompare(BaseManager<? extends AbstractDataType> o) {
-		int compId = this.getObjectId().compareTo(o.getObjectId());
-		int compUsername = this.getUsername().compareTo(getUsername());
-		int compNodename = this.getNodename().compareTo(o.getNodename());
-		
-		return compId != 0 ? compId : compNodename != 0 ? compNodename : compUsername;
+	public SimOperationManager<T> copy() {
+		return new SimOperationManager<>(this);
 	}
+//
+//	/* (non-Javadoc)
+//	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+//	 */
+//	@Override
+//	public int compareTo(SimOperationManager<? extends AbstractDataType> o) {
+//		int compId = this.getObjectId().compareTo(o.getObjectId());
+//		int compUsername = this.getUsername().compareTo(getUsername());
+//		int compNodename = this.getNodename().compareTo(o.getNodename());
+//		
+//		return compId != 0 ? compId : compNodename != 0 ? compNodename : compUsername;
+//	}
 
 	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.ComparableManager#equals(java.lang.Object)
+	 * @see com.cyberfront.cmrdt.support.BaseManager#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
-		} else if (null == obj || !(obj instanceof BaseManager<?>) || !super.equals(obj)) { 
+		} else if (null == obj || !(obj instanceof SimOperationManager<?>) || !super.equals(obj)) { 
 			return false;
 		}
 		
-		BaseManager<?> mgr = (BaseManager<?>) obj;
+		SimOperationManager<?> mgr = (SimOperationManager<?>) obj;
 		
-		return this.getObjectClass().getName().compareTo(mgr.getObjectClass().getName()) == 0;
+		return this.getOperation().equals(mgr.getOperation());
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.ComparableManager#hashCode()
+	 * @see com.cyberfront.cmrdt.support.BaseManager#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -185,30 +201,18 @@ public abstract class BaseManager<T extends AbstractDataType> {
 		return hash;
 	}
 	
-	/**
-	 * Gets the segment.
-	 *
-	 * @return the segment
-	 */
 	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.ComparableManager#getSegment()
+	 * @see com.cyberfront.cmrdt.support.BaseManager#getSegment()
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		
+		sb.append(super.getSegment() + ",");
 		sb.append("\"objectClass\":\"" + this.getObjectClass().getName() + "\",");
 		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
 		sb.append("\"username\":\"" + this.getUsername() + "\",");
 		sb.append("\"nodename\":\"" + this.getNodename() + "\"");
 		
 		return sb.toString();
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "{" + this.getSegment() + "}";
 	}
 }

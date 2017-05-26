@@ -63,18 +63,6 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 		DELETE	
 	}
 
-	/**	An enumeration of different status types */
-	public enum StatusType {
-		/** The status for operations which have been rejected */
-		REJECTED,
-		
-		/** The status for operations which have are pending */
-		PENDING,
-
-		/** The status for operations which have are approved */
-		APPROVED
-	}
-	
 	/** The time stamp associated with the operation */
 	private Long timeStamp;
 	

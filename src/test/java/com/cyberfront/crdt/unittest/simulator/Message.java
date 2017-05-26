@@ -40,7 +40,7 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	private String destination;
 	
 	/** The mgr. */
-	private OperationManager<T> mgr;
+	private SimOperationManager<T> mgr;
 	
 	/**
 	 * Instantiates a new message.
@@ -49,7 +49,7 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	 * @param mgr the mgr
 	 * @param priority the priority
 	 */
-	public Message(String destination, OperationManager<T> mgr, Long priority) {
+	public Message(String destination, SimOperationManager<T> mgr, Long priority) {
 		this.setPriority(priority);
 		this.setDestination(destination);
 		this.setManager(mgr.copy());
@@ -61,7 +61,7 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	 * @param destination the destination
 	 * @param mgr the mgr
 	 */
-	public Message(String destination, OperationManager<T> mgr) {
+	public Message(String destination, SimOperationManager<T> mgr) {
 		this(destination, mgr, WordFactory.getRandom().nextLong());
 	}
 	
@@ -88,7 +88,7 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	 *
 	 * @return the manager
 	 */
-	public OperationManager<T> getManager() { return mgr; }
+	public SimOperationManager<T> getManager() { return mgr; }
 	
 	/**
 	 * Gets the priority.
@@ -109,7 +109,7 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	 *
 	 * @param mgr the new manager
 	 */
-	private void setManager(OperationManager<T> mgr) { this.mgr = mgr; }
+	private void setManager(SimOperationManager<T> mgr) { this.mgr = mgr; }
 	
 	/**
 	 * Sets the priority.

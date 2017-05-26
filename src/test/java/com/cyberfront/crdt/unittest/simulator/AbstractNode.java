@@ -48,7 +48,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	private List<String> crdtIds;
 
 	/** The datastore. */
-	private Map<String, CRDTManager<? extends T>> datastore;
+	private Map<String, SimCRDTManager<? extends T>> datastore;
 
 	/**
 	 * Instantiates a new abstract node.
@@ -66,10 +66,9 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 * @param userNames the user names
 	 * @param objectCount the object count
 	 */
-	public AbstractNode(String nodeName, Collection<String> userNames, int objectCount) {
+	public AbstractNode(String nodeName, Collection<String> userNames) {
 		this.setNodeName(nodeName);
 		this.getUserNames().addAll(userNames);
-		this.generateObjects(objectCount);
 	}
 
 	/**
@@ -102,29 +101,29 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 
 		return userNames;
 	}
-
-	/**
-	 * Generate objects.
-	 *
-	 * @param objectCount the object count
-	 */
-	private void generateObjects(int objectCount) {
-		for (int i=0; i<objectCount; ++i) {
-			this.addCRDT(this.createCRDT());
-		}
-	}
 	
 	/**
 	 * Gets the datastore.
 	 *
 	 * @return the datastore
 	 */
-	public Map<String, CRDTManager<? extends T>> getDatastore() {
+	public Map<String, SimCRDTManager<? extends T>> getDatastore() {
 		if (null == datastore) {
 			this.datastore = this.createDatastore();
 		}
 		
 		return this.datastore;
+	}
+
+	/**
+	 * Clear.
+	 */
+	public void clear() {
+		for (Map.Entry<String, SimCRDTManager<? extends T>> entry : this.getDatastore().entrySet()) {
+			entry.getValue().clear();
+		}
+
+		this.getDatastore().clear();
 	}
 	
 	/**
@@ -145,7 +144,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @param crdt the crdt
 	 */
-	protected void addCRDT(CRDTManager<? extends T> crdt) {
+	protected void addCRDT(SimCRDTManager<? extends T> crdt) {
 		this.getDatastore().put(crdt.getObjectId(), crdt);
 		this.getCrdtIds().add(crdt.getObjectId());
 	}
@@ -174,10 +173,10 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 * @param id the id
 	 * @return the datastore
 	 */
-	public CRDTManager<? extends T> getDatastore(String id) {
-		return this.getDatastore().get(id);
-	}
-	
+//	public SimCRDTManager<? extends T> getDatastore(String id) {
+//		return this.getDatastore().get(id);
+//	}
+//	
 	/**
 	 * Pick crdt id.
 	 *
@@ -193,8 +192,8 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @return the CRDTManager
 	 */
-	public CRDTManager<? extends T> pickCRDT() {
-		return this.getDatastore(this.pickCrdtId());
+	public SimCRDTManager<? extends T> pickCRDT() {
+		return this.getDatastore().get(this.pickCrdtId());
 	}
 	
 	/**
@@ -209,7 +208,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 		if (this.getDatastore().isEmpty()) {
 			sb.append(separator);
 		} else {
-			for (Map.Entry<String, CRDTManager<? extends T>> entry : this.getDatastore().entrySet()) {
+			for (Map.Entry<String, SimCRDTManager<? extends T>> entry : this.getDatastore().entrySet()) {
 				sb.append(separator + "\"" + entry.getKey() + "\":" + entry.getValue().toString());
 				separator = ',';
 			}
@@ -272,12 +271,12 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @return the CRDTManager
 	 */
-	protected abstract CRDTManager<? extends T> createCRDT();
+	protected abstract SimCRDTManager<? extends T> createCRDT(String id);
 	
 	/**
 	 * Creates the datastore.
 	 *
 	 * @return the map
 	 */
-	protected abstract Map<String, CRDTManager<? extends T>> createDatastore();
+	protected abstract Map<String, SimCRDTManager<? extends T>> createDatastore();
 }

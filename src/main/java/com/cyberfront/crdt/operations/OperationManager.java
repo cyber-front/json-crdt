@@ -20,22 +20,32 @@
  * SOFTWARE.
  * 
  */
-package com.cyberfront.crdt.unittest.simulator;
+package com.cyberfront.crdt.operations;
 
-import com.cyberfront.crdt.operations.AbstractOperation;
-import com.cyberfront.crdt.operations.AbstractOperation.StatusType;
-import com.cyberfront.crdt.unittest.data.AbstractDataType;
+import com.cyberfront.crdt.unittest.simulator.SimOperationManager;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class OperationManager.
- *
- * @param <T> the generic type
  */
-public class OperationManager<T extends AbstractDataType> extends BaseManager<T> implements Comparable<OperationManager<? extends AbstractDataType>> {
+public class OperationManager implements Comparable<OperationManager> {
+	
+	/**
+	 * The Enum StatusType.
+	 */
+	public enum StatusType {
+		
+		/** The rejected. */
+		REJECTED,
+		
+		/** The pending. */
+		PENDING,
+	
+		/** The approved. */
+		APPROVED
+	}
 
-
-	/** Flag for defining the status of the operation */
+	/** The status. */
 	private StatusType status = StatusType.PENDING;
 
 	/** The operation. */
@@ -44,25 +54,22 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 	/**
 	 * Instantiates a new operation manager.
 	 *
-	 * @param objectId the object id
-	 * @param username the username
-	 * @param nodename the nodename
-	 * @param objectClass the object class
-	 * @param operation the operation
+	 * @param status the status
+	 * @param op the op
 	 */
-	public OperationManager(String objectId, String username, String nodename, Class<T> objectClass, AbstractOperation operation) {
-		super(objectId, username, nodename, objectClass);
-		this.setOperation(operation);
+	public OperationManager(StatusType status, AbstractOperation op) {
+		this.setStatus(status);
+		this.setOperation(op);
 	}
-	
+
 	/**
 	 * Instantiates a new operation manager.
 	 *
 	 * @param src the src
 	 */
-	public OperationManager(OperationManager<T> src) {
-		this(src.getObjectId(), src.getUsername(), src.getNodename(), src.getObjectClass(), src.getOperation());
+	public OperationManager(OperationManager src) {
 		this.setStatus(src.getStatus());
+		this.setOperation(src.getOperation());
 	}
 
 	/**
@@ -72,6 +79,15 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 	 */
 	public AbstractOperation getOperation() {
 		return operation;
+	}
+	
+	/**
+	 * Gets the status.
+	 *
+	 * @return the status
+	 */
+	public OperationManager.StatusType getStatus() {
+		return this.status;
 	}
 
 	/**
@@ -83,11 +99,12 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 		this.operation = operation;
 	}
 
-	public StatusType getStatus() {
-		return this.status;
-	}
-
-	public void setStatus(StatusType status) {
+	/**
+	 * Sets the status.
+	 *
+	 * @param status the new status
+	 */
+	public void setStatus(OperationManager.StatusType status) {
 		this.status = status;
 	}
 
@@ -105,60 +122,63 @@ public class OperationManager<T extends AbstractDataType> extends BaseManager<T>
 	 */
 	public boolean isDeleted() { return this.getOperation().isDeleted(); }
 
-	/**
-	 * Copy.
-	 *
-	 * @return the operation manager
-	 */
-	public OperationManager<T> copy() {
-		return new OperationManager<>(this);
-	}
-
 	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(OperationManager<? extends AbstractDataType> o) {
-		return super.baseCompare(o);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.BaseManager#equals(java.lang.Object)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
-		} else if (null == obj || !(obj instanceof OperationManager<?>) || !super.equals(obj)) { 
+		} else if (null == obj || !(obj instanceof SimOperationManager<?>) || !super.equals(obj)) { 
 			return false;
 		}
 		
-		OperationManager<?> mgr = (OperationManager<?>) obj;
+		SimOperationManager<?> mgr = (SimOperationManager<?>) obj;
 		
 		return this.getOperation().equals(mgr.getOperation());
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.BaseManager#hashCode()
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
-		return
-				super.hashCode() + 
-				this.getOperation().hashCode() * 47;
+		int hash = super.hashCode();
+		
+		hash = 23 * hash + this.getOperation().hashCode();
+		hash = 29 * hash + this.getStatus().hashCode();
+		
+		return hash;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.BaseManager#getSegment()
+	/**
+	 * Gets the segment.
+	 *
+	 * @return the segment
 	 */
-	@Override
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append(super.getSegment() + ",");
-		sb.append("\"status\":\"" + this.getStatus().toString() + "\",");
-		sb.append("\"operation\":" + this.getOperation());
+		sb.append("\"operation\":" + this.getOperation().toString() + ",");
+		sb.append("\"status\":\"" + this.getStatus() + "\",");
+		sb.append("\"created\":" + this.isCreated() + ",");
+		sb.append("\"deleted\":" + this.isDeleted());
 		
 		return sb.toString();
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		return "{" + this.getSegment() + "}";
+	}
+
+	@Override
+	public int compareTo(OperationManager src) {
+		int opComp = this.getOperation().compareTo(src.getOperation());
+		int stComp = this.getStatus().compareTo(src.getStatus());
+		return opComp != 0 ? opComp : stComp;
+	}
+
 }

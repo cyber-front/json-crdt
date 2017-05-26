@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
+import com.cyberfront.crdt.unittest.data.Factory;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
 // TODO: Auto-generated Javadoc
@@ -41,7 +42,7 @@ import com.cyberfront.crdt.unittest.support.WordFactory;
 public class Executive implements ITimeStamp {
 	
 	/** The logger. */
-//	@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	private Logger logger = LogManager.getLogger(AbstractOperation.class);
 
 	/** The Constant DEFAULT_NODE_COUNT. */
@@ -410,8 +411,8 @@ public class Executive implements ITimeStamp {
 	 * @param node the node
 	 * @throws ReflectiveOperationException the reflective operation exception
 	 */
-	private Collection<Message<? extends AbstractDataType>> doCreate(Node node) throws ReflectiveOperationException {
-		Collection<Message<? extends AbstractDataType>> messages = node.generateCreateOperation();
+	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> doCreate(Node node, T object) throws ReflectiveOperationException {
+		Collection<Message<? extends AbstractDataType>> messages = node.generateCreateOperation(object);
 		--this.createCount;
 		return messages;
 	}
@@ -495,7 +496,7 @@ public class Executive implements ITimeStamp {
 	private Collection<Message<? extends AbstractDataType>> handleEvent(EventType type, Node node) throws ReflectiveOperationException {
 		switch(type) {
 		case CREATE:
-			return doCreate(node);
+			return doCreate(node, Factory.getInstance());
 		case READ:
 			return doRead(node);
 		case UPDATE:
@@ -523,18 +524,6 @@ public class Executive implements ITimeStamp {
 
 			Collection<Message<? extends AbstractDataType>> messages = this.handleEvent(event, node);
 			
-			// TODO Remove Before Flight
-//			logger.info("\n*** Executive.execute()");
-//			logger.info("      createCount: " + this.getCreateCount());
-//			logger.info("      deleteCount: " + this.getDeleteCount());
-//			logger.info("    deliveryCount: " + this.getDeliveryCount());
-//			logger.info("        nodeCount: " + this.getNodeCount());
-//			logger.info("        readCount: " + this.getReadCount());
-//			logger.info("          pReject: " + this.getRejectProbability());
-//			logger.info("             node: " + (null == node ? "null" : node.toString()));
-//			logger.info("            event: " + (null == event ? "null" : event.toString()));
-//			logger.info("         messages:" + WordFactory.convert(messages));
-
 			this.transmit(messages);
 			this.incrementTimeSTamp();
 		}

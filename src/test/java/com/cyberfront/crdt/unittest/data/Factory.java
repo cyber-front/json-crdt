@@ -24,10 +24,9 @@ package com.cyberfront.crdt.unittest.data;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.UUID;
 
-import com.cyberfront.crdt.unittest.simulator.CRDTManager;
 import com.cyberfront.crdt.unittest.simulator.Node;
+import com.cyberfront.crdt.unittest.simulator.SimCRDTManager;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
 /**
@@ -155,8 +154,8 @@ public class Factory {
 	 * @param node The node for which the resulting CRDTManager is to be generated
 	 * @return The CRDTManager with the managed type 
 	 */
-	public static CRDTManager<? extends AbstractDataType> genCRDT(Node node) {
-		return genCRDT(node, pickType());
+	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node node, String id) {
+		return genCRDT(node, pickType(), id);
 	}
 		
 	/**
@@ -166,24 +165,23 @@ public class Factory {
 	 * @param type The enumeration corresponding to the concrete type of AbstractDataType to generate 
 	 * @return The CRDTManager with the managed type 
 	 */
-	public static CRDTManager<? extends AbstractDataType> genCRDT(Node node, TYPE type) {
-		String id = UUID.randomUUID().toString();
+	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node node, TYPE type, String id) {
 		String nodeName = node.getNodeName();
 		String userName = node.pickUser();
 		
 		switch (type) {
 		case SIMPLE_A:
-			return new CRDTManager<SimpleA>(id, userName, nodeName, SimpleA.class);
+			return new SimCRDTManager<SimpleA>(id, userName, nodeName, SimpleA.class);
 		case SIMPLE_B:
-			return new CRDTManager<SimpleB>(id, userName, nodeName, SimpleB.class);
+			return new SimCRDTManager<SimpleB>(id, userName, nodeName, SimpleB.class);
 		case SIMPLE_C:
-			return new CRDTManager<SimpleC>(id, userName, nodeName, SimpleC.class);
+			return new SimCRDTManager<SimpleC>(id, userName, nodeName, SimpleC.class);
 		case SIMPLE_D:
-			return new CRDTManager<SimpleD>(id, userName, nodeName, SimpleD.class);
+			return new SimCRDTManager<SimpleD>(id, userName, nodeName, SimpleD.class);
 		case SIMPLE_COLLECTION:
-			return new CRDTManager<SimpleCollection>(id, userName, nodeName, SimpleCollection.class);
+			return new SimCRDTManager<SimpleCollection>(id, userName, nodeName, SimpleCollection.class);
 		case SIMPLE_REFERENCE:
-			return new CRDTManager<SimpleReference>(id, userName, nodeName, SimpleReference.class);
+			return new SimCRDTManager<SimpleReference>(id, userName, nodeName, SimpleReference.class);
 		default:
 			return null;
 		}

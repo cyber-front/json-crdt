@@ -34,7 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.simulator.CRDTManager;
+import com.cyberfront.crdt.unittest.simulator.SimCRDTManager;
 import com.cyberfront.crdt.unittest.simulator.Executive;
 import com.cyberfront.crdt.unittest.simulator.Node;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,10 +46,10 @@ import com.flipkart.zjsonpatch.JsonDiff;
  * node controller and update delivery framework.  These are contained in the package
  * com.cyberfront.crdt.unitest.simulator.
  */
-public class Test02Simulation {
+public class Test01Simulation {
 	
 	/** Logger to use when displaying state information */
-	private static final Logger logger = LogManager.getLogger(Test02Simulation.class);
+	private static final Logger logger = LogManager.getLogger(Test01Simulation.class);
 
 	/** The ObjectMapper used to translate between JSON and POJO's */
 	private static final ObjectMapper mapper = new ObjectMapper();
@@ -216,8 +216,8 @@ public class Test02Simulation {
 			Node baseNode = entry.getValue();
 			assertNotNull("baseNode found to be null", baseNode);
 
-			for (Entry<String, CRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
-				CRDTManager<? extends AbstractDataType> crdt = baseEntry.getValue();
+			for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
+				SimCRDTManager<? extends AbstractDataType> crdt = baseEntry.getValue();
 				if (crdt.getNodename().equals(baseNode.getNodeName())) {
 					assessDataElementContent(baseEntry.getValue());
 				}
@@ -233,7 +233,7 @@ public class Test02Simulation {
 	 * @param crdt The CRDT which should be compared for synchronization errors with the corresponding CRDTs
 	 * in all other Node instances.
 	 */
-	private <T extends AbstractDataType> void assessDataElementContent(CRDTManager<T> crdt) {
+	private <T extends AbstractDataType> void assessDataElementContent(SimCRDTManager<T> crdt) {
 		assertNotNull("baseCRDT found to be null", crdt);
 
 		AbstractDataType baseValue = crdt.getObject();
@@ -252,7 +252,7 @@ public class Test02Simulation {
 			Node compNode = compEntry.getValue();
 			assertNotNull("compNode found to be null", compNode);
 
-			CRDTManager<? extends AbstractDataType> compCRDT = compNode.getDatastore(crdt.getObjectId());
+			SimCRDTManager<? extends AbstractDataType> compCRDT = compNode.getDatastore().get(crdt.getObjectId());
 			assertNotNull("compCRDT found to be null", compCRDT);
 
 			AbstractDataType compValue = compCRDT.getObject();
@@ -261,50 +261,16 @@ public class Test02Simulation {
 			if (compCRDT.isDeleted()) {
 				assertNull("Deleted compValue should be null, but isn't", compValue);
 			} else {
-				
-				// TODO Remove before flight
-//				if (null == compValue) {
-//					Node baseNode = Executive.getExecutive().getNode(crdt.getNodename());
-//					logger.info("\n*** Test02Simulation.assessDataElementContent(CRDTManager<T> crdt)");
-//					logger.info("    baseNode: " + (null == baseNode ? "null" : baseNode.toString()));
-//					logger.info("    baseCrdt: " + (null == crdt ? "null" : crdt.toString()));
-//					logger.info("    baseValue: " + (null == baseValue ? "null" : baseValue.toString()));
-//					logger.info("    compNode: " + (null == compNode ? "null" : compNode.toString()));
-//					logger.info("    compCrdt: " + (null == compCRDT ? "null" : compCRDT.toString()));
-//					logger.info("    compValue: " + (null == compValue ? "null" : compValue.toString()));
-//				}
-
 				assertNotNull("Undeleted compValue should not be null, but is", compValue);
+
 				JsonNode source = mapper.valueToTree(baseValue);
 				JsonNode target = mapper.valueToTree(compValue);
-				
 				JsonNode diff = JsonDiff.asJson(source, target);
-				
-				// TODO Remove before flight
-//				if (null == diff) {
-//					Node baseNode = Executive.getExecutive().getNode(crdt.getNodename());
-//					logger.info("\n*** Test02Simulation.assessDataElementContent(CRDTManager<T> crdt)");
-//					logger.info("    baseNode: " + (null == baseNode ? "null" : baseNode.toString()));
-//					logger.info("    baseCrdt: " + (null == crdt ? "null" : crdt.toString()));
-//					logger.info("    baseValue: " + (null == baseValue ? "null" : baseValue.toString()));
-//					logger.info("    compNode: " + (null == compNode ? "null" : compNode.toString()));
-//					logger.info("    compCrdt: " + (null == compCRDT ? "null" : compCRDT.toString()));
-//					logger.info("    compValue: " + (null == compValue ? "null" : compValue.toString()));
-//				}
-
 				assertNotNull("diff found to be null", diff);
 
 				StringBuilder sb = new StringBuilder();
-				
-				sb.append("Value mismatch discovered in data object with \"base ID\": ");
-				sb.append(baseValue.getId());
-				sb.append("and \"comp ID\": ");
-				sb.append(compValue.getId());
-				sb.append("{\n\t{\"baseCRDT\":" + crdt.toString() + ",");
-				sb.append("\n\t \"compCRDT\":" + compCRDT.toString() + ",");
-				sb.append("\n\t \"baseValue\":" + baseValue.toString() + ",");
-				sb.append("\n\t \"compValue\":" + compValue.toString() + "}\n}");
-				
+				sb.append("Value mismatch discovered in between synchronized objects\n");
+				sb.append("{\"basevalue\":" + baseValue.toString() + ",\"compValue\":" + compValue.toString() + "}");
 				assertTrue(sb.toString(), diff.size() == 0);
 			}
 		}
@@ -322,7 +288,7 @@ public class Test02Simulation {
 		Node baseNode = Executive.getExecutive().pickNode();
 		assertNotNull("baseNode found to be null", baseNode);
 
-		for (Entry<String, CRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
+		for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
 			AbstractDataType val = baseEntry.getValue().getObject();
 
 			if (!baseEntry.getValue().isCreated() || baseEntry.getValue().isDeleted()) {

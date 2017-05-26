@@ -79,7 +79,7 @@ public class SimpleReference extends AbstractDataType {
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"stringValue\":" + this.getReferenceValue().toString());
+		sb.append("\"referenceValue\":" + this.getReferenceValue().toString());
 		
 		return sb.toString();
 	}

@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.TreeSet;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
+import com.cyberfront.crdt.unittest.support.WordFactory;
 
 /**
  * This is an abstract class which defines a Two Set CRDT.  One set contains operations to use, called an ADD set, and the other contains
@@ -46,11 +47,19 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return the ADD set
 	 */
-	public Collection<AbstractOperation> getAddSet() {
+	protected Collection<AbstractOperation> getAddSet() {
 		if (null == this.addSet) {
 			this.addSet = new TreeSet<>();
 		}
 		return this.addSet;
+	}
+	
+	public int getAddCount() {
+		return this.getAddSet().size();
+	}
+
+	public int getRemCount() {
+		return this.getRemSet().size();
 	}
 
 	/**
@@ -58,7 +67,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return the REMOVE set
 	 */
-	public Collection<AbstractOperation> getRemSet() {
+	protected Collection<AbstractOperation> getRemSet() {
 		if (null == this.remSet) {
 			this.remSet = new TreeSet<>();
 		}
@@ -70,7 +79,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @param op The operation to add to the ADD set
 	 */
-	public void addOperation(AbstractOperation op) {
+	protected void addOperation(AbstractOperation op) {
 		this.getAddSet().add(op);
 	}
 	
@@ -79,7 +88,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @param op The operation to add to the REMOVE set
 	 */
-	public void remOperation(AbstractOperation op) {
+	protected void remOperation(AbstractOperation op) {
 		this.getRemSet().add(op);
 	}
 	
@@ -103,32 +112,8 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return The operations which are active in this Two Set CRDT
 	 */
-	public Collection<AbstractOperation> getOperations() {
+	public Collection<AbstractOperation> getOpSet() {
 		return diff(this.getAddSet(), this.getRemSet());
-	}
-
-	/**
-	 * This protected static method returns a JSON formated string of a collection of operations to the calling routine
-	 *
-	 * @param coll The collection to represent as a JSON formated array
-	 * @return The JSON string representation of the given collection
-	 */
-	protected static String getArrayString(Collection<AbstractOperation> coll) {
-		StringBuilder sb = new StringBuilder();
-		String separator = "[";
-		
-		if (coll.isEmpty()) {
-			sb.append(separator);
-		} else {
-			for (AbstractOperation op : coll) {
-				sb.append(separator + op.toString());
-				separator = ",";
-			}
-		}
-		
-		sb.append(']');
-		
-		return sb.toString();
 	}
 
 	/**
@@ -147,7 +132,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * @return True exactly when the set of active operations is empty
 	 */
 	public boolean isEmpty() {
-		return (this.getAddSet().isEmpty() && this.getRemSet().isEmpty()) || this.getOperations().isEmpty();
+		return (this.getAddSet().isEmpty() && this.getRemSet().isEmpty()) || this.getOpSet().isEmpty();
 	}
 	
 	/* (non-Javadoc)
@@ -158,9 +143,9 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"addPending\":" + getArrayString(this.getAddSet()) + ",");
-		sb.append("\"remPending\":" + getArrayString(this.getRemSet()) + ",");
-		sb.append("\"operations\":" + getArrayString(this.getOperations()));
+		sb.append("\"addSet\":" + WordFactory.convert(this.getAddSet()) + ",");
+		sb.append("\"remSet\":" + WordFactory.convert(this.getRemSet()) + ",");
+		sb.append("\"opSet\":" + WordFactory.convert(this.getOpSet()));
 
 		return sb.toString();
 	}
@@ -169,7 +154,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isCreated()
 	 */
 	public boolean isCreated() {
-		for (AbstractOperation op : this.getOperations()) {
+		for (AbstractOperation op : this.getOpSet()) {
 			if (op.isCreated()) {
 				return true;
 			}
@@ -182,7 +167,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isDeleted()
 	 */
 	public boolean isDeleted() {
-		for (AbstractOperation op : this.getOperations()) {
+		for (AbstractOperation op : this.getOpSet()) {
 			if (op.isDeleted()) {
 				return true;
 			}

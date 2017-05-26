@@ -320,4 +320,10 @@ public class WordFactory {
 
 		return sb.toString();
 	}
+
+	public static void displayStackTrace(StackTraceElement[] stackTrace) {
+		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+		    logger.info(ste);
+		}
+	}
 }
