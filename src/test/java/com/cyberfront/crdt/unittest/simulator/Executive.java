@@ -92,7 +92,7 @@ public class Executive implements ITimeStamp {
 	private MessageRouter router;
 	
 	/** The time stamp. */
-	private long timeStamp;
+	private long timestamp;
 	
 	/** The node count. */
 	private long nodeCount;
@@ -112,6 +112,9 @@ public class Executive implements ITimeStamp {
 	/** The reject probability. */
 	private double rejectProbability;
 	
+	/** The update probability. */
+	private double updateProbability;
+	
 	/** The crdt lookup. */
 	private Map<String, String> crdtLookup;
 	
@@ -124,7 +127,7 @@ public class Executive implements ITimeStamp {
 	public Executive() {
 		this.setNodes(new TreeMap<>());
 		this.setRouter(new MessageRouter());
-		this.setTimeStamp(0L);
+		this.setTimestamp(0L);
 
 		this.setCreateCount(DEFAULT_CREATE_COUNT);
 		this.setDeleteCount(DEFAULT_DELETE_COUNT);
@@ -213,23 +216,23 @@ public class Executive implements ITimeStamp {
 	 * @see com.cyberfront.cmrdt.support.ITimeStamp#getTimeStamp()
 	 */
 	@Override
-	public long getTimeStamp() {
-		return this.timeStamp;
+	public long getTimestamp() {
+		return this.timestamp;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.support.ITimeStamp#setTimeStamp(java.lang.long)
 	 */
 	@Override
-	public void setTimeStamp(long timeStamp) {
-		this.timeStamp = timeStamp;
+	public void setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
 	}
 	
 	/**
 	 * Increment time S tamp.
 	 */
-	public void incrementTimeSTamp() {
-		this.setTimeStamp(this.getTimeStamp() + WordFactory.getRandom().nextInt(256));
+	public void incrementTimestamp() {
+		this.setTimestamp(this.getTimestamp() + WordFactory.getRandom().nextInt(256));
 	}
 
 	/**
@@ -500,7 +503,7 @@ public class Executive implements ITimeStamp {
 		case READ:
 			return doRead(node);
 		case UPDATE:
-			return doUpdate(node, 0.2);
+			return doUpdate(node, this.getUpdateProbability());
 		case DELETE:
 			return doDelete(node);
 		case DELIVER:
@@ -525,7 +528,7 @@ public class Executive implements ITimeStamp {
 			Collection<Message<? extends AbstractDataType>> messages = this.handleEvent(event, node);
 			
 			this.transmit(messages);
-			this.incrementTimeSTamp();
+			this.incrementTimestamp();
 		}
 	}
 
@@ -558,6 +561,24 @@ public class Executive implements ITimeStamp {
 	}
 
 	/**
+	 * Gets the update probability.
+	 *
+	 * @return the update probability
+	 */
+	public double getUpdateProbability() {
+		return this.updateProbability;
+	}
+
+	/**
+	 * Sets the update probability.
+	 *
+	 * @param updateProbability the new reject probability
+	 */
+	public void setUpdateProbability(double updateProbability) {
+		this.updateProbability = updateProbability;
+	}
+
+	/**
 	 * Clear.
 	 */
 	public void clear() {
@@ -568,7 +589,7 @@ public class Executive implements ITimeStamp {
 		this.getNodes().clear();
 		this.getRouter().clear();
 
-		this.setTimeStamp(0L);
+		this.setTimestamp(0L);
 	}
 
 	/**
@@ -580,14 +601,16 @@ public class Executive implements ITimeStamp {
 	 * @param deleteCount the delete count
 	 * @param nodeCount the node count
 	 * @param rejectProbability the reject probability
+	 * @param updateProbability the update probability
 	 */
-	public void setCounts(long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectProbability) {
+	public void setCounts(long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectProbability, double updateProbability) {
 		this.setCreateCount(createCount);
 		this.setReadCount(readCount);
 		this.setUpdateCount(updateCount);
 		this.setDeleteCount(deleteCount);
 		this.setNodeCount(nodeCount);
 		this.setRejectProbability(rejectProbability);
+		this.setUpdateProbability(updateProbability);
 	}
 
 	/**

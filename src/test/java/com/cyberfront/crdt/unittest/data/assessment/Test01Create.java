@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
+import com.cyberfront.crdt.unittest.support.TestSupport;
 
 /**
  * This contains a class used for performing unit tests designed to create a number of 
@@ -37,32 +38,51 @@ import com.cyberfront.crdt.unittest.data.Factory;
  * objects and doesn't return null.
  */
 public class Test01Create {
-	
-	/** Constant defining the number of AbstractDataType elements to create in the unit test */
-	private static final long TRIAL_COUNT = 100L;
-	
-	/** Logger to use when displaying state information */
-	private Logger logger = LogManager.getLogger(Test03Clone.class);
+	public static class CreateTest extends TestSupport {
+		/** Logger to use when displaying state information */
+		private static final Logger logger = LogManager.getLogger(Test01Create.CreateTest.class);
 
-	/**
-	 * Perform the create test
-	 *
-	 * @param count The number of create operations to perform to generate random AbstractDataType instances
-	 */
-	private void createDataTest(long count) {
-		logger.info("\n** Test01Create: {\"count\":" + count + "}");
-		for (int i=0; i<count; ++i) {
-			AbstractDataType tmp = Factory.getInstance();
-			assertNotNull(tmp);
+		/**
+		 * Default constructor which initialized fields to their default values
+		 */
+		public CreateTest() {
+			super();
 		}
-		logger.info("   SUCCESS");
-	}
+		
+		/**
+		 * Constructor to deliberately initialize each field to the associated values provided
+		 * @param trialCount Trial count to use for the test activity
+		 * @param abbreviatedFactor Abbreviation factor to use the basis of this CreateTest instance when the abbreviated flag is set
+		 * @param stressedFactor Stressed factor to use when the the stressed flag is set
+		 * @param abbreviated Abbreviated flag which indicates when to divide different test parameters by the abbreviatedFactor
+		 * @param stressed Stressed flag which indicates when to multiply different test parameters by the stressedFactor
+		 */
+		public CreateTest(long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed) {
+			super(trialCount, abbreviatedFactor, stressedFactor, abbreviated, stressed);
+		}
 
+		/**
+		 * Perform the create test
+		 *
+		 * @param count The number of create operations to perform to generate random AbstractDataType instances
+		 */
+		public void createDataTest() {
+			logger.info("\n** Test01Create: {\"count\":" + this.getTrialCount() + "}");
+			for (int i=0; i<this.getTrialCount(); ++i) {
+				AbstractDataType tmp = Factory.getInstance();
+				assertNotNull(tmp);
+			}
+			logger.info("   SUCCESS");
+		}
+	}
+	
+	
 	/**
 	 * The main unit test routine used to perform the actual test execution 
 	 */
 	@Test
-	public void createDataTest() {
-		this.createDataTest(TRIAL_COUNT);
+	public void test() {
+		CreateTest test = new CreateTest();
+		test.createDataTest();
 	}
 }

@@ -34,11 +34,11 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.simulator.SimCRDTManager;
 import com.cyberfront.crdt.unittest.simulator.Executive;
 import com.cyberfront.crdt.unittest.simulator.Node;
+import com.cyberfront.crdt.unittest.simulator.SimCRDTManager;
+import com.cyberfront.crdt.unittest.support.TestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
 
 /**
@@ -47,327 +47,473 @@ import com.flipkart.zjsonpatch.JsonDiff;
  * com.cyberfront.crdt.unitest.simulator.
  */
 public class Test01Simulation {
-	
-	/** Logger to use when displaying state information */
-	private static final Logger logger = LogManager.getLogger(Test01Simulation.class);
-
-	/** The ObjectMapper used to translate between JSON and POJO's */
-	private static final ObjectMapper mapper = new ObjectMapper();
-
-	/** Number of test iterations to perform on tests related to internodal synchronization quality */
-	private static final long TRIAL_COUNT = 16;
-	
-	/** Number of creation operations to perform on tests related to internodal synchronization quality */
-	private static final long CREATION_COUNT = 64;
-	
-	/** Number of read operations to perform on tests related to internodal synchronization quality */
-	private static final long READ_COUNT = 64;
-	
-	/** Number of updated operations to perform on tests related to internodal synchronization quality */
-	private static final long UPDATE_COUNT = 64;
-	
-	/** Number of delete operations to perform on tests related to internodal synchronization quality */
-	private static final long DELETE_COUNT = 16;
-	
-	/** Number of nodes to simulate in tests related to internodal synchronization quality */
-	private static final long NODE_COUNT = 32;
-	
-	/** Number of test iterations to perform on tests related to internodal synchronization performance and stability */
-	private static final long STRESS_TRIAL_COUNT = 32;
-	
-	/** Number of creation operations to perform on tests related to internodal synchronization performance and stability */
-	private static final long STRESS_CREATION_COUNT = 1024;
-	
-	/** Number of read operations to perform on tests related to internodal synchronization performance and stability */
-	private static final long STRESS_READ_COUNT = 128;
-	
-	/** Number of update operations to perform on tests related to internodal synchronization performance and stability */
-	private static final long STRESS_UPDATE_COUNT = 512;
-	
-	/** Number of delete operations to perform on tests related to internodal synchronization performance and stability */
-	private static final long STRESS_DELETE_COUNT = 128;
-	
-	/** Number of nodes to simulate in tests related to internodal synchronization performance and stability */
-	private static final long STRESS_NODE_COUNT = 256;
-	
-	/** Probability of rejecting an update or delete event once it reaches the "owner" node */
-	private static final double REJECTION_PROBABILITY = 0.10d;
-	
-	/** Flag used to indicate whether or not to abbreviate the test */
-	private static final boolean ABBREVIATED = true;
-	
-	/** Division factor to apply to abbreviated tests */
-	private static final long ABBREVIATION_FACTOR = 8;
-
-	/** Flag to indicate the type of testing to perform */ 
-	private static boolean stressTest = false;
-
-	/**
-	 * Retrieve the value of the stressTest flag, which is used to determine the focus of the
-	 * particular test run.
-	 * @return The value of the stressTest flag 
-	 */
-	public static boolean isStressTest() {
-		return stressTest;
-	}
-
-	/**
-	 * Set the value of the stressTest flag to the given value
-	 * @param value The new value to set the stressTest flag
-	 */
-	private static void setStressTest(boolean value) {
-		stressTest = value;
-	}
-	
-	public static boolean isAbbreviated() {
-		return ABBREVIATED;
-	}
-
-	public static long getAbbreviationFactor() {
-		return isAbbreviated() ? ABBREVIATION_FACTOR : 1;
-	}
-	
-	/**
-	 * Gets the trial count based on the stress test state.
-	 *
-	 * @return the trial count
-	 */
-	private static long getTrialCount() {
-		return (isStressTest() ? STRESS_TRIAL_COUNT : TRIAL_COUNT) / getAbbreviationFactor();
-	}
-
-	/**
-	 * Gets the creation count based on the stress test state.
-	 *
-	 * @return the creation count
-	 */
-	private static long getCreationCount() {
-		return (isStressTest() ? STRESS_CREATION_COUNT : CREATION_COUNT) / getAbbreviationFactor();
-	}
-
-	/**
-	 * Gets the read count based on the stress test state.
-	 *
-	 * @return the read count
-	 */
-	private static long getReadCount() {
-		return (isStressTest() ? STRESS_READ_COUNT : READ_COUNT) / getAbbreviationFactor();
-	}
-
-	/**
-	 * Gets the update count based on the stress test state.
-	 *
-	 * @return the update count
-	 */
-	private static long getUpdateCount() {
-		return (isStressTest() ? STRESS_UPDATE_COUNT : UPDATE_COUNT) / getAbbreviationFactor();
-	}
-
-	/**
-	 * Gets the delete count based on the stress test state.
-	 *
-	 * @return the delete count
-	 */
-	private static long getDeleteCount() {
-		return (isStressTest() ? STRESS_DELETE_COUNT : DELETE_COUNT) / getAbbreviationFactor();
-	}
-
-	/**
-	 * Gets the node count based on the stress test state.
-	 *
-	 * @return the node count
-	 */
-	private static long getNodeCount() {
-		return (isStressTest() ? STRESS_NODE_COUNT : NODE_COUNT) / getAbbreviationFactor();
-	}
-
-	/**
-	 * Assess data element count based on the stress test state.
-	 */
-	private void assessDataElementCount() {
-		logger.info("        Test01Simulation.assessDataElementCount()");
+	public static class SimulationTest extends TestSupport {
+		/** Logger to use when displaying state information */
+		private static final Logger logger = LogManager.getLogger(Test01Simulation.SimulationTest.class);
 		
-		for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
-			
-			String name = entry.getKey();
-			Node node = entry.getValue();
-			long count = node.getDatastore().size();
+		/** Number of creation operations to perform on tests related to internodal synchronization quality */
+		private static final long CREATE_COUNT = 64;
+		
+		/** Number of read operations to perform on tests related to internodal synchronization quality */
+		private static final long READ_COUNT = 64;
+		
+		/** Number of updated operations to perform on tests related to internodal synchronization quality */
+		private static final long UPDATE_COUNT = 64;
+		
+		/** Number of delete operations to perform on tests related to internodal synchronization quality */
+		private static final long DELETE_COUNT = 16;
+		
+		/** Number of nodes to simulate in tests related to internodal synchronization quality */
+		private static final long NODE_COUNT = 32;
+		
+		/** Probability of rejecting an update or delete event once it reaches the "owner" node */
+		private static final double REJECTION_PROBABILITY = 0.10d;
+		
+		/** Probability of rejecting an update or delete event once it reaches the "owner" node */
+		private static final double UPDATE_PROBABILITY = 0.20d;
+		
+		/** Flag used to assess whether each node has the same number of elements */
+		private static final boolean ASSESS_COUNT_CONSISTENCY = true;
+		
+		/** Flag used to assess whether each node has the same elements, where corresponding elements have the same value
+		 * as that of the owner node for a particular CRDT
+		 */
+		private static final boolean ASSESS_CONTENT_CONSISTENCY = true;
+		
+		/**
+		 * Flag used to assess whether the CRDT is valid.  When used it will determine whether any invalid operations
+		 * occurred, and also check to make sure each CRDT has exactly one create operation and at most one delete operation.
+		 */
+		private static final boolean ASSESS_VALIDITY = true;
+		
+		/** The number of times to perform a create operation during the simulation */
+		private long createCount;
+		
+		/** The number of times to perform a read operation during the simulation */
+		private long readCount;
 
-			StringBuilder sb = new StringBuilder();
-			
-			sb.append("CRDT count mismatch on node \"");
-			sb.append(name);
-			sb.append("\"; expected: ");
-			sb.append(String.valueOf(getCreationCount()));
-			sb.append("; found: ");
-			sb.append(String.valueOf(count));
-			assertTrue(sb.toString(), getCreationCount() == count);
+		/** The number of times to perform an update operation during the simulation */
+		private long updateCount;
+
+		/** The number of times to perform a delete operation during the simulation */
+		private long deleteCount;
+
+		/** The number of nodes to create */
+		private long nodeCount;
+
+		/** Probability of rejecting an PENDING operation */
+		private double rejectionProbability;
+
+		/** Probability of rejecting an updating a field during an update operations */
+		private double updateProbability;
+
+		/** Flag set to check the number of CRDT objects is the same on all nodes */
+		private boolean assessCountConsistency;
+
+		/** Flag set to check the content consistency of CRDT objects on all nodes */
+		private boolean assessContentConsistency;
+
+		/** Flag set to check the content consistency of CRDT objects on all nodes */
+		private boolean assessValidity;
+
+		/**
+		 * Default constructor which sets all of the fields to the defaults values specified 
+		 * in the corresponding constant values.
+		 */
+		public SimulationTest() {
+			super();
+			this.setCreateCount(CREATE_COUNT);
+			this.setDeleteCount(DELETE_COUNT);
+			this.setNodeCount(NODE_COUNT);
+			this.setReadCount(READ_COUNT);
+			this.setUpdateCount(UPDATE_COUNT);
+			this.setRejectionProbability(REJECTION_PROBABILITY);
+			this.setUpdateProbability(UPDATE_PROBABILITY);
+			this.setAssessCountConsistency(ASSESS_COUNT_CONSISTENCY);
+			this.setAssessValidity(ASSESS_VALIDITY);
+			this.setAssessContentConsistency(ASSESS_CONTENT_CONSISTENCY);
 		}
-	}
-	
-	/**
-	 * Determine if the number of CRDTManagers is proper in each Node 
-	 */
-	private void assessDataElementContent() {
-		logger.info("        Test01Simulation.assessDataElementContent()");
 
-		for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
+		/**
+		 * Constructor to explicitly set all of the fields to the values given in the constructor arguments below
+		 * @param createCount Number of times to perform a create operation
+		 * @param readCount Number of times to perform a read operation
+		 * @param updateCount Number of times to perform an update operation
+		 * @param deleteCount Number of times to perform a delete operation
+		 * @param nodeCount Number of nodes to create
+		 * @param rejectionProbability Probability of rejecting a PENDING operation 
+		 * @param updateProbability Probability of changing a field during an update operation
+		 * @param trialCount Number of trials to perform
+		 * @param abbreviatedFactor Divisor for adjusting counts when doing abbreviated testing
+		 * @param stressedFactor Multiplier for sdjusting counts when doing stress testing
+		 * @param abbreviated Flag to indicate whether to do abbreviated testing
+		 * @param stressed Flag to indicate whether to to stress testing
+		 * @param assessCountConsistency Flag to check the object count consistency between nodes
+		 * @param assessContentConsistency Flag to check the object value consistency between nodes
+		 * @param assessValidity Flag to check the validity of the CRDT values at each node
+		 */
+		public SimulationTest(long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectionProbability, double updateProbability, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed, boolean assessCountConsistency, boolean assessContentConsistency, boolean assessValidity) {
+			super(trialCount, abbreviatedFactor, stressedFactor, abbreviated, stressed);
+			this.setCreateCount(createCount);
+			this.setReadCount(readCount);
+			this.setUpdateCount(updateCount);
+			this.setDeleteCount(deleteCount);
+			this.setNodeCount(nodeCount);
+			this.setRejectionProbability(rejectionProbability);
+			this.setUpdateProbability(updateProbability);
+			this.setAssessCountConsistency(assessCountConsistency);
+			this.setAssessContentConsistency(assessContentConsistency);
+			this.setAssessValidity(assessValidity);
+		}
 
-			Node baseNode = entry.getValue();
-			assertNotNull("baseNode found to be null", baseNode);
+		/**
+		 * Get the number of create operations to perform
+		 * @return The number of create operations to perform
+		 */
+		public long getCreateCount() {
+			return this.createCount * this.getStressedFactor() / this.getAbbreviatedFactor();
+		}
 
-			for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
-				SimCRDTManager<? extends AbstractDataType> crdt = baseEntry.getValue();
-				if (crdt.getNodename().equals(baseNode.getNodeName())) {
-					assessDataElementContent(baseEntry.getValue());
+		/**
+		 * Get the number of read operations to perform
+		 * @return The number of read operations to perform
+		 */
+		public long getReadCount() {
+			return readCount * this.getStressedFactor() / this.getAbbreviatedFactor();
+		}
+
+		/**
+		 * Get the number of update operations to perform
+		 * @return The number of update operations to perform
+		 */
+		public long getUpdateCount() {
+			return updateCount * this.getStressedFactor() / this.getAbbreviatedFactor();
+		}
+
+		/**
+		 * Get the number of delete operations to perform
+		 * @return The number of delete operations to perform
+		 */
+		public long getDeleteCount() {
+			return deleteCount * this.getStressedFactor() / this.getAbbreviatedFactor();
+		}
+
+		/**
+		 * Get the number of nodes to use in the simulation
+		 * @return The number of nodes to use in the simulation
+		 */
+		public long getNodeCount() {
+			return nodeCount * this.getStressedFactor() / this.getAbbreviatedFactor();
+		}
+
+		/**
+		 * Get the probability of rejecting a PENDING operation
+		 * @return The probability of rejecting a PENDING operation
+		 */
+		public double getRejectionProbability() {
+			return rejectionProbability;
+		}
+
+		/**
+		 * Get the probability of changing a field during an update operation
+		 * @return The probability of changing a field during an update operation
+		 */
+		public double getUpdateProbability() {
+			return updateProbability;
+		}
+
+		/**
+		 * Return the value of the flag for assessing the count consistency 
+		 * @return The flag for assessing the count consistency
+		 */
+		public boolean isAssessCountConsistency() {
+			return assessCountConsistency;
+		}
+
+		/**
+		 * Return the value of the flag for assessing the content consistency
+		 * @return The flag for assessing the content consistency
+		 */
+		public boolean isAssessContentConsistency() {
+			return assessContentConsistency;
+		}
+
+		/**
+		 * Return the value of the flag for assessing CRDT validity
+		 * @return The flag for assessing CRDT validity
+		 */
+		public boolean isAssessValidity() {
+			return assessValidity;
+		}
+
+		/**
+		 * Set the base number of create operations to perform in a given simulation run 
+		 * @param createCount Number of create operations to perform in a given simulation run
+		 */
+		public void setCreateCount(long createCount) {
+			this.createCount = createCount;
+		}
+
+		/**
+		 * Set the base number of read operations to perform in a given simulation run 
+		 * @param readCount Number of read operations to perform in a given simulation run
+		 */
+		public void setReadCount(long readCount) {
+			this.readCount = readCount;
+		}
+
+		/**
+		 * Set the base number of update operations to perform in a given simulation run 
+		 * @param updateCount Number of update operations to perform in a given simulation run
+		 */
+		public void setUpdateCount(long updateCount) {
+			this.updateCount = updateCount;
+		}
+
+		/**
+		 * Set the base number of delete operations to perform in a given simulation run 
+		 * @param deleteCount Number of delete operations to perform in a given simulation run
+		 */
+		public void setDeleteCount(long deleteCount) {
+			this.deleteCount = deleteCount;
+		}
+
+		/**
+		 * Set the base number of nodes to manage during a simulation run 
+		 * @param nodeCount Base number of nodes to manage during a simulation run
+		 */
+		public void setNodeCount(long nodeCount) {
+			this.nodeCount = nodeCount;
+		}
+
+		/**
+		 * Set the probability of rejecting a PENDING operation
+		 * @param rejectionProbability The probability of rejecting a PENDING operation
+		 */
+		public void setRejectionProbability(double rejectionProbability) {
+			this.rejectionProbability = rejectionProbability;
+		}
+
+		/**
+		 * Set the probability of updating a field during an update operation
+		 * @param rejectionProbability The probability of updating a field during an update operation
+		 */
+		public void setUpdateProbability(double updateProbability) {
+			this.updateProbability = updateProbability;
+		}
+
+		/**
+		 * Set the flag which determines whether or not to perform count consistency assessments
+		 * @param assessCountConsistency The new value for the flag which determines whether or not to perform count consistency assessments
+		 */
+		public void setAssessCountConsistency(boolean assessCountConsistency) {
+			this.assessCountConsistency = assessCountConsistency;
+		}
+
+		/**
+		 * Set the flag which determines whether or not to perform content consistency assessments
+		 * @param assessContentConsistency The new value for the flag which determines whether or not to perform content consistency assessments
+		 */
+		public void setAssessContentConsistency(boolean assessContentConsistency) {
+			this.assessContentConsistency = assessContentConsistency;
+		}
+
+		/**
+		 * Set the flag which determines whether or not to perform validity assessments
+		 * @param assessValidity The new value for the flag which determines whether or not to perform validity assessments
+		 */
+		public void setAssessValidity(boolean assessValidity) {
+			this.assessValidity = assessValidity;
+		}
+		
+		/**
+		 * Perform the count consistency check to ensure each node has the same number of elements, which should
+		 * be equal to the total number of CreateOperations which were performed.
+		 */
+		private void assessCountConsistency() {
+			logger.info("        Test01Simulation.assessCountConsistency()");
+			
+			for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
+				
+				String name = entry.getKey();
+				Node node = entry.getValue();
+				long count = node.getDatastore().size();
+
+				StringBuilder sb = new StringBuilder();
+				
+				sb.append("CRDT count mismatch on node \"");
+				sb.append(name);
+				sb.append("\"; expected: ");
+				sb.append(String.valueOf(this.getCreateCount()));
+				sb.append("; found: ");
+				sb.append(String.valueOf(count));
+				assertTrue(sb.toString(), this.getCreateCount() == count);
+			}
+		}
+		
+		/**
+		 * Determine if the number of CRDTManagers is proper in each Node 
+		 */
+		private void assessContentConsistency() {
+			logger.info("        Test01Simulation.assessContentConsistency()");
+
+			for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
+
+				Node baseNode = entry.getValue();
+				assertNotNull("baseNode found to be null", baseNode);
+
+				for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
+					SimCRDTManager<? extends AbstractDataType> crdt = baseEntry.getValue();
+					if (crdt.getNodename().equals(baseNode.getNodeName())) {
+						assessContentConsistency(baseEntry.getValue());
+					}
 				}
 			}
 		}
-	}
 
-	/**
-	 * For a given CRDT instance, ensure all of the nodes have the same CRDT and that
-	 * the state is consistent across all of the nodes.
-	 *
-	 * @param <T> The type the CRDTManager manages
-	 * @param crdt The CRDT which should be compared for synchronization errors with the corresponding CRDTs
-	 * in all other Node instances.
-	 */
-	private <T extends AbstractDataType> void assessDataElementContent(SimCRDTManager<T> crdt) {
-		assertNotNull("baseCRDT found to be null", crdt);
-
-		AbstractDataType baseValue = crdt.getObject();
-		if (crdt.isDeleted()) {
-			if (null != baseValue) {
-				System.out.print(crdt.toString());
-			}
-			assertNull("Deleted baseValue should be null, but isn't", baseValue);
-		} else {
-			if (null == baseValue) {
-				System.out.print(crdt.toString());
-			}
-		}
-
-		for (Map.Entry<String, Node> compEntry : Executive.getExecutive().getNodes().entrySet()) {
-			Node compNode = compEntry.getValue();
-			assertNotNull("compNode found to be null", compNode);
-
-			SimCRDTManager<? extends AbstractDataType> compCRDT = compNode.getDatastore().get(crdt.getObjectId());
-			assertNotNull("compCRDT found to be null", compCRDT);
-
-			AbstractDataType compValue = compCRDT.getObject();
-			assertTrue("compCRDT.isDeleted (" + compCRDT.isDeleted() + ") / baseCRDT.isDeleted (" + crdt.isDeleted() + ") deleted flag mismatch: ", compCRDT.isDeleted() == crdt.isDeleted() );
-
-			if (compCRDT.isDeleted()) {
-				assertNull("Deleted compValue should be null, but isn't", compValue);
-			} else {
-				assertNotNull("Undeleted compValue should not be null, but is", compValue);
-
-				JsonNode source = mapper.valueToTree(baseValue);
-				JsonNode target = mapper.valueToTree(compValue);
-				JsonNode diff = JsonDiff.asJson(source, target);
-				assertNotNull("diff found to be null", diff);
-
-				StringBuilder sb = new StringBuilder();
-				sb.append("Value mismatch discovered in between synchronized objects\n");
-				sb.append("{\"basevalue\":" + baseValue.toString() + ",\"compValue\":" + compValue.toString() + "}");
-				assertTrue(sb.toString(), diff.size() == 0);
-			}
-		}
-	}
-
-	/**
-	 * Determine the number of invalid operations contained in the CRDT.  Invalid operations are those which 
-	 * cannot be processed because the underlying JSON document is in a fundamentally inconsistent state from the
-	 * update which is being applied.  In such cases, those updates are ignored, but are set aside for later
-	 * assessment, namely to be counted ensuring consistency across the set of CRDT's.
-	 */
-	private void assessInvalidOperations() {
-		logger.info("        Test01Simulation.assessInvalidOperations()");
-		
-		Node baseNode = Executive.getExecutive().pickNode();
-		assertNotNull("baseNode found to be null", baseNode);
-
-		for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
-			AbstractDataType val = baseEntry.getValue().getObject();
-
-			if (!baseEntry.getValue().isCreated() || baseEntry.getValue().isDeleted()) {
-				assertNull("CRDT expected to be null, but isnt", val);
-			} else {
-				assertNotNull("CRDT expected to be not null, but is", val);
-			}
-
-			int invalidOperations = baseEntry.getValue().getInvalidOperationCount();
+		/**
+		 * For a given CRDT instance, ensure all of the nodes have the same CRDT and that
+		 * the state is consistent across all of the nodes.
+		 *
+		 * @param <T> The type the CRDTManager manages
+		 * @param crdt The CRDT which should be compared for synchronization errors with the corresponding CRDTs
+		 * in all other Node instances.
+		 */
+		private <T extends AbstractDataType> void assessContentConsistency(SimCRDTManager<T> crdt) {
+			assertNotNull("crdt found to be null", crdt);
+			assertTrue("crdt is not created", crdt.isCreated());
 			
-			if (invalidOperations > 0) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("    Node : " + baseNode.getNodeName() + "\n");
-				sb.append("    count : " + baseEntry.getValue().getInvalidOperationCount() + "\n");
-				logger.info("    Residual invalid operations detected: \n" + sb.toString());
+			AbstractDataType baseValue = crdt.getObject();
+
+			assertTrue("Deleted value should be null, but is not: " + crdt.toString(), !crdt.isDeleted() || (null == baseValue && crdt.isDeleted()));
+			assertTrue("Created value should not be null, but is: " + crdt.toString(), crdt.isDeleted() || (null != baseValue && !crdt.isDeleted()));
+
+			for (Map.Entry<String, Node> compEntry : Executive.getExecutive().getNodes().entrySet()) {
+				Node compNode = compEntry.getValue();
+				assertNotNull("compNode found to be null", compNode);
+
+				SimCRDTManager<? extends AbstractDataType> compCRDT = compNode.getDatastore().get(crdt.getObjectId());
+				assertNotNull("compCRDT found to be null", compCRDT);
+
+				AbstractDataType compValue = compCRDT.getObject();
+				assertTrue("compCRDT.isDeleted (" + compCRDT.isDeleted() + ") / baseCRDT.isDeleted (" + crdt.isDeleted() + ") deleted flag mismatch: ", compCRDT.isDeleted() == crdt.isDeleted() );
+
+				if (compCRDT.isDeleted()) {
+					assertNull("Deleted compValue should be null, but isn't", compValue);
+				} else {
+					assertNotNull("Undeleted compValue should not be null, but is", compValue);
+
+					JsonNode source = this.getMapper().valueToTree(baseValue);
+					JsonNode target = this.getMapper().valueToTree(compValue);
+					JsonNode diff = JsonDiff.asJson(source, target);
+					assertNotNull("diff found to be null", diff);
+
+					StringBuilder sb = new StringBuilder();
+					sb.append("Value mismatch discovered in between synchronized objects\n");
+					sb.append("{\"basevalue\":" + baseValue.toString() + ",\"compValue\":" + compValue.toString() + "}");
+					assertTrue(sb.toString(), diff.size() == 0);
+				}
 			}
+		}
+
+		/**
+		 * Determine the number of invalid operations contained in the CRDT.  Invalid operations are those which 
+		 * cannot be processed because the underlying JSON document is in a fundamentally inconsistent state from the
+		 * update which is being applied.  In such cases, those updates are ignored, but are set aside for later
+		 * assessment, namely to be counted ensuring consistency across the set of CRDT's.
+		 */
+		private void assessValidity() {
+			logger.info("        Test01Simulation.assessValidity()");
+			
+			Node baseNode = Executive.getExecutive().pickNode();
+			assertNotNull("baseNode found to be null", baseNode);
+
+			for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
+				AbstractDataType val = baseEntry.getValue().getObject();
+
+				if (!baseEntry.getValue().isCreated() || baseEntry.getValue().isDeleted()) {
+					if (null != val) {
+						logger.info("{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue());
+					}
+					assertNull("CRDT expected to be null, but isnt", val);
+				} else {
+					if (null == val) {
+						logger.info("{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue());
+					}
+					assertNotNull("CRDT expected to be not null, but is", val);
+				}
+
+				int invalidOperations = baseEntry.getValue().getInvalidOperationCount();
+				
+				if (invalidOperations > 0) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("    Node : " + baseNode.getNodeName() + "\n");
+					sb.append("    count : " + baseEntry.getValue().getInvalidOperationCount() + "\n");
+					logger.info("    Residual invalid operations detected: \n" + sb.toString());
+				}
+			}
+		}
+
+		/**
+		 * Perform the assessments on the simulation run based on the type of test being performed.
+		 * All assessments will ensure the consistency of the CRDT count across the nodes and will
+		 * determine, based on examination of a single node, whether there are any invalid operations.
+		 * If the test is not performing a detailed qualitative assessment of the CRDT, then an
+		 * assessment of the synchronization state of the CRDTs will also be performed across all
+		 * nodes.  This last is time consuming.
+		 */
+		private void assessSimulation() {
+			if (this.isAssessValidity()) {
+				this.assessValidity();
+			}
+			
+			if (this.isAssessCountConsistency()) {
+				this.assessCountConsistency();
+			}
+
+			if (this.isAssessContentConsistency()) {
+				assessContentConsistency();
+			}
+		}
+		
+		/**
+		 * Run the simulation with the parameters specified in this instance and assess the outcome of the run 
+		 */
+		public void test() {
+			logger.info("\n** SimulationTest: {\"trialCount\":" + this.getTrialCount() +
+							",\"createCount\":" + this.getCreateCount() + 
+							",\"readCount\":" + this.getReadCount() + 
+							",\"updateCount\":" + this.getUpdateCount() + 
+							",\"deleteCount\":" + this.getDeleteCount() + 
+							",\"nodeCount\":" + this.getNodeCount() + 
+							",\"rejectProbability\":" + this.getRejectionProbability() + 
+							",\"updateProbability\":" + this.getUpdateProbability() + 
+							"}");
+			Executive executive = Executive.getExecutive();
+			String crud = "";
+			
+			crud += createCount > 0 ? 'C' : 'x';
+			crud += readCount > 0 ? 'R' : 'x';
+			crud += updateCount > 0 ? 'U' : 'x';
+			crud += deleteCount > 0 ? 'D' : 'x';
+			
+			for (long trial=0; trial<this.getTrialCount(); ++trial) {
+				logger.info("   simulateTest: " + crud + "; trial " + (trial+1) + " of " + this.getTrialCount() + ".");
+				
+				executive.clear();
+				executive.setCounts(this.getCreateCount(), this.getReadCount(), this.getUpdateCount(), this.getDeleteCount(), this.getNodeCount(), this.getRejectionProbability(), this.getUpdateProbability());
+				try {
+					executive.execute();
+				} catch (ReflectiveOperationException e) {
+					logger.error(e);
+					e.printStackTrace();
+				}
+				assessSimulation();
+			}
+			logger.info("   SUCCESS");
 		}
 	}
 
-	/**
-	 * Perform the assessments on the simulation run based on the type of test being performed.
-	 * All assessments will ensure the consistency of the CRDT count across the nodes and will
-	 * determine, based on examination of a single node, whether there are any invalid operations.
-	 * If the test is not performing a detailed qualitative assessment of the CRDT, then an
-	 * assessment of the synchronization state of the CRDTs will also be performed across all
-	 * nodes.  This last is time consuming.
-	 */
-	private void assessSimulation() {
-		assessDataElementCount();
-		assessInvalidOperations();
-		if (!isStressTest()) {
-			assessDataElementContent();
-		}
-	}
-	
-	/**
-	 * Run the simulation with the given parameters.
-	 *
-	 * @param trialCount The number of iterations to perform for this test
-	 * @param createCount The number of creation operations to perform for this test
-	 * @param readCount The number of read operations to perform for this test
-	 * @param updateCount The number of update operations to perform for this test
-	 * @param deleteCount The number of delete operations to perform for this test
-	 * @param nodeCount The number of nodes to simulate in this test
-	 * @param rejectProbability The probability the authoritative element will reject an update or delete operation
-	 */
-	private void simulateTest(long trialCount, long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectProbability) {
-		logger.info("\n** simulateTest: {\"trialCount\":" + trialCount +
-						",\"createCount\":" + createCount + 
-						",\"readCount\":" + readCount + 
-						",\"updateCount\":" + updateCount + 
-						",\"deleteCount\":" + deleteCount + 
-						",\"nodeCount\":" + nodeCount + 
-						",\"rejectProbability\":" + rejectProbability + 
-						"}");
-		Executive executive = Executive.getExecutive();
-		String crud = "";
-		
-		crud += createCount > 0 ? 'C' : 'x';
-		crud += readCount > 0 ? 'R' : 'x';
-		crud += updateCount > 0 ? 'U' : 'x';
-		crud += deleteCount > 0 ? 'D' : 'x';
-		
-		for (long trial=0; trial<trialCount; ++trial) {
-			logger.info("   simulateTest: " + crud + "; trial " + (trial+1) + " of " + trialCount + ".");
-			
-			executive.clear();
-			executive.setCounts(createCount, readCount, updateCount, deleteCount, nodeCount, rejectProbability);
-			try {
-				executive.execute();
-			} catch (ReflectiveOperationException e) {
-				logger.error(e);
-				e.printStackTrace();
-			}
-			assessSimulation();
-		}
-		logger.info("   SUCCESS");
-	}
-	
 	/**
 	 * This test will perform a qualitative assessment of the ability to perform create
 	 * operations on a CRDT and have those operations propagate across all the nodes in
@@ -375,8 +521,12 @@ public class Test01Simulation {
 	 */
 	@Test
 	public void simulateCreate() {
-		setStressTest(false);
-		this.simulateTest(getTrialCount(), getCreationCount(), 0, 0, 0, getNodeCount(), 0.0);
+		SimulationTest test = new SimulationTest();
+		test.setReadCount(0);
+		test.setUpdateCount(0);
+		test.setDeleteCount(0);
+		test.setRejectionProbability(0.0);
+		test.test();
 	}
 
 	/**
@@ -386,8 +536,11 @@ public class Test01Simulation {
 	 */
 	@Test
 	public void simulateRead() {
-		setStressTest(false);
-		this.simulateTest(getTrialCount(), getCreationCount(), getReadCount(), 0, 0, getNodeCount(), 0.0);
+		SimulationTest test = new SimulationTest();
+		test.setUpdateCount(0);
+		test.setDeleteCount(0);
+		test.setRejectionProbability(0.0);
+		test.test();
 	}
 
 	/**
@@ -397,8 +550,9 @@ public class Test01Simulation {
 	 */
 	@Test
 	public void simulateUpdate() {
-		setStressTest(false);
-		this.simulateTest(getTrialCount(), getCreationCount(), getReadCount(), getUpdateCount(), 0, getNodeCount(), REJECTION_PROBABILITY);
+		SimulationTest test = new SimulationTest();
+		test.setDeleteCount(0);
+		test.test();
 	}
 
 	/**
@@ -408,8 +562,8 @@ public class Test01Simulation {
 	 */
 	@Test
 	public void simulateDelete() {
-		setStressTest(false);
-		this.simulateTest(getTrialCount(), getCreationCount(), getReadCount(), getUpdateCount(), getDeleteCount(), getNodeCount(), REJECTION_PROBABILITY);
+		SimulationTest test = new SimulationTest();
+		test.test();
 	}
 
 	/**
@@ -419,7 +573,9 @@ public class Test01Simulation {
 	 */
 	@Test
 	public void simulateStressTest() {
-		setStressTest(true);
-		this.simulateTest(getTrialCount(), getCreationCount(), getReadCount(), getUpdateCount(), getDeleteCount(), getNodeCount(), REJECTION_PROBABILITY);
+		SimulationTest test = new SimulationTest();
+		test.setStressed(true);
+		test.setAssessContentConsistency(false);
+		test.test();
 	}
 }

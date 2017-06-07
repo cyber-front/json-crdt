@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
+import com.cyberfront.crdt.unittest.support.TestSupport;
 
 /**
  * This contains a class used for performing unit tests designed to create and update a number of 
@@ -37,32 +38,54 @@ import com.cyberfront.crdt.unittest.data.Factory;
  * objects, neither of which result in null.
  */
 public class Test02Update {
-	
-	/** Constant defining the number of AbstractDataType elements to create and update test in the unit test */
-	private static final long COUNT=100L; 
-	
-	/** Constant to define the default update probability to use */
-	private static final double UPDATE_PROBABILITY = 0.2;
-	
-	/** Logger to use when displaying state information */
-	private Logger logger = LogManager.getLogger(Test03Clone.class.getName());
-	
-	/**
-	 * This performs the actual create and update test given a count and update probability.  Each create is accompanied by only 
-	 * a single update session on the object.
-	 *
-	 * @param count The number of create operations to perform; there will be one update per create
-	 * @param updateProb The probability for a particular field in the generated AbstractDataType to be randomly changed
-	 */
-	private void updateDataTest(long count, Double updateProb) {
-		logger.info("\n** Test02Update: {\"count\":" + count + ",\"updateProb\":" + updateProb + "}");
-		for (int i=0; i<count; ++i) {
-			AbstractDataType tmp = Factory.getInstance();
-			assertNotNull(tmp);
-			tmp.update(updateProb);
-			assertNotNull(tmp);
+	public static class UpdateTest extends TestSupport {
+		/** Constant to define the default update probability to use */
+		private static final double UPDATE_PROBABILITY = 0.2;
+		
+		/** Logger to use when displaying state information */
+		private Logger logger = LogManager.getLogger(Test03Clone.CloneTest.class);
+
+		private double updateProbability;
+		
+		public UpdateTest() {
+			super();
+			this.setUpdateProbability(UPDATE_PROBABILITY);
 		}
-		logger.info("   SUCCESS");
+		
+		public UpdateTest(double updateProbability, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed) {
+			super(trialCount, abbreviatedFactor, stressedFactor, abbreviated, stressed);
+			this.setUpdateProbability(updateProbability);
+		}
+
+		/**
+		 * Return the given update probability factor
+		 * @return The update probability factor
+		 */
+		public double getUpdateProbability() {
+			return this.updateProbability;
+		}
+
+		public void setUpdateProbability(double updateProbability) {
+			this.updateProbability = updateProbability;
+		}
+
+		/**
+		 * This performs the actual create and update test given a count and update probability.  Each create is accompanied by only 
+		 * a single update session on the object.
+		 *
+		 * @param count The number of create operations to perform; there will be one update per create
+		 * @param updateProb The probability for a particular field in the generated AbstractDataType to be randomly changed
+		 */
+		public void test() {
+			logger.info("\n** Test02Update: {\"count\":" + this.getTrialCount() + ",\"updateProb\":" + this.getUpdateProbability() + "}");
+			for (int i=0; i<this.getTrialCount(); ++i) {
+				AbstractDataType tmp = Factory.getInstance();
+				assertNotNull(tmp);
+				tmp.update(this.getUpdateProbability());
+				assertNotNull(tmp);
+			}
+			logger.info("   SUCCESS");
+		}
 	}
 	
 	/**
@@ -70,6 +93,7 @@ public class Test02Update {
 	 */
 	@Test
 	public void updateDataTest() {
-		this.updateDataTest(COUNT, UPDATE_PROBABILITY);
+		UpdateTest test = new UpdateTest();
+		test.test();
 	}
 }

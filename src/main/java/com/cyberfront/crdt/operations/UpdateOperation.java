@@ -22,6 +22,8 @@
  */
 package com.cyberfront.crdt.operations;
 
+import static org.junit.Assert.assertNotNull;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +31,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.flipkart.zjsonpatch.JsonPatch;
 
 /**
- * The Class UpdateOperation.
+ * The UpdateOperation encapsulates the creation of a new JSON document in the CRDT.  It should have
+ * a time stamp following the CreateOperation timestamp for the CRDT and one which precedes any DeleteOperation,
+ * if it exists.  No validation of these object to determine their compliance with RFC 6902 is performed. 
  */
 public class UpdateOperation extends AbstractOperation {
 	
@@ -62,13 +66,8 @@ public class UpdateOperation extends AbstractOperation {
 	 */
 	@Override
 	public JsonNode processOperation(JsonNode document) {
-		JsonNode rv = null;
-		
-		if (null != document) {
-			rv = JsonPatch.apply(this.getOp(), document);
-		}
-
-		return rv;
+		assertNotNull("Update Operation is null", this.getOp());
+		return null == document ? null :  JsonPatch.apply(this.getOp(), document);
 	}
 
 	/* (non-Javadoc)

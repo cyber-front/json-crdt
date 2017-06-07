@@ -75,9 +75,6 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	/** The operation counter used to assign each operator a unique ID. */
 	private static Long operationCounter = 0L;
 	
-	/** Status associated with this operation to determine how it will be handled */
-//	private StatusType status = StatusType.PENDING;
-
 	/**
 	 * This constructor initializes elements of this abstract class instance given an operation and a 
 	 * timestamp associated with executing the operation.
@@ -140,22 +137,6 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	}
 
 	/**
-	 * Retrieve the status of this operation
-	 * @return The status of this operation
-	 */
-//	public StatusType getStatus() {
-//		return status;
-//	}
-
-	/**
-	 * Set the status of this operation instance
-	 * @param status New status value to define for this operation
-	 */
-//	public void setStatus(StatusType status) {
-//		this.status = status;
-//	}
-
-	/**
 	 * This is a private method which sets the operation ID value to the next operation ID.
 	 */
 	private void setOperationId() {
@@ -200,7 +181,6 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 		sb.append("\"type\":\"" + this.getType().toString() + "\",");
 		sb.append("\"timeStamp\":" + this.getTimeStamp() + ",");
 		sb.append("\"operationId\":" + this.getOperationId() + ",");
-//		sb.append("\"status\":\"" + this.getStatus().toString() + "\",");
 		sb.append("\"op\":" + (null == op ? "null" : this.getOp().toString()));
 
 		return sb.toString();
@@ -215,30 +195,30 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	public abstract JsonNode processOperation(JsonNode document);
 	
 	/**
-	 * Gets the type.
+	 * This abstract method retrieves the enumerated type specification for the derived class instance 
 	 *
-	 * @return the type
+	 * @return The enumerated type specifier for this instance
 	 */
 	public abstract OperationType getType();
 
 	/**
-	 * Copy.
+	 * Generate and return a copy of this instance
 	 *
-	 * @return the abstract operation
+	 * @return Returns a copy of this AbstractOperation
 	 */
 	public abstract AbstractOperation copy();
 	
 	/**
-	 * Checks if is created.
+	 * Checks if the operation is a CreateOperation operation.
 	 *
-	 * @return true, if is created
+	 * @return true exactly when this instance is a CreateOperation
 	 */
 	public abstract boolean isCreated();
 	
 	/**
-	 * Checks if is deleted.
+	 * Checks if the operation is a DeleteOperation operation.
 	 *
-	 * @return true, if is deleted
+	 * @return true exactly when this instance is a DeleteOperation
 	 */
 	public abstract boolean isDeleted();
 

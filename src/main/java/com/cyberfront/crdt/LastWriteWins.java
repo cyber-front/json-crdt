@@ -32,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonDiff;
 import com.flipkart.zjsonpatch.JsonPatchApplicationException;
 
 /**
@@ -43,35 +42,42 @@ import com.flipkart.zjsonpatch.JsonPatchApplicationException;
 public class LastWriteWins extends OperationTwoSet {
 	
 	/**
-	 * The Class TrialResult.
+	 * The Class TrialResult is used to process a collection of operations provided to it.  It is intended to augment the LastWriteWins class
+	 * by providing an auxiliary location for storing a single set of operations and to manage access to the resulting JsonNode when the
+	 * operations are processed.  It also tracks any invalid operations which are in the set of operations.  Invalid operations are those which
+	 * cannot be processed due to a difference in the way the JSON operations are performed on different nodes.  These invalid operations are 
+	 * ignored when producing the resulting document, and are stored for later reference if needed.
 	 */
 	public static class TrialResult {
 		
+		/** Flag to indicate whether invalid operations are to be logged to the console */
 		private static final boolean LOG_INVALID_OPERATIONS = false;
 		
-		/** The document. */
+		/** The document which results from processing all of the operations in the Trial. */
 		private JsonNode document = null;
 		
-		/** The operations. */
+		/** The set of operations to process; they are processed in timestamp order */
 		private Set<AbstractOperation> operations;
 		
-		/** The invalid. */
+		/** The set of invalid operations detected.  Ideally this is empty, but there are reasons why it may not be empty. */
 		private Set<AbstractOperation> invalidOperations;
 		
 		/**
-		 * Instantiates a new trial result.
+		 * Instantiates a new trial result given a CRDT to process; the operations list is copied from
+		 * the CRDT instance to be processed and used to generate the resulting JSON object.
 		 *
-		 * @param crdt the crdt
+		 * @param crdt The CRDT to process
 		 */
 		public TrialResult(LastWriteWins crdt) {
-			this.getOperations().addAll(crdt.getOpSet());
+			this.getOperations().addAll(crdt.getOpsSet());
 		}
 		
 		/**
-		 * Instantiates a new trial result.
+		 * Instantiates a new TrialResult instance from an existing TrialResult and a new collection of operations.
+		 * The resulting operations are the union of those in the provided trial and those in the newOps collection passed
 		 *
-		 * @param trial the trial
-		 * @param newOps the new ops
+		 * @param trial The trial containing the initial set of operations to copy into this TrialResult.
+		 * @param newOps The new operations to add to those given in trial
 		 */
 		private TrialResult(TrialResult trial, Collection<AbstractOperation> newOps) {
 			this.getOperations().addAll(trial.getOperations());
@@ -79,10 +85,11 @@ public class LastWriteWins extends OperationTwoSet {
 		}
 		
 		/**
-		 * Instantiates a new trial result.
+		 * Instantiates a new TrialResult instance from an existing TrialResult and a single operation.
+		 * The resulting operations are the union of those in the provided trial and those in the newOp passed
 		 *
-		 * @param trial the trial
-		 * @param newOp the new op
+		 * @param trial The trial containing the initial set of operations to copy into this TrialResult.
+		 * @param newOps The new operation to add to those given in trial
 		 */
 		private TrialResult(TrialResult trial, AbstractOperation newOp) {
 			this.getOperations().addAll(trial.getOperations());
@@ -90,47 +97,47 @@ public class LastWriteWins extends OperationTwoSet {
 		}
 		
 		/**
-		 * Instantiates a new trial result.
+		 * Instantiates a new TrialResult from the merger of two TrialResults
 		 *
-		 * @param trial0 the trial 0
-		 * @param trial1 the trial 1
+		 * @param trial0 The first TrialResult to use as the basis for the new TrialResult
+		 * @param trial1 The second TrialResult to use as the basis for the new TrialResult
 		 */
 		private TrialResult(TrialResult trial0, TrialResult trial1) {
 			this(trial0, trial1.getOperations());
 		}
 		
 		/**
-		 * Gets the document.
+		 * Retrieve the document resulting from running the operations in this TrialResult.
 		 *
-		 * @return the document
+		 * @return The document resulting from running the operations in this TrialResult
 		 */
 		public JsonNode getDocument() {
 			if (null == this.document) {
 				this.processOperations();
 			}
+
 			return this.document;
 		}
 
 		/**
-		 * Clear results.
+		 * Clear the document and invalid operations to initialize processing the TrialResult
 		 */
 		private void clearResults() {
 			this.document = null;
-			this.invalidOperations = null;
+			this.invalidOperations = new TreeSet<>();
 		}
 
 		/**
-		 * Gets the operations.
+		 * Retrieve the set of operations in this TrialResult.  
 		 *
-		 * @return the operations
+		 * @return A the set of operations in this TrialResult
 		 */
 		public Set<AbstractOperation> getOperations() {
-			this.clearResults();
-
 			if (null == this.operations) {
 				this.operations = new TreeSet<>();
 			}
-
+			
+			this.clearResults();
 			return this.operations;
 		}
 		
@@ -140,84 +147,74 @@ public class LastWriteWins extends OperationTwoSet {
 		 * @return the invalid
 		 */
 		public Set<AbstractOperation> getInvalidOperations() {
-			if (null == this.invalidOperations) {
-				this.invalidOperations = new TreeSet<>();
+			Set<AbstractOperation> rv = new TreeSet<>();
+			if (null != this.invalidOperations) {
+				rv.addAll(this.invalidOperations);
 			}
-			
-			return this.invalidOperations;
+			return rv;
 		}
 
 		/**
-		 * Process operations.
+		 * Process the set of operations compute both the resulting JSON document and the set of 
+		 * invalid operations.
 		 */
 		private void processOperations() {
 			this.clearResults();
 			
-			for (AbstractOperation update : this.getOperations()) {
+			for (AbstractOperation op : this.getOperations()) {
 				try {
-					this.document = update.processOperation(this.document);
+					this.document = op.processOperation(this.document);
 				} catch (JsonPatchApplicationException e) {
 					if (LOG_INVALID_OPERATIONS) {
 						logger.info(e);
 					}
-					this.getInvalidOperations().add(update);
+					this.invalidOperations.add(op);
 				}
 			}
 		}
 		
 		/**
-		 * Gets the diff.
+		 * Create a new TrialResult which is the result of merging this one with a collection of operations
 		 *
-		 * @param source the source
-		 * @param target the target
-		 * @return the diff
-		 */
-		public static JsonNode getDiff(TrialResult source, TrialResult target) {
-			return JsonDiff.asJson(source.getDocument(), target.getDocument());
-		}
-		
-		/**
-		 * Merge.
-		 *
-		 * @param newOps the new ops
-		 * @return the trial result
+		 * @param newOps Set of new operations to merge with this TrialResult 
+		 * @return The new TrialResult which merges this with the operations in the list
 		 */
 		public TrialResult merge(Collection<AbstractOperation> newOps) {
 			return new TrialResult(this, newOps);
 		}
 		
 		/**
-		 * Merge.
+		 * Create a new TrialResult which is the result of merging this one with a single operation
 		 *
-		 * @param newOp the new op
-		 * @return the trial result
+		 * @param newOp New operation to merge with this TrialResult 
+		 * @return The new TrialResult which merges this with the operation
 		 */
 		public TrialResult merge(AbstractOperation newOp) {
 			return new TrialResult(this, newOp);
 		}
 
 		/**
-		 * Merge.
+		 * Create a new TrialResult which is the result of merging this one with another TrialResult
 		 *
-		 * @param trial the trial
-		 * @return the trial result
+		 * @param trial The other TrialResult to merge with this TrialResult
+		 * @return The resulting TrialResult instance to merge with this TrialResult
 		 */
 		public TrialResult merge(TrialResult trial) {
 			return new TrialResult(this, trial);
 		}
 		
 		/**
-		 * Gets the segment.
+		 * Retrieve a string segment used in the toString() method to build up JSON formatted string used primarily
+		 * by the toString() method
 		 *
-		 * @return the segment
+		 * @return The JSON formated string segment
 		 */
 		protected String getSegment() {
 			StringBuilder sb = new StringBuilder();
-			JsonNode document = this.getDocument();
 			
 			sb.append("\"operations\":" + WordFactory.convert(this.getOperations()) + ",");
 			sb.append("\"invalid\":" + WordFactory.convert(this.getInvalidOperations()) + ",");
-			sb.append("\"document\":" + (null == document ? "null" : document.toString()));
+			sb.append("\"document\":" + (null == this.document ? "null" : this.document.toString()));
 			
 			return sb.toString();
 		}
@@ -233,6 +230,7 @@ public class LastWriteWins extends OperationTwoSet {
 	/** Logger for writing data to the log. */
 	private static final Logger logger = LogManager.getLogger(LastWriteWins.class);
 	
+	/** The TrialResult associated with this LastWriteWins instance. */
 	private TrialResult trial = null;
 
 	/**
@@ -298,5 +296,4 @@ public class LastWriteWins extends OperationTwoSet {
 
 		return sb.toString();
 	}
-
 }

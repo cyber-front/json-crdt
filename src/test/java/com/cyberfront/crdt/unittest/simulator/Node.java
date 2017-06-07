@@ -205,7 +205,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 		@SuppressWarnings("unchecked")
 		SimCRDTManager<T> crdt = new SimCRDTManager<>(object.getId(), this.pickUser(), this.getNodeName(), (Class<T>) object.getClass());
 		this.addCRDT(crdt);
-		SimOperationManager<T> mgr = crdt.generateNewCreate(StatusType.APPROVED, Executive.getExecutive().getTimeStamp(), object);
+		SimOperationManager<T> mgr = crdt.generateCreate(StatusType.APPROVED, Executive.getExecutive().getTimestamp(), object);
 
 		return this.buildMessages(mgr);
 	}
@@ -217,7 +217,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateReadOperation() {
 		SimCRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
-		SimOperationManager<? extends AbstractDataType> mgr = crdt.generateNewRead(StatusType.APPROVED, Executive.getExecutive().getTimeStamp());
+		SimOperationManager<? extends AbstractDataType> mgr = crdt.generateRead(StatusType.APPROVED, Executive.getExecutive().getTimestamp());
 		
 		return this.buildMessages(mgr);
 	}
@@ -231,7 +231,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	public Collection<Message<? extends AbstractDataType>> generateUpdateOperation(Double pChange) {
 		SimCRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
 		OperationManager.StatusType status = crdt.getNodename().equals(this.getNodeName()) ? OperationManager.StatusType.APPROVED : OperationManager.StatusType.PENDING;
-		SimOperationManager<? extends AbstractDataType> mgr = crdt.generateNewUpdate(status, Executive.getExecutive().getTimeStamp(), pChange);
+		SimOperationManager<? extends AbstractDataType> mgr = crdt.generateUpdate(status, Executive.getExecutive().getTimestamp(), pChange);
 
 		return this.buildMessages(mgr);
 	}
@@ -244,7 +244,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	public Collection<Message<? extends AbstractDataType>> generateDeleteOperation() {
 		SimCRDTManager<? extends AbstractDataType> crdt = this.pickCRDT();
 		OperationManager.StatusType status = crdt.getNodename().equals(this.getNodeName()) ? OperationManager.StatusType.APPROVED : OperationManager.StatusType.PENDING;
-		SimOperationManager<? extends AbstractDataType> mgr = crdt.generateNewDelete(status, Executive.getExecutive().getTimeStamp());
+		SimOperationManager<? extends AbstractDataType> mgr = crdt.generateDelete(status, Executive.getExecutive().getTimestamp());
 		
 		return this.buildMessages(mgr);
 	}

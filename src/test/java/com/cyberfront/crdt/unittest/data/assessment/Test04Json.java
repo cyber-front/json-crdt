@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
+import com.cyberfront.crdt.unittest.support.TestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
@@ -39,11 +40,8 @@ import com.flipkart.zjsonpatch.JsonDiff;
  * performance and ability of object and its clone to be compared using JsonDiff.  It is successful if it creates
  * and updates these objects, neither of which result in null.
  */
-public class Test04Json {
+public class Test04Json extends TestSupport {
 	
-	/** Constant defining the number of AbstractDataType elements to create and clone test in the unit test */
-	private static final long TRIAL_COUNT=100;
-
 	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class.getName());
 	
@@ -83,6 +81,6 @@ public class Test04Json {
 	 */
 	@Test
 	public void jsonTest() {
-		this.jsonTest(TRIAL_COUNT);
+		this.jsonTest(getTrialCount());
 	}
 }

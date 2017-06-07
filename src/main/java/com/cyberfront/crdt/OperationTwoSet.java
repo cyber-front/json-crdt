@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.TreeSet;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
+import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
 /**
@@ -51,15 +52,8 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 		if (null == this.addSet) {
 			this.addSet = new TreeSet<>();
 		}
+		
 		return this.addSet;
-	}
-	
-	public int getAddCount() {
-		return this.getAddSet().size();
-	}
-
-	public int getRemCount() {
-		return this.getRemSet().size();
 	}
 
 	/**
@@ -72,6 +66,33 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 			this.remSet = new TreeSet<>();
 		}
 		return this.remSet;
+	}
+
+	/**
+	 * Retrieve the number of elements in the Add Set 
+	 * 
+	 * @return The number of elements in the Add Set
+	 */
+	public int getAddCount() {
+		return this.getAddSet().size();
+	}
+
+	/**
+	 * Retrieve the number of elements in the Remove Set 
+	 * 
+	 * @return The number of elements in the Remove Set
+	 */
+	public int getRemCount() {
+		return this.getRemSet().size();
+	}
+	
+	/**
+	 * Retrieve the number of elements in the final operation set 
+	 * 
+	 * @return The number of elements in the Remove Set
+	 */
+	public int getOperationCount() {
+		return this.getOpsSet().size();
 	}
 	
 	/**
@@ -112,7 +133,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return The operations which are active in this Two Set CRDT
 	 */
-	public Collection<AbstractOperation> getOpSet() {
+	public Collection<AbstractOperation> getOpsSet() {
 		return diff(this.getAddSet(), this.getRemSet());
 	}
 
@@ -132,7 +153,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * @return True exactly when the set of active operations is empty
 	 */
 	public boolean isEmpty() {
-		return (this.getAddSet().isEmpty() && this.getRemSet().isEmpty()) || this.getOpSet().isEmpty();
+		return (this.getAddSet().isEmpty() && this.getRemSet().isEmpty()) || this.getOpsSet().isEmpty();
 	}
 	
 	/* (non-Javadoc)
@@ -145,7 +166,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 		sb.append(super.getSegment() + ",");
 		sb.append("\"addSet\":" + WordFactory.convert(this.getAddSet()) + ",");
 		sb.append("\"remSet\":" + WordFactory.convert(this.getRemSet()) + ",");
-		sb.append("\"opSet\":" + WordFactory.convert(this.getOpSet()));
+		sb.append("\"opSet\":" + WordFactory.convert(this.getOpsSet()));
 
 		return sb.toString();
 	}
@@ -154,7 +175,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isCreated()
 	 */
 	public boolean isCreated() {
-		for (AbstractOperation op : this.getOpSet()) {
+		for (AbstractOperation op : this.getOpsSet()) {
 			if (op.isCreated()) {
 				return true;
 			}
@@ -167,12 +188,63 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isDeleted()
 	 */
 	public boolean isDeleted() {
-		for (AbstractOperation op : this.getOpSet()) {
+		for (AbstractOperation op : this.getOpsSet()) {
 			if (op.isDeleted()) {
 				return true;
 			}
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * This static method counts the number of AbstractOperation instances of the type given which are in the 
+	 * collection provided
+	 * 
+	 * @param ops Collection of AbstractOperations to search for operations of the specified type
+	 * @param opType Type to look for in the collection of AbstractOperations 
+	 * @return Number of AbstractOperation instances with the given type
+	 */
+	protected static long countOperations(Collection<AbstractOperation> ops, OperationType opType) {
+		long rv = 0;
+		for (AbstractOperation op : ops) {
+			if (opType.equals(op.getType())) {
+				++rv;
+			}
+		}
+		
+		return rv;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.AbstractCRDT#countCreated()
+	 */
+	@Override
+	public long countCreated() {
+		return countOperations(this.getOpsSet(), OperationType.CREATE);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.AbstractCRDT#countRead()
+	 */
+	@Override
+	public long countRead() {
+		return countOperations(this.getOpsSet(), OperationType.READ);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.AbstractCRDT#countUpdate()
+	 */
+	@Override
+	public long countUpdate() {
+		return countOperations(this.getOpsSet(), OperationType.UPDATE);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.AbstractCRDT#countDelete()
+	 */
+	@Override
+	public long countDelete() {
+		return countOperations(this.getOpsSet(), OperationType.DELETE);
 	}
 }

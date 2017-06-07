@@ -33,12 +33,12 @@ public interface ITimeStamp {
 	 *
 	 * @return the time stamp
 	 */
-	public abstract long getTimeStamp();
+	public abstract long getTimestamp();
 	
 	/**
 	 * Sets the time stamp.
 	 *
 	 * @param timeStamp the new time stamp
 	 */
-	abstract void setTimeStamp(long timeStamp);
+	abstract void setTimestamp(long timeStamp);
 }

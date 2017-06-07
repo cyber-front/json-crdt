@@ -41,26 +41,22 @@ import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SimCRDTManager.
+ * The Class SimCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
+ * JSON operations but to the external interface, the object type being managed is given by the generic parameter T 
  *
- * @param <T> the generic type
+ * @param <T> The type of object this SimCRDTManager is managing
  */
 public class SimCRDTManager <T extends AbstractDataType>
 	extends CRDTManager
 	implements Comparable<SimCRDTManager<? extends AbstractDataType>>, IManager<T> {
 
-	/** The Constant mapper. */
-	private static final ObjectMapper mapper = new ObjectMapper();
-	
 	/** The Constant logger. */
 	private static final Logger logger = LogManager.getLogger(SimCRDTManager.class);
 
-	/** The object. */
+	/** This is the object at the current state of the CRDT.  It is memoized, meaning, when available and nor */
 	private T object = null;
 
 	/** List of operations and the associated metadata this SimCRDTManager received */
@@ -154,17 +150,6 @@ public class SimCRDTManager <T extends AbstractDataType>
 	}
 
 	/**
-	 * Gets the manager.
-	 *
-	 * @param op the op
-	 * @return the manager
-	 */
-	protected SimOperationManager<T> getManager(StatusType status, AbstractOperation op) {
-		SimOperationManager<T> rv = new SimOperationManager<>(status, op, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
-		return rv ;
-	}
-	
-	/**
 	 * Sets the object class.
 	 *
 	 * @param objectClass the new object class
@@ -194,10 +179,10 @@ public class SimCRDTManager <T extends AbstractDataType>
 	/**
 	 * Sets the nodename.
 	 *
-	 * @param source the new nodename
+	 * @param nodename the new nodename
 	 */
-	private void setNodename(String source) {
-		this.nodename = source;
+	private void setNodename(String nodename) {
+		this.nodename = nodename;
 	}
 
 	/**
@@ -209,6 +194,18 @@ public class SimCRDTManager <T extends AbstractDataType>
 		this.object = object;
 	}
 
+	/**
+	 * Gets the manager.
+	 *
+	 * @param op the op
+	 * @return the manager
+	 */
+	protected SimOperationManager<T> getManager(StatusType status, AbstractOperation op) {
+		return null == op 
+				? null 
+				: new SimOperationManager<>(status, op, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
+	}
+	
 	/**
 	 * Clear.
 	 */
@@ -230,7 +227,7 @@ public class SimCRDTManager <T extends AbstractDataType>
 
 		if (null != json) {
 			try {
-				this.setObject(mapper.treeToValue(json, this.getObjectClass()));
+				this.setObject(getMapper().treeToValue(json, this.getObjectClass()));
 			} catch (JsonProcessingException e) {
 				logger.error(e);
 				for (StackTraceElement el : e.getStackTrace()) {
@@ -307,15 +304,15 @@ public class SimCRDTManager <T extends AbstractDataType>
 
 		operations.add(rejection);
 		if (WordFactory.getRandom().nextDouble() > pReject) {
-			JsonNode source = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : mapper.createObjectNode());
+			JsonNode source = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
 
 			this.deliverOperation(op);
 
-			JsonNode target = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : mapper.createObjectNode());
+			JsonNode target = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
 			JsonNode diff = JsonDiff.asJson(source, target);
 
 			if (this.getCrdt().getInvalidOperations().isEmpty() && diff.size() > 0) {
-				UpdateOperation updateOp = new UpdateOperation(diff, Executive.getExecutive().getTimeStamp());
+				UpdateOperation updateOp = new UpdateOperation(diff, Executive.getExecutive().getTimestamp());
 				SimOperationManager<T> update = new SimOperationManager<T>(StatusType.APPROVED, updateOp, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
 
 				operations.add(update);
@@ -407,8 +404,12 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @return the operation manager
 	 * @throws ReflectiveOperationException the reflective operation exception
 	 */
-	public SimOperationManager<T> generateNewCreate(StatusType status, long timestamp) throws ReflectiveOperationException {
-		return this.generateNewCreate(status, timestamp, this.getObjectClass().newInstance());
+	public SimOperationManager<T> generateCreate(StatusType status, long timestamp) throws ReflectiveOperationException {
+		if (this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
+			return null;
+		}
+
+		return this.generateCreate(status, timestamp, this.getObjectClass().newInstance());
 	}
 
 	/**
@@ -418,21 +419,13 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @param object the object
 	 * @return the operation manager
 	 */
-	public SimOperationManager<T> generateNewCreate(StatusType status, long timestamp, T object) {
-		SimOperationManager<T> rv = null;
-
-		if (!this.getCrdt().isCreated()) {
-			JsonNode source = mapper.createObjectNode();
-			JsonNode target = mapper.valueToTree(object);
-			JsonNode diff = JsonDiff.asJson(source, target);
-			CreateOperation op = new CreateOperation(diff, timestamp);
-
-			rv = this.getManager(status, op);
-
-			this.setObject(null);
+	public SimOperationManager<T> generateCreate(StatusType status, long timestamp, T object) {
+		if (this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
+			return null;
 		}
 
-		return rv;			
+		this.setObject(null);
+		return this.getManager(status, generateCreate(getMapper().valueToTree(object), timestamp));
 	}
 	
 	/**
@@ -441,15 +434,12 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @param timestamp the timestamp
 	 * @return the operation manager
 	 */
-	public SimOperationManager<T> generateNewRead(StatusType status, long timestamp) {
-		SimOperationManager<T> rv = null;
-
-		if (this.getCrdt().isCreated() && !this.getCrdt().isDeleted()) {
-			ReadOperation op = new ReadOperation(timestamp);
-			rv = this.getManager(status, op);
+	public SimOperationManager<T> generateRead(StatusType status, long timestamp) {
+		if (!this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
+			return null;
 		}
 
-		return rv;
+		return this.getManager(status, generateRead(timestamp));
 	}
 
 	/**
@@ -459,17 +449,14 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @param pChange the change
 	 * @return the operation manager
 	 */
-	public SimOperationManager<T> generateNewUpdate(StatusType status, long timestamp, Double pChange) {
-
-		if (!this.isCreated() || this.isDeleted()) {
+	public SimOperationManager<T> generateUpdate(StatusType status, long timestamp, Double pChange) {
+		T obj = this.getObject();
+		if (null == obj) {
 			return null;
 		}
 
-		T obj = this.getObject();
 		obj.update(pChange);
-		SimOperationManager<T> rv = this.generateNewUpdate(status, timestamp, obj);
-
-		return rv;
+		return this.generateUpdate(status, timestamp, obj);
 	}
 	
 	/**
@@ -479,22 +466,13 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @param object the object
 	 * @return the operation manager
 	 */
-	public SimOperationManager<T> generateNewUpdate(StatusType status, long timestamp, T object) {
-		SimOperationManager<T> rv = null;
-		
-		if (this.getCrdt().isCreated() && !this.getCrdt().isDeleted()) {
-			JsonNode source = this.getCrdt().readValue();
-			JsonNode target = mapper.valueToTree(object);
-			JsonNode diff = JsonDiff.asJson(source, target);
-
-			if (diff.size() > 0) {
-				UpdateOperation op = new UpdateOperation(diff, timestamp);
-				rv = this.getManager(status, op);
-				this.setObject(null);
-			}
+	public SimOperationManager<T> generateUpdate(StatusType status, long timestamp, T object) {
+		if (!this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
+			return null;
 		}
 
-		return rv;
+		this.setObject(null);
+		return this.getManager(status, generateUpdate(this.getCrdt().readValue(), getMapper().valueToTree(object), timestamp));
 	}
 
 	/**
@@ -503,16 +481,13 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @param timestamp the timestamp
 	 * @return the operation manager
 	 */
-	public SimOperationManager<T> generateNewDelete(StatusType status, long timestamp) {
-		SimOperationManager<T> rv = null;
-
-		if (this.getCrdt().isCreated() && !this.getCrdt().isDeleted()) {
-			DeleteOperation op = new DeleteOperation(timestamp);
-			rv = this.getManager(status, op);
-			this.setObject(null);
+	public SimOperationManager<T> generateDelete(StatusType status, long timestamp) {
+		if (!this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
+			return null;
 		}
 
-		return rv;
+		this.setObject(null);
+		return this.getManager(status, generateDelete(timestamp));
 	}
 	
 	/**
@@ -587,23 +562,10 @@ public class SimCRDTManager <T extends AbstractDataType>
 		sb.append("\"received\":" + WordFactory.convert(this.getReceived()) + ",");
 		sb.append("\"object\":" + (null == this.object ? "null" : this.object.toString()));
 		
-//		this.validateRecived();
-		
 		return sb.toString();
 	}
-	
-//	private void validateRecived() {
-//		long added = this.getCrdt().getAddCount();
-//		long removed  = this.getCrdt().getRemCount();
-//		long received  = null == this.received ? 0 : this.received.size();
-//		
-//		if ((added + removed) > received) {
-//			logger.info("    added: " + added);
-//			logger.info("    removed: " + removed);
-//			logger.info("    received: " + received);
-//			logger.info("    this: " + this.toString());
-//		}
-//		
-//		assert((added + removed) <= received);
-//	}
+
+	public long getTimestamp() {
+		return Executive.getExecutive().getTimestamp();
+	}
 }

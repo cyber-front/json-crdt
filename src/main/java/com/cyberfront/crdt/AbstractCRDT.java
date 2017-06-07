@@ -25,7 +25,7 @@ package com.cyberfront.crdt;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * This is an abstract base class for CRDT classes 
+ * This is an abstract base class for CRDT classes.  It specifies the standard interfaces for all derived CRDT classes
  */
 public abstract class AbstractCRDT {
 	
@@ -44,19 +44,35 @@ public abstract class AbstractCRDT {
 	public abstract boolean isCreated();
 	
 	/**
+	 * Count the number of CreateOperation instances are associated with this CRDT
+	 * @return Number of CreateOperatiopn instances associated with this CRDT  
+	 */
+	public abstract long countCreated();
+	
+	/**
+	 * Count the number of ReadOperation instances are associated with this CRDT
+	 * @return Number of ReadOperatiopn instances associated with this CRDT  
+	 */
+	public abstract long countRead();
+	
+	/**
+	 * Count the number of UpdateOperation instances are associated with this CRDT
+	 * @return Number of UpdateOperatiopn instances associated with this CRDT  
+	 */
+	public abstract long countUpdate();
+	
+	/**
+	 * Count the number of DeleteOperation instances are associated with this CRDT
+	 * @return Number of DeleteOperatiopn instances associated with this CRDT  
+	 */
+	public abstract long countDelete();
+	
+	/**
 	 * Process the operations and return the resulting JsonNode document
 	 *
 	 * @return The JSON document resulting from processing the operations in the CRDT
 	 */
 	public abstract JsonNode readValue();
-	
-	/**
-	 * Process the operations up to the given timestamp and return the resulting JSON document
-	 *
-	 * @param timestamp The timestamp up to which to process the operations
-	 * @return The JSON document resulting from processing the operations up to the given timestamp
-	 */
-//	public abstract JsonNode readValue(long timestamp);
 
 	/**
 	 * This is used to create a string representation of the CRDT in support of the toString() method
