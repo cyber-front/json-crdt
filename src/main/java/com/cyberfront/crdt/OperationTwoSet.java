@@ -155,21 +155,6 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	public boolean isEmpty() {
 		return (this.getAddSet().isEmpty() && this.getRemSet().isEmpty()) || this.getOpsSet().isEmpty();
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#getSegment()
-	 */
-	@Override
-	protected String getSegment() {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(super.getSegment() + ",");
-		sb.append("\"addSet\":" + WordFactory.convert(this.getAddSet()) + ",");
-		sb.append("\"remSet\":" + WordFactory.convert(this.getRemSet()) + ",");
-		sb.append("\"opSet\":" + WordFactory.convert(this.getOpsSet()));
-
-		return sb.toString();
-	}
 
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isCreated()
@@ -246,5 +231,20 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	@Override
 	public long countDelete() {
 		return countOperations(this.getOpsSet(), OperationType.DELETE);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#getSegment()
+	 */
+	@Override
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(super.getSegment() + ",");
+		sb.append("\"addSet\":" + WordFactory.convert(this.getAddSet()) + ",");
+		sb.append("\"remSet\":" + WordFactory.convert(this.getRemSet()) + ",");
+		sb.append("\"opSet\":" + WordFactory.convert(this.getOpsSet()));
+
+		return sb.toString();
 	}
 }

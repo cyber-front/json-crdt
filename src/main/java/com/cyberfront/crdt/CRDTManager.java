@@ -142,7 +142,7 @@ public class CRDTManager {
 	 * @param timestamp Effective timestamp for the create operation
 	 * @return The new CreateOperation
 	 */
-	protected static CreateOperation generateCreate(JsonNode document, long timestamp) {
+	protected static CreateOperation generateCreateOperation(JsonNode document, long timestamp) {
 		return new CreateOperation(JsonDiff.asJson(mapper.createObjectNode(), document), timestamp);
 	}
 	
@@ -152,7 +152,7 @@ public class CRDTManager {
 	 * @param timestamp Effective timestamp for the read operation
 	 * @return The read operation with the given timestamp
 	 */
-	protected static ReadOperation generateRead(long timestamp) {
+	protected static ReadOperation generateReadOperation(long timestamp) {
 		return new ReadOperation(timestamp);
 	}
 	
@@ -164,7 +164,7 @@ public class CRDTManager {
 	 * @param timestamp Effective time stamp for the update operations
 	 * @return The update operation resulting from transforming from the source to target JsonNode values
 	 */
-	protected static UpdateOperation generateUpdate(JsonNode source, JsonNode target, long timestamp) {
+	protected static UpdateOperation generateUpdateOperation(JsonNode source, JsonNode target, long timestamp) {
 		JsonNode diff = JsonDiff.asJson(source, target);
 
 		return diff.size() > 0 ? new UpdateOperation(diff, timestamp) : null;
@@ -176,7 +176,7 @@ public class CRDTManager {
 	 * @param timestamp Effective timestamp for the delete operations
 	 * @return A DeleteOperation with the given timestamp 
 	 */
-	protected static DeleteOperation generateDelete(long timestamp) {
+	protected static DeleteOperation generateDeleteOperation(long timestamp) {
 		return new DeleteOperation(timestamp);
 	}
 

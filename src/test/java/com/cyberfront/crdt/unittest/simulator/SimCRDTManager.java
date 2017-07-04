@@ -29,7 +29,7 @@ import java.util.TreeSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.cyberfront.crdt.CRDTManager;
+import com.cyberfront.crdt.GenericCRDTManager;
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
 import com.cyberfront.crdt.operations.CreateOperation;
@@ -39,7 +39,6 @@ import com.cyberfront.crdt.operations.ReadOperation;
 import com.cyberfront.crdt.operations.UpdateOperation;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.support.WordFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flipkart.zjsonpatch.JsonDiff;
 
@@ -50,20 +49,15 @@ import com.flipkart.zjsonpatch.JsonDiff;
  * @param <T> The type of object this SimCRDTManager is managing
  */
 public class SimCRDTManager <T extends AbstractDataType>
-	extends CRDTManager
+	extends GenericCRDTManager<T>
 	implements Comparable<SimCRDTManager<? extends AbstractDataType>>, IManager<T> {
 
 	/** The Constant logger. */
+	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(SimCRDTManager.class);
-
-	/** This is the object at the current state of the CRDT.  It is memoized, meaning, when available and nor */
-	private T object = null;
 
 	/** List of operations and the associated metadata this SimCRDTManager received */
 	private Collection<SimOperationManager<T>> received;
-	
-	/** The object class. */
-	private Class<T> objectClass;
 	
 	/** The object id. */
 	private String objectId;
@@ -83,20 +77,10 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @param objectClass the object class
 	 */
 	public SimCRDTManager(String objectId, String username, String nodename, Class<T> objectClass) {
+		super(objectClass);
 		this.setObjectId(objectId);
 		this.setUsername(username);
 		this.setNodename(nodename);
-		this.setObjectClass(objectClass);
-	}
-
-	/**
-	 * Gets the object class.
-	 *
-	 * @return the object class
-	 */
-	@Override
-	public Class<T> getObjectClass() {
-		return this.objectClass;
 	}
 
 	/**
@@ -138,27 +122,6 @@ public class SimCRDTManager <T extends AbstractDataType>
 	}
 
 	/**
-	 * Gets the object.
-	 *
-	 * @return the object
-	 */
-	public T getObject() {
-		if (null == this.object) {
-			this.updateObject();
-		}
-		return this.object;
-	}
-
-	/**
-	 * Sets the object class.
-	 *
-	 * @param objectClass the new object class
-	 */
-	private void setObjectClass(Class<T> objectClass) {
-		this.objectClass = objectClass;
-	}
-	
-	/**
 	 * Sets the object id.
 	 *
 	 * @param id the new object id
@@ -186,15 +149,6 @@ public class SimCRDTManager <T extends AbstractDataType>
 	}
 
 	/**
-	 * Sets the object.
-	 *
-	 * @param object the new object
-	 */
-	private void setObject(T object) {
-		this.object = object;
-	}
-
-	/**
 	 * Gets the manager.
 	 *
 	 * @param op the op
@@ -205,41 +159,10 @@ public class SimCRDTManager <T extends AbstractDataType>
 				? null 
 				: new SimOperationManager<>(status, op, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
 	}
-	
-	/**
-	 * Clear.
-	 */
-	public void clear() {
-		super.clear();
-		this.setObject(null);
-	}
 
 	private boolean isOwner(SimOperationManager<T> op) {
 		boolean rv = Executive.getExecutive().getCrdtLookup().get(this.getObjectId()).equals(this.getNodename());
 		return rv;
-	}
-	
-	/**
-	 * Update object.
-	 */
-	private void updateObject() {
-		JsonNode json = this.getCrdt().readValue();
-
-		if (null != json) {
-			try {
-				this.setObject(getMapper().treeToValue(json, this.getObjectClass()));
-			} catch (JsonProcessingException e) {
-				logger.error(e);
-				for (StackTraceElement el : e.getStackTrace()) {
-					logger.error(el);
-				}
-				this.setObject(null);
-				this.getCrdt().getInvalidOperations().clear();
-			}
-		} else {
-			this.setObject(null);
-			this.getCrdt().getInvalidOperations().clear();
-		}
 	}
 	
 	private Collection<SimOperationManager<T>> deliverCreatePending(SimOperationManager<T> op, Double pReject) {
@@ -377,7 +300,6 @@ public class SimCRDTManager <T extends AbstractDataType>
 	public Collection<SimOperationManager<T>> deliver(SimOperationManager<T> op, Double pReject) {
 		Collection<SimOperationManager<T>> rv = null;
 		this.getReceived().add(op);
-		this.setObject(null);
 		
 		switch (op.getStatus()){
 		case PENDING:
@@ -423,9 +345,8 @@ public class SimCRDTManager <T extends AbstractDataType>
 		if (this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
 			return null;
 		}
-
-		this.setObject(null);
-		return this.getManager(status, generateCreate(getMapper().valueToTree(object), timestamp));
+		
+		return this.getManager(status, super.generateCreate(timestamp, object));
 	}
 	
 	/**
@@ -439,7 +360,7 @@ public class SimCRDTManager <T extends AbstractDataType>
 			return null;
 		}
 
-		return this.getManager(status, generateRead(timestamp));
+		return this.getManager(status, generateReadOperation(timestamp));
 	}
 
 	/**
@@ -471,8 +392,7 @@ public class SimCRDTManager <T extends AbstractDataType>
 			return null;
 		}
 
-		this.setObject(null);
-		return this.getManager(status, generateUpdate(this.getCrdt().readValue(), getMapper().valueToTree(object), timestamp));
+		return this.getManager(status, generateUpdate(timestamp, object));
 	}
 
 	/**
@@ -486,7 +406,6 @@ public class SimCRDTManager <T extends AbstractDataType>
 			return null;
 		}
 
-		this.setObject(null);
 		return this.getManager(status, generateDelete(timestamp));
 	}
 	
@@ -555,12 +474,10 @@ public class SimCRDTManager <T extends AbstractDataType>
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(super.getSegment() + ",");
-		sb.append("\"objectClass\":\"" + this.getObjectClass().getName() + "\",");
 		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
 		sb.append("\"username\":\"" + this.getUsername() + "\",");
 		sb.append("\"nodename\":\"" + this.getNodename() + "\",");
 		sb.append("\"received\":" + WordFactory.convert(this.getReceived()) + ",");
-		sb.append("\"object\":" + (null == this.object ? "null" : this.object.toString()));
 		
 		return sb.toString();
 	}

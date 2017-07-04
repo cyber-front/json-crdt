@@ -7,7 +7,7 @@ public class TestSupport {
 	private static final long TRIAL_COUNT = 128L;
 
 	/** Flag used to indicate whether or not to abbreviate the test */
-	private static final boolean ABBREVIATED = true;
+	private static final boolean ABBREVIATED = false;
 	
 	/** Division factor to apply to abbreviated tests */
 	private static final long ABBREVIATED_FACTOR = 8;

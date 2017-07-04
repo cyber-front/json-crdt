@@ -26,7 +26,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonPatch;
 
 /**
@@ -41,9 +40,6 @@ public class CreateOperation extends AbstractOperation {
 	/** Logger to use when displaying state information */
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(CreateOperation.class);
-
-	/** The ObjectMapper used to create empty JsonNode object to start the chain of JsonDiff derived operations */
-	private static final ObjectMapper mapper = new ObjectMapper();
 
 	/**
 	 * This instantiates a new CreateOperation given an operation in a JsonNode and a timestamp.  The operation
@@ -70,7 +66,7 @@ public class CreateOperation extends AbstractOperation {
 	 */
 	@Override
 	public JsonNode processOperation(JsonNode document) {
-		return JsonPatch.apply(this.getOp(), mapper.createObjectNode());
+		return JsonPatch.apply(this.getOp(), getMapper().createObjectNode());
 	}
 
 	/* (non-Javadoc)

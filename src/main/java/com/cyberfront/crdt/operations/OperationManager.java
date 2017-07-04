@@ -24,9 +24,9 @@ package com.cyberfront.crdt.operations;
 
 import com.cyberfront.crdt.unittest.simulator.SimOperationManager;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class OperationManager.
+ * This is the base class for wrapping AbstractOperations.  It provides the basic functionality for associating various
+ * elements of metadata associated with the operation bound to the derived manager class.  
  */
 public class OperationManager implements Comparable<OperationManager> {
 	
@@ -45,17 +45,17 @@ public class OperationManager implements Comparable<OperationManager> {
 		APPROVED
 	}
 
-	/** The status. */
+	/** The status associated with the operation. */
 	private StatusType status = StatusType.PENDING;
 
-	/** The operation. */
+	/** The operation bound with the metadata. */
 	private AbstractOperation operation;
 	
 	/**
-	 * Instantiates a new operation manager.
+	 * Instantiates a new operation manager given a status and an operation
 	 *
-	 * @param status the status
-	 * @param op the op
+	 * @param status The status associated with the operations
+	 * @param op The operation associated with its metadata
 	 */
 	public OperationManager(StatusType status, AbstractOperation op) {
 		this.setStatus(status);
@@ -63,9 +63,9 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 
 	/**
-	 * Instantiates a new operation manager.
+	 * Copy constructor to copy from a source OperationManager 
 	 *
-	 * @param src the src
+	 * @param src The source object
 	 */
 	public OperationManager(OperationManager src) {
 		this.setStatus(src.getStatus());
@@ -73,54 +73,58 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 
 	/**
-	 * Gets the operation.
+	 * Retrieves the operation to associate with the managed metadata
 	 *
-	 * @return the operation
+	 * @return The operation associated with its managed metadata
 	 */
 	public AbstractOperation getOperation() {
 		return operation;
 	}
 	
 	/**
-	 * Gets the status.
+	 * Retrieve the status associated with the operation
 	 *
-	 * @return the status
+	 * @return The status associated with the operation
 	 */
 	public OperationManager.StatusType getStatus() {
 		return this.status;
 	}
 
 	/**
-	 * Sets the operation.
+	 * Sets the operation to the value given
 	 *
-	 * @param operation the new operation
+	 * @param operation The new operation value
 	 */
 	private void setOperation(AbstractOperation operation) {
 		this.operation = operation;
 	}
 
 	/**
-	 * Sets the status.
+	 * Sets the status associated with the operation
 	 *
-	 * @param status the new status
+	 * @param status The new status associated with the operation
 	 */
 	public void setStatus(OperationManager.StatusType status) {
 		this.status = status;
 	}
 
 	/**
-	 * Checks if is created.
+	 * Checks if the operation is a CreateOperation
 	 *
-	 * @return true, if is created
+	 * @return true, if the operation being managed is a CreateOperation
 	 */
-	public boolean isCreated() { return this.getOperation().isCreated(); }
+	public boolean isCreated() {
+		return this.getOperation().isCreated();
+	}
 
 	/**
-	 * Checks if is deleted.
+	 * Checks if the operation is a DeleteOperation
 	 *
-	 * @return true, if is deleted
+	 * @return true, if the operation being managed is a DeleteOperation
 	 */
-	public boolean isDeleted() { return this.getOperation().isDeleted(); }
+	public boolean isDeleted() {
+		return this.getOperation().isDeleted();
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -150,11 +154,21 @@ public class OperationManager implements Comparable<OperationManager> {
 		
 		return hash;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(OperationManager src) {
+		int opComp = this.getOperation().compareTo(src.getOperation());
+		int stComp = this.getStatus().compareTo(src.getStatus());
+		return opComp != 0 ? opComp : stComp;
+	}
 	
 	/**
-	 * Gets the segment.
+	 * Get the string segment for rendering the OperationManager portions of this class instance 
 	 *
-	 * @return the segment
+	 * @return The string segment containing a rendering of the OperationManager portions of this class instance 
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
@@ -173,12 +187,4 @@ public class OperationManager implements Comparable<OperationManager> {
 	public String toString() {
 		return "{" + this.getSegment() + "}";
 	}
-
-	@Override
-	public int compareTo(OperationManager src) {
-		int opComp = this.getOperation().compareTo(src.getOperation());
-		int stComp = this.getStatus().compareTo(src.getStatus());
-		return opComp != 0 ? opComp : stComp;
-	}
-
 }

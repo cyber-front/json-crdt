@@ -23,7 +23,7 @@
 package com.cyberfront.crdt.unittest.simulator;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
-import com.cyberfront.crdt.operations.OperationManager;
+import com.cyberfront.crdt.operations.GenericOperationManager;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 
 // TODO: Auto-generated Javadoc
@@ -33,10 +33,10 @@ import com.cyberfront.crdt.unittest.data.AbstractDataType;
  * @param <T> the generic type
  */
 public class SimOperationManager<T extends AbstractDataType>
-	extends OperationManager {
+	extends GenericOperationManager<T> {
 	
-	/** The object class. */
-	private Class<T> objectClass;
+//	/** The object class. */
+//	private Class<T> objectClass;
 	
 	/** The object id. */
 	private String objectId;
@@ -57,11 +57,10 @@ public class SimOperationManager<T extends AbstractDataType>
 	 * @param operation the operation
 	 */
 	public SimOperationManager(StatusType status, AbstractOperation operation, String objectId, String username, String nodename, Class<T> objectClass) {
-		super(status, operation);
+		super(status, operation, objectClass);
 		this.setObjectId(objectId);
 		this.setUsername(username);
 		this.setNodename(nodename);
-		this.setObjectClass(objectClass);
 	}
 	
 	/**
@@ -74,18 +73,8 @@ public class SimOperationManager<T extends AbstractDataType>
 		this.setObjectId(src.getObjectId());
 		this.setUsername(src.getUsername());
 		this.setNodename(src.getNodename());
-		this.setObjectClass(src.getObjectClass());
 	}
 	
-	/**
-	 * Gets the object class.
-	 *
-	 * @return the object class
-	 */
-	public Class<T> getObjectClass() {
-		return this.objectClass;
-	}
-
 	/**
 	 * Gets the object id.
 	 *
@@ -113,15 +102,6 @@ public class SimOperationManager<T extends AbstractDataType>
 		return this.nodename;
 	}
 
-	/**
-	 * Sets the object class.
-	 *
-	 * @param objectClass the new object class
-	 */
-	private void setObjectClass(Class<T> objectClass) {
-		this.objectClass = objectClass;
-	}
-	
 	/**
 	 * Sets the object id.
 	 *
@@ -157,18 +137,6 @@ public class SimOperationManager<T extends AbstractDataType>
 	public SimOperationManager<T> copy() {
 		return new SimOperationManager<>(this);
 	}
-//
-//	/* (non-Javadoc)
-//	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-//	 */
-//	@Override
-//	public int compareTo(SimOperationManager<? extends AbstractDataType> o) {
-//		int compId = this.getObjectId().compareTo(o.getObjectId());
-//		int compUsername = this.getUsername().compareTo(getUsername());
-//		int compNodename = this.getNodename().compareTo(o.getNodename());
-//		
-//		return compId != 0 ? compId : compNodename != 0 ? compNodename : compUsername;
-//	}
 
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.support.BaseManager#equals(java.lang.Object)
@@ -208,7 +176,6 @@ public class SimOperationManager<T extends AbstractDataType>
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"objectClass\":\"" + this.getObjectClass().getName() + "\",");
 		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
 		sb.append("\"username\":\"" + this.getUsername() + "\",");
 		sb.append("\"nodename\":\"" + this.getNodename() + "\"");

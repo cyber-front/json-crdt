@@ -64,7 +64,6 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @param nodeName the node name
 	 * @param userNames the user names
-	 * @param objectCount the object count
 	 */
 	public AbstractNode(String nodeName, Collection<String> userNames) {
 		this.setNodeName(nodeName);
@@ -269,6 +268,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	/**
 	 * Creates the CRDT.
 	 *
+	 * @param id The ID value for the new CRDT
 	 * @return the CRDTManager
 	 */
 	protected abstract SimCRDTManager<? extends T> createCRDT(String id);

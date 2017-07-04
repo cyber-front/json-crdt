@@ -678,4 +678,28 @@ public class Executive implements ITimeStamp {
 		
 		return userLookup;
 	}
+	
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("\"createCount\":" + this.getCreateCount() + ",");
+		sb.append("\"deleteCount\":" + this.getDeleteCount() + ",");
+		sb.append("\"deliveryCount\":" + this.getDeliveryCount() + ",");
+		sb.append("\"nodeCount\":" + this.getNodeCount() + ",");
+		sb.append("\"readCount\":" + this.getReadCount() + ",");
+		sb.append("\"updateCount\":" + this.getUpdateCount() + ",");
+		sb.append("\"timestamp\":" + this.getTimestamp() + ",");
+		sb.append("\"rejectProbability\":" + this.getRejectProbability() + ",");
+		sb.append("\"updateProbability\":" + this.getUpdateProbability() + ",");
+		sb.append("\"crdtLookup\":" + WordFactory.convert(this.getCrdtLookup()));
+		sb.append("\"userLookup\":" + WordFactory.convert(this.getUserLookup()));
+		sb.append("\"nodes\":" + WordFactory.convert(this.getNodes()));
+		
+		return sb.toString();
+	}
+	
+	@Override
+	public String toString() {
+		return "{" + this.getSegment() + "}";
+	}
 }

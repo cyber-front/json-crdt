@@ -79,7 +79,7 @@ public abstract class AbstractDataType {
 	 */
 	public AbstractDataType() {
 		this.setDescription(LoremIpsum.getInstance().getWords(5, 10));
-		this.setId("pre-" + UUID.randomUUID().toString());
+		this.setId(UUID.randomUUID().toString());
 		this.setNotes(LoremIpsum.getInstance().getWords(5, 10));
 		this.setVersion(0L);
 	}

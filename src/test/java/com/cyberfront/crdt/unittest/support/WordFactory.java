@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.logging.log4j.LogManager;
@@ -313,6 +314,32 @@ public class WordFactory {
 
 		for (T element : collection) {
 			sb.append(delimiter + element.toString());
+			delimiter = ",";
+		}
+		
+		sb.append("]");
+
+		return sb.toString();
+	}
+
+	/**
+	 * Generate a string as a JSON formated array based on elements of a collection
+	 * 
+	 * @param map Collection of items to form into JSON formated string
+	 * @return The JSON formated string representation of the given collection
+	 */
+	public static <KEY, VALUE> String convert(Map<KEY, VALUE> map) {
+		if (null == map) {
+			return "null";
+		} else if (map.isEmpty()) {
+			return "[]";
+		}
+
+		StringBuilder sb = new StringBuilder();
+		String delimiter = "[";
+
+		for (Map.Entry<KEY, VALUE> entry : map.entrySet()) {
+			sb.append("{\"KEY\":\"" + entry.getKey().toString() + "\",\"VALUE\":" + entry.getValue() + "}" + delimiter);
 			delimiter = ",";
 		}
 		

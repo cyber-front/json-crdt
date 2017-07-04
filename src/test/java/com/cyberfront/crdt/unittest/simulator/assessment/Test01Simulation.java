@@ -52,13 +52,13 @@ public class Test01Simulation {
 		private static final Logger logger = LogManager.getLogger(Test01Simulation.SimulationTest.class);
 		
 		/** Number of creation operations to perform on tests related to internodal synchronization quality */
-		private static final long CREATE_COUNT = 64;
+		private static final long CREATE_COUNT = 256;
 		
 		/** Number of read operations to perform on tests related to internodal synchronization quality */
 		private static final long READ_COUNT = 64;
 		
 		/** Number of updated operations to perform on tests related to internodal synchronization quality */
-		private static final long UPDATE_COUNT = 64;
+		private static final long UPDATE_COUNT = 512;
 		
 		/** Number of delete operations to perform on tests related to internodal synchronization quality */
 		private static final long DELETE_COUNT = 16;
@@ -340,14 +340,17 @@ public class Test01Simulation {
 				long count = node.getDatastore().size();
 
 				StringBuilder sb = new StringBuilder();
-				
-				sb.append("CRDT count mismatch on node \"");
-				sb.append(name);
-				sb.append("\"; expected: ");
-				sb.append(String.valueOf(this.getCreateCount()));
-				sb.append("; found: ");
-				sb.append(String.valueOf(count));
-				assertTrue(sb.toString(), this.getCreateCount() == count);
+
+				if (this.getCreateCount() != count) {
+					sb.append("CRDT count mismatch on node \"");
+					sb.append(name);
+					sb.append("\"; expected: ");
+					sb.append(String.valueOf(this.getCreateCount()));
+					sb.append("; found: ");
+					sb.append(String.valueOf(count));
+
+					assertTrue(sb.toString(), this.getCreateCount() == count);
+				}
 			}
 		}
 		
@@ -410,7 +413,7 @@ public class Test01Simulation {
 
 					StringBuilder sb = new StringBuilder();
 					sb.append("Value mismatch discovered in between synchronized objects\n");
-					sb.append("{\"basevalue\":" + baseValue.toString() + ",\"compValue\":" + compValue.toString() + "}");
+					sb.append("{\"basevalue\":" + crdt.toString() + ",\"compValue\":" + compCRDT.toString() + "}");
 					assertTrue(sb.toString(), diff.size() == 0);
 				}
 			}

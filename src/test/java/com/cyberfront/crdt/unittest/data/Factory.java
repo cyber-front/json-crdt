@@ -152,6 +152,7 @@ public class Factory {
 	 * Generate and return a CRDTManager for the given `node`.   
 	 *
 	 * @param node The node for which the resulting CRDTManager is to be generated
+	 * @param id The identifier for the new CRDT
 	 * @return The CRDTManager with the managed type 
 	 */
 	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node node, String id) {
@@ -163,6 +164,7 @@ public class Factory {
 	 *
 	 * @param node The node for which the resulting CRDTManager is to be generated
 	 * @param type The enumeration corresponding to the concrete type of AbstractDataType to generate 
+	 * @param id The identifier for the new CRDT
 	 * @return The CRDTManager with the managed type 
 	 */
 	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node node, TYPE type, String id) {

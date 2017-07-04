@@ -26,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
 
 /**
@@ -44,6 +45,9 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(AbstractOperation.class);
 
+	/** The ObjectMapper used to create empty JsonNode object to start the chain of JsonDiff derived operations */
+	private static final ObjectMapper mapper = new ObjectMapper();
+	
 	/**
 	 * The Enum OperationType lists the types of operations which comprise the types of operations which can 
 	 * be performed on JSON objects
@@ -169,21 +173,13 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	private void setOp(JsonNode op) {
 		this.op = op;
 	}
-
+	
 	/**
-	 * This method is used to support the toString method by generating a string representation
-	 * of this AbstractOperation instance
-	 *
-	 * @return The string representation of this AbstractOperation
+	 * Retrieve the ObjectMapper used for the various operations classes
+	 * @return Returns the mapper for use by the operation classes
 	 */
-	protected String getSegment() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("\"type\":\"" + this.getType().toString() + "\",");
-		sb.append("\"timeStamp\":" + this.getTimeStamp() + ",");
-		sb.append("\"operationId\":" + this.getOperationId() + ",");
-		sb.append("\"op\":" + (null == op ? "null" : this.getOp().toString()));
-
-		return sb.toString();
+	protected static ObjectMapper getMapper() {
+		return mapper;
 	}
 	
 	/**
@@ -265,6 +261,22 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 		hash = hash * 23 + (null != this.getOp() ? this.getOp().hashCode() : 0);
 		
 		return hash;
+	}
+
+	/**
+	 * This method is used to support the toString method by generating a string representation
+	 * of this AbstractOperation instance
+	 *
+	 * @return The string representation of this AbstractOperation
+	 */
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("\"type\":\"" + this.getType().toString() + "\",");
+		sb.append("\"timeStamp\":" + this.getTimeStamp() + ",");
+		sb.append("\"operationId\":" + this.getOperationId() + ",");
+		sb.append("\"op\":" + (null == op ? "null" : this.getOp().toString()));
+
+		return sb.toString();
 	}
 	
 	/* (non-Javadoc)
