@@ -22,12 +22,15 @@
  */
 package com.cyberfront.crdt.operations;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.zjsonpatch.JsonDiff;
+import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonDiff;				// Use this with zjsonpatch
 
 /**
  * The AbstractOperation class is intended to be a base / abstract class for the set of operations which would normally be expected to be 
@@ -162,7 +165,7 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	 * @return The JSON operation held in this AbstractOperation
 	 */
 	public JsonNode getOp() {
-		return op;
+		return this.op;
 	}
 
 	/**
@@ -187,8 +190,11 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	 *
 	 * @param document the document
 	 * @return the json node
+	 * @throws JsonPatchException 
+	 * @throws IOException 
 	 */
-	public abstract JsonNode processOperation(JsonNode document);
+	public abstract JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException;  // Use this with jsonpatch
+//	public abstract JsonNode processOperation(JsonNode document) throws JsonPatchException;               // Use this with jsonpatch
 	
 	/**
 	 * This abstract method retrieves the enumerated type specification for the derived class instance 
@@ -246,7 +252,7 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 		return this.hashCode() == oper.hashCode() && 
 				Long.compare(this.getOperationId(), oper.getOperationId()) == 0	&&
 				Long.compare(this.getTimeStamp(), oper.getTimeStamp()) == 0	&&
-				JsonDiff.asJson(this.getOp(), oper.getOp()).size() == 0;
+				this.getOp().equals(oper);
 	}
 	
 	/* (non-Javadoc)

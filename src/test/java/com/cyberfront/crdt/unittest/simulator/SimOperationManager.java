@@ -35,9 +35,6 @@ import com.cyberfront.crdt.unittest.data.AbstractDataType;
 public class SimOperationManager<T extends AbstractDataType>
 	extends GenericOperationManager<T> {
 	
-//	/** The object class. */
-//	private Class<T> objectClass;
-	
 	/** The object id. */
 	private String objectId;
 	

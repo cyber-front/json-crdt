@@ -176,7 +176,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 				rv.addAll(buildKnownMessages(op));
 			}
 		}
-		
+
 		return rv;
 	}
 	

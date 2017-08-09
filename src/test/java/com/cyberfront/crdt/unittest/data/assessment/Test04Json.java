@@ -33,7 +33,9 @@ import com.cyberfront.crdt.unittest.data.Factory;
 import com.cyberfront.crdt.unittest.support.TestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.zjsonpatch.JsonDiff;
+import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+
+// import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
  * This contains a class used for performing unit tests designed to create an element and a copy and then assess the

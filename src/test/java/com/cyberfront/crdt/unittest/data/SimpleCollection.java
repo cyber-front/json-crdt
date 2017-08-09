@@ -44,7 +44,7 @@ public class SimpleCollection extends AbstractDataType {
 	 */
 	public SimpleCollection() {
 		super();
-		this.setCollectionValue(Factory.getInstances(WordFactory.getRandom().nextInt(4)));
+		this.getCollectionValue().addAll(Factory.getInstances(WordFactory.getRandom().nextInt(4)));
 	}
 	
 	/**
@@ -55,7 +55,7 @@ public class SimpleCollection extends AbstractDataType {
 	public SimpleCollection(SimpleCollection src) {
 		super(src);
 		
-		this.setCollectionValue(src.collectionValue);
+		this.getCollectionValue().addAll(src.collectionValue);
 	}
 
 	/**
@@ -75,13 +75,13 @@ public class SimpleCollection extends AbstractDataType {
 	 *
 	 * @param value The new Collection of values to set for this instance
 	 */
-	public void setCollectionValue(Collection<AbstractDataType> value) {
-		this.getCollectionValue().clear();
-		
-		for (AbstractDataType element : value) {
-			this.getCollectionValue().add(Factory.copy(element));
-		}
-	}
+//	public void setCollectionValue(Collection<AbstractDataType> value) {
+//		this.getCollectionValue().clear();
+//		
+//		for (AbstractDataType element : value) {
+//			this.getCollectionValue().add(Factory.copy(element));
+//		}
+//	}
 
 	/* (non-Javadoc)
 	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
@@ -105,23 +105,26 @@ public class SimpleCollection extends AbstractDataType {
 		Collection<AbstractDataType> temp = new ArrayList<>();
 		
 		for (AbstractDataType element : this.collectionValue) {
-			double sample = WordFactory.getRandom().nextDouble();
-			
-			if (sample > prob) {
-				temp.add(element);
-				this.incrementVersion();
-			} else if (sample > 2.0 * prob / 3.0) {
-				element.update(prob);
-				temp.add(element);
-				this.incrementVersion();
-			} else if (sample > prob / 3.0) {
-				temp.add(Factory.getInstance());
-				temp.add(element);
-				this.incrementVersion();
+			if (null != element) {
+				double sample = WordFactory.getRandom().nextDouble();
+				
+				if (sample > prob) {
+					temp.add(element);
+					this.incrementVersion();
+				} else if (sample > 2.0 * prob / 3.0) {
+					element.update(prob);
+					temp.add(element);
+					this.incrementVersion();
+				} else if (sample > prob / 3.0) {
+					temp.add(Factory.getInstance());
+					temp.add(element);
+					this.incrementVersion();
+				}
 			}
 		}
 		
-		this.setCollectionValue(temp);
+		this.getCollectionValue().clear();
+		this.getCollectionValue().addAll(temp);
 	}
 
 	/* (non-Javadoc)

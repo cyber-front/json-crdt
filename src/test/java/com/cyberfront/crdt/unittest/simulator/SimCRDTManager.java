@@ -40,7 +40,9 @@ import com.cyberfront.crdt.operations.UpdateOperation;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonDiff;
+import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+//import com.flipkart.zjsonpatch.JsonPatch;		// Use this with zjsonpatch
 
 /**
  * The Class SimCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
@@ -216,29 +218,27 @@ public class SimCRDTManager <T extends AbstractDataType>
 	private Collection<SimOperationManager<T>> deliverUpdatePending(SimOperationManager<T> op, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 
-		if (StatusType.PENDING != op.getStatus() ||
-			OperationType.UPDATE != op.getOperation().getType() ||
-			!isOwner(op)) {
-			return operations;
-		}
-
-		SimOperationManager<T> rejection = new SimOperationManager<>(op);
-		rejection.setStatus(StatusType.REJECTED);
-
-		operations.add(rejection);
-		if (WordFactory.getRandom().nextDouble() > pReject) {
-			JsonNode source = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
-
-			this.deliverOperation(op);
-
-			JsonNode target = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
-			JsonNode diff = JsonDiff.asJson(source, target);
-
-			if (this.getCrdt().getInvalidOperations().isEmpty() && diff.size() > 0) {
-				UpdateOperation updateOp = new UpdateOperation(diff, Executive.getExecutive().getTimestamp());
-				SimOperationManager<T> update = new SimOperationManager<T>(StatusType.APPROVED, updateOp, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
-
-				operations.add(update);
+		// We don't want to do anything else if a pending update was not delivered to the owning node for the CRDT
+		if (StatusType.PENDING == op.getStatus() && OperationType.UPDATE == op.getOperation().getType() && !this.isOwner(op)) {
+	
+			SimOperationManager<T> rejection = new SimOperationManager<>(op);
+			rejection.setStatus(StatusType.REJECTED);
+	
+			operations.add(rejection);
+			if (WordFactory.getRandom().nextDouble() > pReject) {
+				JsonNode source = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
+	
+				this.deliverOperation(op);
+	
+				JsonNode target = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
+				JsonNode diff = JsonDiff.asJson(source, target);
+	
+				if (this.getCrdt().getInvalidOperations().isEmpty() && diff.size() > 0) {
+					UpdateOperation updateOp = new UpdateOperation(diff, Executive.getExecutive().getTimestamp());
+					SimOperationManager<T> update = new SimOperationManager<T>(StatusType.APPROVED, updateOp, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
+	
+					operations.add(update);
+				}
 			}
 		}
 
@@ -309,13 +309,14 @@ public class SimCRDTManager <T extends AbstractDataType>
 			} else {
 				rv = deliverPending(op, pReject);
 			}
+			break;
 		case APPROVED:
 		case REJECTED:
 			this.deliverOperation(op);
 		default:
 			rv =  new ArrayList<>();
 		}
-		
+
 		return rv;
 	}
 
@@ -384,15 +385,13 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * Process update.
 	 *
 	 * @param timestamp the timestamp
-	 * @param object the object
+	 * @param update the object
 	 * @return the operation manager
 	 */
-	public SimOperationManager<T> generateUpdate(StatusType status, long timestamp, T object) {
-		if (!this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
-			return null;
-		}
-
-		return this.getManager(status, generateUpdate(timestamp, object));
+	public SimOperationManager<T> generateUpdate(StatusType status, long timestamp, T update) {
+		return (!this.getCrdt().isCreated() || this.getCrdt().isDeleted())
+				? null
+				: this.getManager(status, generateUpdate(timestamp, update));
 	}
 
 	/**

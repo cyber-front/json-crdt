@@ -53,6 +53,9 @@ public class GenericCRDTManager <T>
 	/** The object class. */
 	private Class<T> objectClass;
 	
+	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = false; 
+	private static final boolean TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS = false; 
+	
 	/**
 	 * Instantiates a new CRDT manager.
 	 *
@@ -129,10 +132,18 @@ public class GenericCRDTManager <T>
 			try {
 				this.setObject(getMapper().treeToValue(json, this.getObjectClass()));
 			} catch (JsonProcessingException e) {
-				logger.error(e);
-				for (StackTraceElement el : e.getStackTrace()) {
-					logger.error(el);
+				if (LOG_JSON_PROCESSING_EXCEPTIONS) {
+					logger.error(e);
+					logger.error("json: " + json.toString());
+					logger.error("this.getObjectClass(): " + this.getObjectClass().getName());
+					logger.error("crdt: " + this.getCrdt().toString());
+					e.printStackTrace();
 				}
+				
+				if (TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS) {
+					System.exit(0);
+				}
+
 				this.setObject(null);
 				this.getCrdt().getInvalidOperations().clear();
 			}

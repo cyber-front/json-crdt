@@ -39,7 +39,8 @@ import com.cyberfront.crdt.unittest.simulator.Node;
 import com.cyberfront.crdt.unittest.simulator.SimCRDTManager;
 import com.cyberfront.crdt.unittest.support.TestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonDiff;
+import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+// import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
  * This test module will assess the behavior of the CRDT through the use of a simulated distributed
@@ -52,19 +53,19 @@ public class Test01Simulation {
 		private static final Logger logger = LogManager.getLogger(Test01Simulation.SimulationTest.class);
 		
 		/** Number of creation operations to perform on tests related to internodal synchronization quality */
-		private static final long CREATE_COUNT = 256;
+		private static final long CREATE_COUNT = 1024;
 		
 		/** Number of read operations to perform on tests related to internodal synchronization quality */
-		private static final long READ_COUNT = 64;
+		private static final long READ_COUNT = 65536;
 		
 		/** Number of updated operations to perform on tests related to internodal synchronization quality */
-		private static final long UPDATE_COUNT = 512;
+		private static final long UPDATE_COUNT = 8192;
 		
 		/** Number of delete operations to perform on tests related to internodal synchronization quality */
-		private static final long DELETE_COUNT = 16;
+		private static final long DELETE_COUNT = 256;
 		
 		/** Number of nodes to simulate in tests related to internodal synchronization quality */
-		private static final long NODE_COUNT = 32;
+		private static final long NODE_COUNT = 8;
 		
 		/** Probability of rejecting an update or delete event once it reaches the "owner" node */
 		private static final double REJECTION_PROBABILITY = 0.10d;
@@ -428,22 +429,27 @@ public class Test01Simulation {
 		private void assessValidity() {
 			logger.info("        Test01Simulation.assessValidity()");
 			
+			// TODO:  Only APPROVED operations should be in the operations in each CRDT; all PENDING
+			// operations should be removed at the conclusion of the sequence.
+			
 			Node baseNode = Executive.getExecutive().pickNode();
 			assertNotNull("baseNode found to be null", baseNode);
 
 			for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
 				AbstractDataType val = baseEntry.getValue().getObject();
+				boolean created = baseEntry.getValue().isCreated();
+				boolean deleted = baseEntry.getValue().isDeleted();
+				
+				String errMsg = (!created || deleted) == (null == val)
+						? "\nWRONG"
+						: "\n{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue() + "}";
 
-				if (!baseEntry.getValue().isCreated() || baseEntry.getValue().isDeleted()) {
-					if (null != val) {
-						logger.info("{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue());
-					}
-					assertNull("CRDT expected to be null, but isnt", val);
+				if (!created) {
+					assertNull("CRDT has no create operations but is not null" + errMsg, val);
+				} else if (deleted) {
+					assertNull("CRDT was deleted but is not null" + errMsg, val);
 				} else {
-					if (null == val) {
-						logger.info("{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue());
-					}
-					assertNotNull("CRDT expected to be not null, but is", val);
+					assertNotNull("CRDT is created and not deleted, but is null" + errMsg, val);
 				}
 
 				int invalidOperations = baseEntry.getValue().getInvalidOperationCount();
@@ -453,7 +459,10 @@ public class Test01Simulation {
 					sb.append("    Node : " + baseNode.getNodeName() + "\n");
 					sb.append("    count : " + baseEntry.getValue().getInvalidOperationCount() + "\n");
 					logger.info("    Residual invalid operations detected: \n" + sb.toString());
+					logger.info(baseEntry.getValue().toString());
 				}
+				
+				assertTrue("Residual operations remain", invalidOperations == 0);
 			}
 		}
 

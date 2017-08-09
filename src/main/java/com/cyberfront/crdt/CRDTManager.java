@@ -33,7 +33,8 @@ import com.cyberfront.crdt.operations.ReadOperation;
 import com.cyberfront.crdt.operations.UpdateOperation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.zjsonpatch.JsonDiff;
+import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+// import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
  * The CRDTManager class is used to wrap a CRDT instance so as to interact with it.  The intent of this class is to 
@@ -166,7 +167,6 @@ public class CRDTManager {
 	 */
 	protected static UpdateOperation generateUpdateOperation(JsonNode source, JsonNode target, long timestamp) {
 		JsonNode diff = JsonDiff.asJson(source, target);
-
 		return diff.size() > 0 ? new UpdateOperation(diff, timestamp) : null;
 	}
 

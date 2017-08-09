@@ -16,7 +16,7 @@ public class TestSupport {
 	private static final boolean STRESSED = false;
 	
 	/** Factor to apply during stress tests */
-	private static final long STRESSED_FACTOR = 4;
+	private static final long STRESSED_FACTOR = 2;//4;
 	
 	/** The ObjectMapper used to translate between JSON and any of the classes derived from
 	 * com.cyberfront.crdt.unittest.data.AbstractDataType */
@@ -91,6 +91,12 @@ public class TestSupport {
 
 	public void setAbbreviated(boolean abbreviated) {
 		this.abbreviated = abbreviated;
+	}
+	
+	public static String getMessage() {
+		StringBuilder sb = new StringBuilder();
+		
+		return sb.toString();
 	}
 
 	/**

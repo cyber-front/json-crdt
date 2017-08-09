@@ -22,17 +22,21 @@
  */
 package com.cyberfront.crdt;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
+import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonPatchApplicationException;
+import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonPatchApplicationException;	// Use this with zjsonpatch
 
 /**
  * The LastWriteWins class implements a Last Write Wins commutative CRDT.  Operations are stored and recalled in time stamp
@@ -47,11 +51,14 @@ public class LastWriteWins extends OperationTwoSet {
 	 * operations are processed.  It also tracks any invalid operations which are in the set of operations.  Invalid operations are those which
 	 * cannot be processed due to a difference in the way the JSON operations are performed on different nodes.  These invalid operations are 
 	 * ignored when producing the resulting document, and are stored for later reference if needed.
+	 * 
+	 * TrialResults are used only for generating final values.  Since READ operations do not change the value of the resulting object, they are 
+	 * filtered from collection of operations used to generate the resulting JSON representation of the reconstructed object.
 	 */
 	public static class TrialResult {
 		
 		/** Flag to indicate whether invalid operations are to be logged to the console */
-		private static final boolean LOG_INVALID_OPERATIONS = false;
+		private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = false;
 		
 		/** The document which results from processing all of the operations in the Trial. */
 		private JsonNode document = null;
@@ -69,9 +76,11 @@ public class LastWriteWins extends OperationTwoSet {
 		 * @param crdt The CRDT to process
 		 */
 		public TrialResult(LastWriteWins crdt) {
-			this.getOperations().addAll(crdt.getOpsSet());
+			this.getOperations().addAll(crdt.getOpsSet().stream()
+														.filter(op -> (OperationType.READ != op.getType()))
+														.collect(Collectors.toList()));
 		}
-		
+
 		/**
 		 * Instantiates a new TrialResult instance from an existing TrialResult and a new collection of operations.
 		 * The resulting operations are the union of those in the provided trial and those in the newOps collection passed
@@ -81,7 +90,9 @@ public class LastWriteWins extends OperationTwoSet {
 		 */
 		private TrialResult(TrialResult trial, Collection<AbstractOperation> newOps) {
 			this.getOperations().addAll(trial.getOperations());
-			this.getOperations().addAll(newOps);
+			this.getOperations().addAll(newOps.stream()
+											  .filter(op -> (OperationType.READ != op.getType()))
+											  .collect(Collectors.toList()));
 		}
 		
 		/**
@@ -93,7 +104,9 @@ public class LastWriteWins extends OperationTwoSet {
 		 */
 		private TrialResult(TrialResult trial, AbstractOperation newOp) {
 			this.getOperations().addAll(trial.getOperations());
-			this.getOperations().add(newOp);
+			if (OperationType.READ != newOp.getType()) {
+				this.getOperations().add(newOp);
+			}
 		}
 		
 		/**
@@ -164,9 +177,15 @@ public class LastWriteWins extends OperationTwoSet {
 			for (AbstractOperation op : this.getOperations()) {
 				try {
 					this.document = op.processOperation(this.document);
-				} catch (JsonPatchApplicationException e) {
-					if (LOG_INVALID_OPERATIONS) {
-						logger.info(e);
+				} catch (JsonPatchException | IOException e) {	// Use this with jsonpatch
+//				} catch (JsonPatchApplicationException e) {		// Use this with zjsonpatch
+					if (LOG_JSON_PROCESSING_EXCEPTIONS) {
+						logger.error(e);
+						logger.error(" op: " + op.toString());
+						logger.error("doc: " + document);
+						for (StackTraceElement el : e.getStackTrace()) {
+							logger.error(el);
+						}
 					}
 					this.invalidOperations.add(op);
 				}
@@ -231,6 +250,7 @@ public class LastWriteWins extends OperationTwoSet {
 	private static final Logger logger = LogManager.getLogger(LastWriteWins.class);
 	
 	/** The TrialResult associated with this LastWriteWins instance. */
+	@SuppressWarnings("unused")
 	private TrialResult trial = null;
 
 	/**
@@ -238,11 +258,12 @@ public class LastWriteWins extends OperationTwoSet {
 	 * @return TrailResult instance derived from the operations in this CRDT instance
 	 */
 	public TrialResult getTrial() {
-		if (null == this.trial) {
-			this.trial = new TrialResult(this);
-		}
-		
-		return this.trial;
+//		if (null == this.trial) {
+//			this.trial = new TrialResult(this);
+//		}
+//		
+//		return this.trial;
+		return new TrialResult(this);
 	}
 	
 	/* (non-Javadoc)
@@ -268,7 +289,10 @@ public class LastWriteWins extends OperationTwoSet {
 	 */
 	@Override
 	protected void addOperation(AbstractOperation op) {
-		this.trial = null;
+		if (OperationType.READ != op.getType()) {
+			this.trial = null;
+		}
+
 		this.getAddSet().add(op);
 	}
 	
@@ -279,7 +303,10 @@ public class LastWriteWins extends OperationTwoSet {
 	 */
 	@Override
 	protected void remOperation(AbstractOperation op) {
-		this.trial = null;
+		if (OperationType.READ != op.getType()) {
+			this.trial = null;
+		}
+
 		this.getRemSet().add(op);
 	}
 	

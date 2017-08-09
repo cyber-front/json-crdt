@@ -24,11 +24,15 @@ package com.cyberfront.crdt.operations;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatch;				// Use this with jsonpatch
+import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
+// import com.flipkart.zjsonpatch.JsonPatch;  			// Use this with zjsonpatch
 
 /**
  * The UpdateOperation encapsulates the creation of a new JSON document in the CRDT.  It should have
@@ -65,9 +69,12 @@ public class UpdateOperation extends AbstractOperation {
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#processOperation(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-	public JsonNode processOperation(JsonNode document) {
+	public JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException {
 		assertNotNull("Update Operation is null", this.getOp());
-		return null == document ? null :  JsonPatch.apply(this.getOp(), document);
+		return null == document
+				? null
+				: JsonPatch.fromJson(this.getOp()).apply(document);		// Use this with jsonpatch
+//				: JsonPatch.apply(this.getOp(), document);				// Use this with zjsonpatch
 	}
 
 	/* (non-Javadoc)

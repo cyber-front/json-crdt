@@ -59,6 +59,9 @@ public class SimpleReference extends AbstractDataType {
 	 * @return The Reference values
 	 */
 	public AbstractDataType getReferenceValue() {
+		if (null == this.referenceValue) {
+			throw new NullPointerException();
+		}
 		return referenceValue;
 	}
 
@@ -68,6 +71,10 @@ public class SimpleReference extends AbstractDataType {
 	 * @param value The new Reference value to set for this instance
 	 */
 	public void setReferenceValue(AbstractDataType value) {
+		if (null == value) {
+			throw new NullPointerException();
+		}
+		
 		this.referenceValue = Factory.copy(value);
 	}
 
