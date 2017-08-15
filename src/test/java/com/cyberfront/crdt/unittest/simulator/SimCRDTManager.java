@@ -163,7 +163,7 @@ public class SimCRDTManager <T extends AbstractDataType>
 	}
 
 	private boolean isOwner(SimOperationManager<T> op) {
-		boolean rv = Executive.getExecutive().getCrdtLookup().get(this.getObjectId()).equals(this.getNodename());
+		boolean rv = Executive.getExecutive().getOwnerNode(this.getObjectId()).equals(this.getNodename());
 		return rv;
 	}
 	

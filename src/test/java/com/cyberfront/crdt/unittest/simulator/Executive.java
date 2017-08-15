@@ -35,98 +35,96 @@ import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
 import com.cyberfront.crdt.unittest.support.WordFactory;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Executive.
+ * The Executive class is used to manage the overall execution of the simulation of a distributed CRDT data store. Each of the 
+ * distributed nodes are intended to have identical values for the objects managed within each CRDT at the conclusion of the
+ * test.
  */
 public class Executive implements ITimeStamp {
 	
-	/** The logger. */
+	/** The logger to log elements to the Log4J output */
 	@SuppressWarnings("unused")
 	private Logger logger = LogManager.getLogger(AbstractOperation.class);
 
-	/** The Constant DEFAULT_NODE_COUNT. */
+	/** Defines the default number of nodes for a given simulation if not specified. */
 	private static final int DEFAULT_NODE_COUNT = 16;
 	
-	/** The Constant DEFAULT_CREATE_COUNT. */
+	/** Defines the default number of create operations to perform for a given simulation if not specified */
 	private static final int DEFAULT_CREATE_COUNT = 256;
 	
-	/** The Constant DEFAULT_READ_COUNT. */
+	/** Defines the default number of read operations to perform for a given simulation if not specified */
 	private static final int DEFAULT_READ_COUNT = 1024;
 	
-	/** The Constant DEFAULT_UPDATE_COUNT. */
+	/** Defines the default number of update operations to perform for a given simulation if not specified */
 	private static final int DEFAULT_UPDATE_COUNT = 2048;
 	
-	/** The Constant DEFAULT_DELETE_COUNT. */
+	/** Defines the default number of delete operations to perform for a given simulation if not specified */
 	private static final int DEFAULT_DELETE_COUNT = 32;
 	
 	/**
-	 * The Enum EventType.
+	 * An enumeration of the types of operations which the executive is managing
 	 */
 	public enum EventType {
 		
-		/** The create. */
+		/** Represents a create operation */
 		CREATE,
 		
-		/** The read. */
+		/** Represents a read operation */
 		READ,
 		
-		/** The update. */
+		/** Represents an update operation */
 		UPDATE,
 		
-		/** The delete. */
+		/** Represents a delete operation */
 		DELETE,
 		
-		/** The deliver. */
+		/** Represents delivery of a message to a node */
 		DELIVER
 	}
 	
-	/** The instance. */
+	/** The main executive for the simulation.  There is only one. */
 	private static Executive instance;
 
-	
-	/** The nodes. */
+	/** The nodes the executive is managing */
 	private Map<String, Node> nodes;
 	
-	/** The router. */
+	/** A queue which manages messages awaiting delivery */
 	private MessageRouter router;
 	
-	/** The time stamp. */
+	/** The current timestamp */
 	private long timestamp;
 	
-	/** The node count. */
+	/** The number of nodes the executive is simulating */
 	private long nodeCount;
 	
-	/** The create count. */
+	/** Number of create operations remaining to perform */
 	private long createCount;
 	
-	/** The read count. */
+	/** Number of read operations remaining to perform */
 	private long readCount;
 	
-	/** The update count. */
+	/** Number of update operations remaining to perform */
 	private long updateCount;
 	
-	/** The delete count. */
+	/** Number of delete operations remaining to perform */
 	private long deleteCount;
 	
-	/** The reject probability. */
+	/** The probability of an owning node rejecting an update or delete operation */
 	private double rejectProbability;
 	
-	/** The update probability. */
+	/** The probability of updating an individual field when computing an update to a managed object */
 	private double updateProbability;
 	
-	/** The crdt lookup. */
+	/** A map relating a CRDT name to the name of the node which manages it */
 	private Map<String, String> crdtLookup;
 	
-	/** The user lookup. */
+	/** A map relating a username to the name of the node where the user operates */
 	private Map<String, String> userLookup;
 
 	/**
-	 * Instantiates a new executive.
+	 * Instantiates a new executive using the default parameters
 	 */
 	public Executive() {
-		this.setNodes(new TreeMap<>());
-		this.setRouter(new MessageRouter());
 		this.setTimestamp(0L);
 
 		this.setCreateCount(DEFAULT_CREATE_COUNT);
@@ -137,72 +135,54 @@ public class Executive implements ITimeStamp {
 	}
 
 	/**
-	 * Gets the nodes.
+	 * Retrieve the map of nodes currently under the Executive's management
 	 *
-	 * @return the nodes
+	 * @return A map of all the nodes currently being managed
 	 */
 	public Map<String, Node> getNodes() {
 		if (null == this.nodes) {
-			this.setNodes(new TreeMap<>());
+			this.nodes = new TreeMap<>();
 		}
 		
 		return nodes;
 	}
 
 	/**
-	 * Sets the nodes.
+	 * Add a node to the map of them
 	 *
-	 * @param nodes the nodes
-	 */
-	private void setNodes(Map<String, Node> nodes) {
-		this.nodes = nodes;
-	}
-
-	/**
-	 * Adds the node.
-	 *
-	 * @param node the node
+	 * @param node Node instance to add to the node map
 	 */
 	public void addNode(Node node) {
 		this.getNodes().put(node.getNodeName(), node);
 	}
 	
 	/**
-	 * Gets the node.
+	 * Retrieve the node of the given name
 	 *
-	 * @param nodeName the node name
-	 * @return the node
+	 * @param nodeName Name of the node to retrieve
+	 * @return The node with the given name
 	 */
 	public Node getNode(String nodeName) {
 		return this.getNodes().get(nodeName);
 	}
 	
 	/**
-	 * Gets the router.
+	 * Retrieve the message router associated with this Executive instance
 	 *
-	 * @return the router
+	 * @return The message router
 	 */
 	public MessageRouter getRouter() {
 		if (null == this.router) {
-			this.setRouter(new MessageRouter());
+			this.router = new MessageRouter();
 		}
 		
 		return router;
 	}
-
-	/**
-	 * Sets the router.
-	 *
-	 * @param router the new router
-	 */
-	private void setRouter(MessageRouter router) {
-		this.router = router;
-	}
 	
 	/**
-	 * Gets the executive.
+	 * Retrieve the static executive instance
 	 *
-	 * @return the executive
+	 * @return The static executive instance
 	 */
 	public static Executive getExecutive() {
 		if (null == instance) {
@@ -229,126 +209,134 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Increment time S tamp.
+	 * Increment the timer to the next value
 	 */
-	public void incrementTimestamp() {
+	public void incrementTime() {
 		this.setTimestamp(this.getTimestamp() + WordFactory.getRandom().nextInt(256));
 	}
 
 	/**
-	 * Transmit.
+	 * Queue up the messages in the collection for delivery to the intended recipient node 
 	 *
-	 * @param messages the messages
+	 * @param messages Collection of messages to queue up for delivery
 	 */
 	public void transmit(Collection<Message<? extends AbstractDataType>> messages) {
-		for (Message<? extends AbstractDataType> message : messages) {
-			this.getRouter().add(message);
-		}
+		this.getRouter().getMessages().addAll(messages);
 	}
 
 	/**
-	 * Gets the node count.
+	 * Retrieve the number of nodes the Executive is managing
 	 *
-	 * @return the node count
+	 * @return The number of nodes the Executive is managing
 	 */
 	public long getNodeCount() {
-		return nodeCount;
+		return this.nodeCount;
 	}
 
 	/**
-	 * Sets the node count.
+	 * Sets the node count.  This doesn't actually allocate the nodes, only describes the number of nodes
+	 * which should be allocated.
 	 *
-	 * @param nodeCount the new node count
+	 * @param nodeCount The new node count
 	 */
 	public void setNodeCount(long nodeCount) {
 		this.nodeCount = nodeCount;
 	}
 
 	/**
-	 * Gets the creates the count.
+	 * Retrieves the number of create operations the Executive is to perform during the course of the 
+	 * simulation execution 
 	 *
-	 * @return the creates the count
+	 * @return The create count
 	 */
 	public long getCreateCount() {
-		return createCount;
+		return this.createCount;
 	}
 
 	/**
-	 * Sets the creates the count.
+	 * Sets the number of create operations the Executive is to perform during the course of the
+	 * simulation execution 
 	 *
-	 * @param createCount the new creates the count
+	 * @param createCount The new create count
 	 */
 	public void setCreateCount(long createCount) {
 		this.createCount = createCount;
 	}
 
 	/**
-	 * Gets the read count.
+	 * Retrieves the number of read operations the Executive is to perform during the course of the 
+	 * simulation execution 
 	 *
-	 * @return the read count
+	 * @return The read count
 	 */
 	public long getReadCount() {
 		return readCount;
 	}
 
 	/**
-	 * Sets the read count.
+	 * Sets the number of read operations the Executive is to perform during the course of the
+	 * simulation execution 
 	 *
-	 * @param readCount the new read count
+	 * @param readCount The new read count
 	 */
 	public void setReadCount(long readCount) {
 		this.readCount = readCount;
 	}
 
 	/**
-	 * Gets the update count.
+	 * Retrieves the number of update operations the Executive is to perform during the course of the 
+	 * simulation execution 
 	 *
-	 * @return the update count
+	 * @return The update count
 	 */
 	public long getUpdateCount() {
 		return updateCount;
 	}
 
 	/**
-	 * Sets the update count.
+	 * Sets the number of update operations the Executive is to perform during the course of the
+	 * simulation execution 
 	 *
-	 * @param updateCount the new update count
+	 * @param updateCount The new update count
 	 */
 	public void setUpdateCount(long updateCount) {
 		this.updateCount = updateCount;
 	}
 
 	/**
-	 * Gets the delete count.
+	 * Retrieves the number of delete operations the Executive is to perform during the course of the 
+	 * simulation execution 
 	 *
-	 * @return the delete count
+	 * @return The delete count
 	 */
 	public long getDeleteCount() {
 		return deleteCount;
 	}
 
 	/**
-	 * Sets the delete count.
+	 * Sets the number of delete operations the Executive is to perform during the course of the
+	 * simulation execution 
 	 *
-	 * @param deleteCount the new delete count
+	 * @param deleteCount The new delete count
 	 */
 	public void setDeleteCount(long deleteCount) {
 		this.deleteCount = deleteCount;
 	}
 
 	/**
-	 * Gets the delivery count.
+	 * Retrieve the number of messages remaining in the delivery queue
 	 *
-	 * @return the delivery count
+	 * @return The delivery count
 	 */
 	public int getDeliveryCount() {
 		return this.getRouter().getMessageCount();
 	}
 	
 	/**
-	 * Event count.
+	 * Compute and retrieve the total number of operations remaining in execution of the simulation.  This number
+	 * could grow as the number of operations to deliver are added to the message router
 	 *
-	 * @return the long
+	 * @return The total number of pending operation remaining to complete the simulation 
 	 */
 	private long eventCount() {
 		return this.getCreateCount() +
@@ -359,9 +347,10 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Pick event.
+	 * Randomly pick an event class based on the number of each of the remaining types of operations
+	 * which the Executive is required to complete
 	 *
-	 * @return the event type
+	 * @return The event type of the next operation to perform
 	 */
 	private EventType pickEvent() {
 		long pick = WordFactory.getRandom().nextLong() % this.eventCount();
@@ -392,9 +381,9 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Pick node.
+	 * Randomly pick a node from the collection of nodes
 	 *
-	 * @return the node
+	 * @return The randomly chosen node
 	 */
 	public Node pickNode() {
 		int pick = WordFactory.getRandom().nextInt(this.getNodes().size());
@@ -409,21 +398,27 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Do create.
+	 * Create a new object with the specified node as the owner.  Generate and return the message set required to ensure all 
+	 * the other nodes can duplicate the create operation
 	 *
-	 * @param node the node
-	 * @throws ReflectiveOperationException the reflective operation exception
+	 * @param <T> The generic type of the object to manage 
+	 * @param node The owning node for the new object 
+	 * @param object Object for the Node to manage as an owning node
+	 * @return The collection of messages generated in response to the creation of the new object in the specified node 
 	 */
-	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> doCreate(Node node, T object) throws ReflectiveOperationException {
+	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> doCreate(Node node, T object) {
 		Collection<Message<? extends AbstractDataType>> messages = node.generateCreateOperation(object);
 		--this.createCount;
 		return messages;
 	}
 
 	/**
-	 * Do read.
+	 * Perform a read operation on a random object which exists in the given node.  If the node in question does not
+	 * have any objects to read, no further action is taken.  Otherwise, the read operation is used to generate a collection
+	 * of messages to duplicate the read operation at all of the other nodes 
 	 *
-	 * @param node the node
+	 * @param node The node from which to read
+	 * @return The collection of messages needed to duplicate the read operation elsewhere
 	 */
 	private Collection<Message<? extends AbstractDataType>> doRead(Node node) {
 		if (node.getDatastore().size() <= 0) {
@@ -440,10 +435,14 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Do update.
+	 * Perform an update operation on a random object which exists in the given node.  If the node in question does not
+	 * have any objects to update, no further action is taken.  Otherwise, the update operation is used to generate a collection
+	 * of messages to duplicate the update operation at all of the other nodes 
 	 *
-	 * @param node the node
-	 * @param pChange the change
+	 * @param node The node from which to update
+	 * @param pChange Probability of changing a node field value
+	 * @return The collection of messages needed to pass the update operation throughout the simulated distributed
+	 * environment
 	 */
 	private Collection<Message<? extends AbstractDataType>> doUpdate(Node node, Double pChange) {
 		if (node.getDatastore().size() <= 0) {
@@ -460,9 +459,13 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Do delete.
+	 * Perform an delete operation on a random object which exists in the given node.  If the node in question does not
+	 * have any objects to delete, no further action is taken.  Otherwise, the delete operation is used to generate a collection
+	 * of messages to duplicate the delete operation at all of the other nodes 
 	 *
-	 * @param node the node
+	 * @param node The node from which to update
+	 * @return The collection of messages needed to pass the delete operation throughout the simulated distributed
+	 * environment
 	 */
 	private Collection<Message<? extends AbstractDataType>> doDelete(Node node) {
 		if (node.getDatastore().size() <= 0) {
@@ -479,7 +482,10 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Do deliver.
+	 * Deliver the next message in the delivery queue to the node which is the intended recipient.  Delivery of this next message
+	 * may result in generation of a number of additional messages which are passed back to the calling routine.
+	 *
+	 * @return The collection of messages which results from delivery of the next message in the delivery queue
 	 */
 	private Collection<Message<? extends AbstractDataType>> doDeliver() {
 		if (this.getRouter().isEmpty()) {
@@ -490,13 +496,14 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Handle event.
+	 * Handle an event of the type provided.  Handling the event may result in a collection of messages which need to
+	 * be delivered
 	 *
-	 * @param type the type
-	 * @param node the node
-	 * @throws ReflectiveOperationException the reflective operation exception
+	 * @param type Type of event to handle next
+	 * @param node Node affected by handling of the event
+	 * @return Collection of messages to deliver 
 	 */
-	private Collection<Message<? extends AbstractDataType>> handleEvent(EventType type, Node node) throws ReflectiveOperationException {
+	private Collection<Message<? extends AbstractDataType>> handleEvent(EventType type, Node node) {
 		switch(type) {
 		case CREATE:
 			return doCreate(node, Factory.getInstance());
@@ -514,11 +521,9 @@ public class Executive implements ITimeStamp {
 	}
 	
 	/**
-	 * Execute.
-	 *
-	 * @throws ReflectiveOperationException the reflective operation exception
+	 * Execute the simulation with the settings given. 
 	 */
-	public void execute() throws ReflectiveOperationException {
+	public void execute() { 
 		this.generateNodes();
 		while (this.eventCount() > 0) {
 
@@ -528,58 +533,59 @@ public class Executive implements ITimeStamp {
 			Collection<Message<? extends AbstractDataType>> messages = this.handleEvent(event, node);
 			
 			this.transmit(messages);
-			this.incrementTimestamp();
+			this.incrementTime();
 		}
 	}
 
 	/**
-	 * Generate nodes.
+	 * Generate the nodes the simulation will use to perform its execution.
 	 */
 	private void generateNodes() {
 		for (int i=0; i<this.getNodeCount(); ++i) {
 			Node node = new Node();
 			this.getNodes().put(node.getNodeName(), node);
+			
 		}
 	}
 
 	/**
-	 * Gets the reject probability.
+	 * Retrieve the probability of rejecting an update or delete operation which occured at a non-owning node
 	 *
-	 * @return the reject probability
+	 * @return The reject probability
 	 */
 	public double getRejectProbability() {
 		return rejectProbability;
 	}
 
 	/**
-	 * Sets the reject probability.
+	 * Set the probability of rejecting an update or delete operation which occurred at a non-owning node
 	 *
-	 * @param rejectProbability the new reject probability
+	 * @param rejectProbability The new update or delete operation rejection probability
 	 */
 	public void setRejectProbability(double rejectProbability) {
 		this.rejectProbability = rejectProbability;
 	}
 
 	/**
-	 * Gets the update probability.
+	 * Gets the probability of updating an update of a specific field in an object being managed
 	 *
-	 * @return the update probability
+	 * @return The update probability
 	 */
 	public double getUpdateProbability() {
 		return this.updateProbability;
 	}
 
 	/**
-	 * Sets the update probability.
+	 * Sets the probability of updating an update of a specific field in an object being managed
 	 *
-	 * @param updateProbability the new reject probability
+	 * @param updateProbability The new probability for updating a field in a managed object
 	 */
 	public void setUpdateProbability(double updateProbability) {
 		this.updateProbability = updateProbability;
 	}
 
 	/**
-	 * Clear.
+	 * Initialize the simulation Executive for a new run.
 	 */
 	public void clear() {
 		for (Map.Entry<String, Node> entry : this.getNodes().entrySet()) {
@@ -588,77 +594,48 @@ public class Executive implements ITimeStamp {
 		
 		this.getNodes().clear();
 		this.getRouter().clear();
+		this.getCrdtLookup().clear();
+		this.getUserLookup().clear();
 
 		this.setTimestamp(0L);
 	}
 
 	/**
-	 * Sets the counts.
+	 * Registers the node and username for the owner of the CRDT and the object it manages
 	 *
-	 * @param createCount the create count
-	 * @param readCount the read count
-	 * @param updateCount the update count
-	 * @param deleteCount the delete count
-	 * @param nodeCount the node count
-	 * @param rejectProbability the reject probability
-	 * @param updateProbability the update probability
+	 * @param crdt The CRDT to register to look up owner name and user name associated with the CRDT
 	 */
-	public void setCounts(long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectProbability, double updateProbability) {
-		this.setCreateCount(createCount);
-		this.setReadCount(readCount);
-		this.setUpdateCount(updateCount);
-		this.setDeleteCount(deleteCount);
-		this.setNodeCount(nodeCount);
-		this.setRejectProbability(rejectProbability);
-		this.setUpdateProbability(updateProbability);
+	public void registerCrdt(SimCRDTManager<? extends AbstractDataType> crdt) {
+		this.getCrdtLookup().put(crdt.getObjectId(), crdt.getNodename());
+		this.getUserLookup().put(crdt.getObjectId(), crdt.getUsername());
 	}
 
 	/**
-	 * Adds the nodename.
+	 * Gets the owner node of the CRDT with the given ID
 	 *
-	 * @param id the id
-	 * @param nodename the nodename
-	 */
-	public void addNodename(String id, String nodename) {
-		this.getCrdtLookup().put(id, nodename);
-	}
-
-	/**
-	 * Gets the owner node.
-	 *
-	 * @param id the id
-	 * @return the owner node
+	 * @param id The id of the CRDT for which we're trying to get the owner node
+	 * @return The ID value for the Node which owns the CRDT with the given ID value
 	 */
 	public String getOwnerNode(String id) {
 		return this.getCrdtLookup().get(id);
 	}
 
 	/**
-	 * Gets the owner user.
+	 * Gets the owner node of the user with the given ID
 	 *
-	 * @param id the id
-	 * @return the owner user
+	 * @param id The id of the CRDT for which we're trying to get the owner user
+	 * @return The ID value for the user which owns the CRDT with the given ID value
 	 */
 	public String getOwnerUser(String id) {
 		return this.getUserLookup().get(id);
 	}
 
 	/**
-	 * Adds the username.
+	 * Return the CRDT Node Lookup map to the calling routing
 	 *
-	 * @param id the id
-	 * @param username the username
+	 * @return The CRDT owner node lookup map
 	 */
-	public void addUsername(String id, String username) {
-		this.getUserLookup().put(id, username);
-	}
-
-	/**
-	 * Gets the crdt lookup.
-	 *
-	 * @return the crdt lookup
-	 */
-	public Map<String, String> getCrdtLookup() {
+	private Map<String, String> getCrdtLookup() {
 		if (null == this.crdtLookup) {
 			this.crdtLookup = new TreeMap<>();
 		}
@@ -667,11 +644,11 @@ public class Executive implements ITimeStamp {
 	}
 
 	/**
-	 * Gets the user lookup.
+	 * Return the CRDT username lookup map to the calling routine
 	 *
-	 * @return the user lookup
+	 * @return The CRDT owner user lookup map
 	 */
-	public Map<String, String> getUserLookup() {
+	private Map<String, String> getUserLookup() {
 		if (null == this.userLookup) {
 			this.userLookup = new TreeMap<>();
 		}
@@ -679,6 +656,10 @@ public class Executive implements ITimeStamp {
 		return userLookup;
 	}
 	
+	/**
+	 * Return a segment needed to generate the serialized version of the Executive.  The format is JSON-like
+	 * @return The segment containing a string serialization of the Executiv in a JSON-like format.
+	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		
@@ -698,6 +679,9 @@ public class Executive implements ITimeStamp {
 		return sb.toString();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "{" + this.getSegment() + "}";

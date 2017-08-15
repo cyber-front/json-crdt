@@ -31,14 +31,12 @@ public abstract class AbstractCRDT {
 	
 	/**
 	 * This will return true exactly when there is at least one com.cyberfront.crdt.operations.DeleteOperation in the list being maintained by the CRDT 
-	 *
 	 * @return Returns true exactly when there is at least one com.cyberfront.crdt.operations.DeleteOperation in the list of operations
 	 */
 	public abstract boolean isDeleted();
 	
 	/**
 	 * This will return true exactly when there is at least one com.cyberfront.crdt.operations.CreateOperation in the list being maintained by the CRDT 
-	 *
 	 * @return Returns true exactly when there is at least one com.cyberfront.crdt.operations.CreateOperation in the list of operations
 	 */
 	public abstract boolean isCreated();
@@ -69,14 +67,12 @@ public abstract class AbstractCRDT {
 	
 	/**
 	 * Process the operations and return the resulting JsonNode document
-	 *
 	 * @return The JSON document resulting from processing the operations in the CRDT
 	 */
 	public abstract JsonNode readValue();
 
 	/**
 	 * This is used to create a string representation of the CRDT in support of the toString() method
-	 *
 	 * @return Return the relevant data for the CRDT
 	 */
 	protected String getSegment() {

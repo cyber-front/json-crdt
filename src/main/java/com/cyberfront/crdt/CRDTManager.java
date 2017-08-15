@@ -53,7 +53,6 @@ public class CRDTManager {
 	
 	/**
 	 * Gets the CRDT this manager is managing
-	 *
 	 * @return the CRDT this manager is managing
 	 */
 	protected LastWriteWins getCrdt() {
@@ -65,7 +64,6 @@ public class CRDTManager {
 
 	/**
 	 * Get the static class ObjectMapper for performing JSON conversions
-	 * 
 	 * @return The static ObjectMapper instance for performing JSON conversions
 	 */
 	protected static ObjectMapper getMapper() {
@@ -83,7 +81,6 @@ public class CRDTManager {
 	
 	/**
 	 * Checks if the CRDT being managed includes a DeleteOperation
-	 *
 	 * @return True if and only if the CRDT includes a DeleteOperation
 	 */
 	public boolean isDeleted() {
@@ -99,7 +96,6 @@ public class CRDTManager {
 
 	/**
 	 * Deliver the operation, which has the effect of inserting the operation into the AddOperation set
-	 *
 	 * @param op Operation to deliver to the CRDT
 	 */
 	private void deliver(AbstractOperation op) {
@@ -108,7 +104,6 @@ public class CRDTManager {
 
 	/**
 	 * Cancel an operation which currently is, or potentially in the future will be, included in the AddOperation set  
-	 *
 	 * @param op The AbstractOperation instance to include in the RemoveOperation list
 	 */
 	private void cancel(AbstractOperation op) {
@@ -117,7 +112,6 @@ public class CRDTManager {
 
 	/**
 	 * Deliver an operation embedded in the OperationManager and based upon the StatusType of that OperationManager
-	 *
 	 * @param op OperationsManager instance wrapping the operation to persist in this CRDT
 	 */
 	protected void deliver(OperationManager op) {
@@ -138,7 +132,6 @@ public class CRDTManager {
 	
 	/**
 	 * Generate a CreateOperation given a JsonNode and timestamp
-	 *
 	 * @param document The source document around which to build the CreateOperation 
 	 * @param timestamp Effective timestamp for the create operation
 	 * @return The new CreateOperation
@@ -149,7 +142,6 @@ public class CRDTManager {
 	
 	/**
 	 * Generate a ReadOperation with the given time stamp value
-	 *
 	 * @param timestamp Effective timestamp for the read operation
 	 * @return The read operation with the given timestamp
 	 */
@@ -159,7 +151,6 @@ public class CRDTManager {
 	
 	/**
 	 * Generate an UpdateOperation given an original and update value and a timestamp value.
-	 *
 	 * @param source The original JsonNode to update with a new value
 	 * @param target The new JsonNode which the update will produce given the original state 
 	 * @param timestamp Effective time stamp for the update operations
@@ -172,7 +163,6 @@ public class CRDTManager {
 
 	/**
 	 * Generate a DeleteOperation with the given timestamp
-	 *
 	 * @param timestamp Effective timestamp for the delete operations
 	 * @return A DeleteOperation with the given timestamp 
 	 */

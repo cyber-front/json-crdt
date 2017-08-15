@@ -53,16 +53,16 @@ public class Test01Simulation {
 		private static final Logger logger = LogManager.getLogger(Test01Simulation.SimulationTest.class);
 		
 		/** Number of creation operations to perform on tests related to internodal synchronization quality */
-		private static final long CREATE_COUNT = 1024;
+		private static final long CREATE_COUNT = 256;
 		
 		/** Number of read operations to perform on tests related to internodal synchronization quality */
-		private static final long READ_COUNT = 65536;
+		private static final long READ_COUNT = 512;
 		
 		/** Number of updated operations to perform on tests related to internodal synchronization quality */
-		private static final long UPDATE_COUNT = 8192;
+		private static final long UPDATE_COUNT = 1024;
 		
 		/** Number of delete operations to perform on tests related to internodal synchronization quality */
-		private static final long DELETE_COUNT = 256;
+		private static final long DELETE_COUNT = 32;
 		
 		/** Number of nodes to simulate in tests related to internodal synchronization quality */
 		private static final long NODE_COUNT = 8;
@@ -513,13 +513,16 @@ public class Test01Simulation {
 				logger.info("   simulateTest: " + crud + "; trial " + (trial+1) + " of " + this.getTrialCount() + ".");
 				
 				executive.clear();
-				executive.setCounts(this.getCreateCount(), this.getReadCount(), this.getUpdateCount(), this.getDeleteCount(), this.getNodeCount(), this.getRejectionProbability(), this.getUpdateProbability());
-				try {
-					executive.execute();
-				} catch (ReflectiveOperationException e) {
-					logger.error(e);
-					e.printStackTrace();
-				}
+				executive.setCreateCount(this.getCreateCount());
+				executive.setReadCount(this.getReadCount());
+				executive.setUpdateCount(this.getUpdateCount());
+				executive.setDeleteCount(this.getDeleteCount());
+				executive.setNodeCount(this.getNodeCount());
+				executive.setRejectProbability(this.getRejectionProbability());
+				executive.setUpdateProbability(this.getUpdateProbability());
+				
+				executive.execute();
+				
 				assessSimulation();
 			}
 			logger.info("   SUCCESS");

@@ -137,8 +137,7 @@ public class Node extends AbstractNode<AbstractDataType> {
 	@Override
 	protected void addCRDT(SimCRDTManager<? extends AbstractDataType> crdt) {
 		super.addCRDT(crdt);
-		getExecutive().addNodename(crdt.getObjectId(), crdt.getNodename());
-		getExecutive().addUsername(crdt.getObjectId(), crdt.getUsername());
+		getExecutive().registerCrdt(crdt);
 	}
 	
 	/**
@@ -195,13 +194,15 @@ public class Node extends AbstractNode<AbstractDataType> {
 	}
 
 	/**
-	 * Generate create operation.
+	 * Upon receipt of a new object to manage, this will allocate the CRDT for the object and return the create operation managers
+	 * so the operation can be replicated at all other nodes.
 	 *
-	 * @return the collection
-	 * @throws ReflectiveOperationException the reflective operation exception
+	 * @param <T> The type associated with the object being managed
+	 * @param object The object being managed
+	 * @return A collection of create operations which are intended for use at other nodes for replicating the
+	 * create operation
 	 */
-	public <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> generateCreateOperation(T object)
-			throws ReflectiveOperationException {
+	public <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> generateCreateOperation(T object) {
 		@SuppressWarnings("unchecked")
 		SimCRDTManager<T> crdt = new SimCRDTManager<>(object.getId(), this.pickUser(), this.getNodeName(), (Class<T>) object.getClass());
 		this.addCRDT(crdt);
@@ -250,20 +251,26 @@ public class Node extends AbstractNode<AbstractDataType> {
 	}
 
 	/**
-	 * Deliver.
+	 * Forward the given message to the intended recipient CRDT this Node manages.
 	 *
-	 * @param <T> the generic type
-	 * @param msg the msg
+	 * @param <T> Generic type of the object the recipient CRDT manages which is tied to the generic type of the message.
+	 * @param msg Message to delver to the intended recipient CRDT 
+	 * @param pReject Probability that the owning CRDT will reject an update or delete operation
+	 * @return A collection of messages which result in delivery of the message.  This will be an empty list if the 
+	 * recipient CRDT is not the owner of the object being managed.
 	 */
 	public <T extends AbstractDataType> Collection<Message <? extends AbstractDataType>> deliver(Message<T> msg, Double pReject) {
 		return this.deliver(msg.getManager(), pReject);
 	}
 	
 	/**
-	 * Deliver.
+	 * Forward the given message to the intended recipient CRDT this Node manages.
 	 *
-	 * @param <T> the generic type
-	 * @param mgr the mgr
+	 * @param <T> Generic type of the object the recipient CRDT manages which is tied to the generic type of the message.
+	 * @param mgr Operation manager used to provide additional metadata for the operation
+	 * @param pReject Probability that the owning CRDT will reject an update or delete operation
+	 * @return A collection of messages which result in delivery of the message.  This will be an empty list if the 
+	 * recipient CRDT is not the owner of the object being managed.
 	 */
 	protected <T extends AbstractDataType> Collection<Message <? extends AbstractDataType>> deliver(SimOperationManager<T> mgr, Double pReject) {
 		String id = mgr.getObjectId();

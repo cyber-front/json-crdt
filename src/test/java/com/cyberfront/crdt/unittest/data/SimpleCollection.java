@@ -70,19 +70,6 @@ public class SimpleCollection extends AbstractDataType {
 		return collectionValue;
 	}
 
-	/**
-	 * Sets the Collection of value associated with this instance.
-	 *
-	 * @param value The new Collection of values to set for this instance
-	 */
-//	public void setCollectionValue(Collection<AbstractDataType> value) {
-//		this.getCollectionValue().clear();
-//		
-//		for (AbstractDataType element : value) {
-//			this.getCollectionValue().add(Factory.copy(element));
-//		}
-//	}
-
 	/* (non-Javadoc)
 	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
 	 */

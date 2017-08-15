@@ -90,7 +90,13 @@ public class MessageRouter {
 	}
 	
 	/**
-	 * Deliver next message.
+	 * Deliver the next message with a probability the owning node will reject the update the message contains.
+	 * Rejections are for Create, Update and Delete operations, though in practice, Creates are only performed on 
+	 * the owning node, so those don't actually get rejected. 
+	 *
+	 * @param pReject Probability the owning node will reject the  message payload
+	 * @return The collection of messages to forward to other nodes in response to handling the
+	 * given message and its embedded operation
 	 */
 	public Collection<Message <? extends AbstractDataType>> deliverNextMessage(Double pReject) {
 		if (this.isEmpty()) {
@@ -98,7 +104,7 @@ public class MessageRouter {
 		}
 			
 		Message<? extends AbstractDataType> msg = this.getMessages().poll();
-		Node node = getExecutive().getNodes().get(msg.getDestination());
+		Node node = getExecutive().getNode(msg.getDestination());
 		return node.deliver(msg, pReject);
 	}
 

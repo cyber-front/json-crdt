@@ -100,7 +100,7 @@ public class LastWriteWins extends OperationTwoSet {
 		 * The resulting operations are the union of those in the provided trial and those in the newOp passed
 		 *
 		 * @param trial The trial containing the initial set of operations to copy into this TrialResult.
-		 * @param newOps The new operation to add to those given in trial
+		 * @param newOp The new operation to add to those given in trial
 		 */
 		private TrialResult(TrialResult trial, AbstractOperation newOp) {
 			this.getOperations().addAll(trial.getOperations());
