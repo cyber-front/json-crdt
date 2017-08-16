@@ -144,7 +144,7 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	}
 
 	/**
-	 * This is a private method which sets the operation ID value to the next operation ID.
+	 * This sets the operation ID value to the next operation ID.
 	 */
 	private void setOperationId() {
 		this.setOperationId(AbstractOperation.getNextOperationId());
@@ -186,15 +186,15 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	}
 	
 	/**
-	 * Process operation.
+	 * Process the operation on the document presented and return the resulting document to the calling routine 
 	 *
-	 * @param document the document
-	 * @return the json node
-	 * @throws JsonPatchException 
-	 * @throws IOException 
+	 * @param document The document to which the operation will be applied
+	 * @return The JSON document which results from applying the operation to the given document
+	 * @throws JsonPatchException results when the operation cannot be applied to the provided document
+	 * @throws IOException results when the something other than an operation is encoded in one of the derived class instances
 	 */
 	public abstract JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException;  // Use this with jsonpatch
-//	public abstract JsonNode processOperation(JsonNode document) throws JsonPatchException;               // Use this with jsonpatch
+//	public abstract JsonNode processOperation(JsonNode document) throws JsonPatchException;               // Use this with zjsonpatch
 	
 	/**
 	 * This abstract method retrieves the enumerated type specification for the derived class instance 

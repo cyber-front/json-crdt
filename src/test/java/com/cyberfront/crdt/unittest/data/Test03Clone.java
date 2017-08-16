@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package com.cyberfront.crdt.unittest.data.assessment;
+package com.cyberfront.crdt.unittest.data;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -32,9 +32,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
-import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.data.Factory;
-import com.cyberfront.crdt.unittest.support.TestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 // import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
@@ -45,7 +42,7 @@ import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
  * objects, neither of which result in null.
  */
 public class Test03Clone {
-	public static class CloneTest extends TestSupport {
+	public static class CloneTest extends AssessmentSupport {
 		/** The Constant INSTANCE_COUNT. */
 		private static final long INSTANCE_COUNT = 128;
 

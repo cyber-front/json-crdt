@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
-import com.cyberfront.crdt.unittest.support.WordFactory;
+import com.cyberfront.crdt.unittest.data.WordFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonPatchApplicationException;	// Use this with zjsonpatch

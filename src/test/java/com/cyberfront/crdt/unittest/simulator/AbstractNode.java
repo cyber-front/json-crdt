@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.support.WordFactory;
+import com.cyberfront.crdt.unittest.data.WordFactory;
 
 // TODO: Auto-generated Javadoc
 /**

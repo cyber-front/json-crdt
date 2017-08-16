@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package com.cyberfront.crdt.unittest.support;
+package com.cyberfront.crdt.unittest.data;
 
 import java.io.File;
 import java.io.IOException;

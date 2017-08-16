@@ -27,7 +27,6 @@ import java.util.Collection;
 
 import com.cyberfront.crdt.unittest.simulator.Node;
 import com.cyberfront.crdt.unittest.simulator.SimCRDTManager;
-import com.cyberfront.crdt.unittest.support.WordFactory;
 
 /**
  * This is a support class which is used to generate various objects related to the DataType class and its derived classes
@@ -140,9 +139,9 @@ public class Factory {
 	}
 
 	/**
-	 * Pick type.
+	 * Pick type at random
 	 *
-	 * @return the type
+	 * @return The randomly selected type
 	 */
 	private static TYPE pickType() {
 		return TYPE.values()[WordFactory.getRandom().nextInt(TYPE.values().length)];

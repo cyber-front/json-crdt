@@ -38,7 +38,7 @@ import com.cyberfront.crdt.operations.OperationManager.StatusType;
 import com.cyberfront.crdt.operations.ReadOperation;
 import com.cyberfront.crdt.operations.UpdateOperation;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.support.WordFactory;
+import com.cyberfront.crdt.unittest.data.WordFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch

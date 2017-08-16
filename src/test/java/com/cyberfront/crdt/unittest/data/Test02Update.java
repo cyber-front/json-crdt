@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package com.cyberfront.crdt.unittest.data.assessment;
+package com.cyberfront.crdt.unittest.data;
 
 import static org.junit.Assert.*;
 
@@ -28,17 +28,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
-import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.data.Factory;
-import com.cyberfront.crdt.unittest.support.TestSupport;
-
 /**
  * This contains a class used for performing unit tests designed to create and update a number of 
  * AbstractDataType instances using the factory.  It is successful if it creates and updates these
  * objects, neither of which result in null.
  */
 public class Test02Update {
-	public static class UpdateTest extends TestSupport {
+	public static class UpdateTest extends AssessmentSupport {
 		/** Constant to define the default update probability to use */
 		private static final double UPDATE_PROBABILITY = 0.2;
 		

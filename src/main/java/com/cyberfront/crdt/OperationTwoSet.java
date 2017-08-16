@@ -27,7 +27,7 @@ import java.util.TreeSet;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
-import com.cyberfront.crdt.unittest.support.WordFactory;
+import com.cyberfront.crdt.unittest.data.WordFactory;
 
 /**
  * This is an abstract class which defines a Two Set CRDT.  One set contains operations to use, called an ADD set, and the other contains

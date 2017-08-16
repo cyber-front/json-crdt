@@ -23,7 +23,6 @@
 package com.cyberfront.crdt.unittest.data;
 
 import com.cyberfront.crdt.unittest.data.Factory.TYPE;
-import com.cyberfront.crdt.unittest.support.WordFactory;
 
 /**
  * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a Integer value as its

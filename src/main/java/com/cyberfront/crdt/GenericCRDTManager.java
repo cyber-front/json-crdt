@@ -200,12 +200,6 @@ public class GenericCRDTManager <T>
 	}
 
 	/**
-	 * Process delete.
-	 *
-	 * @param timestamp the timestamp
-	 * @return the operation manager
-	 */
-	/**
 	 * Generate and return a DeleteOperation for the given object passed 
 	 *
 	 * @param timestamp Time stamp associated with the DeleteOperation

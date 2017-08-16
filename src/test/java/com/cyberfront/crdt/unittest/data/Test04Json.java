@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package com.cyberfront.crdt.unittest.data.assessment;
+package com.cyberfront.crdt.unittest.data;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,9 +28,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
-import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.data.Factory;
-import com.cyberfront.crdt.unittest.support.TestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
@@ -42,7 +39,7 @@ import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
  * performance and ability of object and its clone to be compared using JsonDiff.  It is successful if it creates
  * and updates these objects, neither of which result in null.
  */
-public class Test04Json extends TestSupport {
+public class Test04Json extends AssessmentSupport {
 	
 	/** Logger to use when displaying state information */
 	private Logger logger = LogManager.getLogger(Test03Clone.class.getName());

@@ -1,7 +1,4 @@
 com.cyberfront.crdt
 com.cyberfront.crdt.operations
 com.cyberfront.crdt.unittest.data
-com.cyberfront.crdt.unittest.data.assessment
 com.cyberfront.crdt.unittest.simulator
-com.cyberfront.crdt.unittest.simulator.assessment
-com.cyberfront.crdt.unittest.support

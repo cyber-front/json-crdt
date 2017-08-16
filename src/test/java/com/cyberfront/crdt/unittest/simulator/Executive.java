@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Logger;
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
-import com.cyberfront.crdt.unittest.support.WordFactory;
+import com.cyberfront.crdt.unittest.data.WordFactory;
 
 /**
  * The Executive class is used to manage the overall execution of the simulation of a distributed CRDT data store. Each of the 

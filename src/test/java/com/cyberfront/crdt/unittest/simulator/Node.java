@@ -34,20 +34,22 @@ import com.cyberfront.crdt.operations.OperationManager;
 import com.cyberfront.crdt.operations.OperationManager.StatusType;
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
 import com.cyberfront.crdt.unittest.data.Factory;
-import com.cyberfront.crdt.unittest.support.WordFactory;
+import com.cyberfront.crdt.unittest.data.WordFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class Node.
+ * The Node class models a node in a distributed data model.  Each Node has  a collection of objects it manages.
+ * At the conclusion of the simulation, each node should, ideally, have the same state and all of the objects in
+ * one node are equivalent to the corresponding object in each of the other nodes.
  */
 public class Node extends AbstractNode<AbstractDataType> {
 	
-	/** The Constant logger. */
+	/** Constant logger used to produce output during execution of the simulation. */
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(Node.class);
 	
-	/** The Constant mapper. */
+	/** Constant object mapper used to convert between JSON formatted objects and their equivalent POJO */
 	@SuppressWarnings("unused")
 	private static final ObjectMapper mapper = new ObjectMapper(); 
 	
@@ -61,9 +63,8 @@ public class Node extends AbstractNode<AbstractDataType> {
 	/**
 	 * Instantiates a new node.
 	 *
-	 * @param nodeName the node name
-	 * @param userCount the user count
-	 * @param objectCount the object count
+	 * @param nodeName New name of the node
+	 * @param userCount Number of users the node has associatd with it
 	 */
 	public Node(String nodeName, int userCount) {
 		this(nodeName, generateUsernames(userCount));
@@ -72,19 +73,18 @@ public class Node extends AbstractNode<AbstractDataType> {
 	/**
 	 * Instantiates a new node.
 	 *
-	 * @param nodeName the node name
-	 * @param usernames the usernames
-	 * @param objectCount the object count
+	 * @param nodeName New name of the node
+	 * @param usernames Collection of usernames associated with the Node
 	 */
 	public Node(String nodeName, Collection<String> usernames) {
 		super(nodeName, usernames);
 	}
 	
 	/**
-	 * Generate usernames.
+	 * Generate a collection of usernames and return them to the calling routing
 	 *
-	 * @param count the count
-	 * @return the collection
+	 * @param count Number of usernames to generate
+	 * @return The collection of usernames generated
 	 */
 	private static Collection<String> generateUsernames(int count) {
 		Collection<String> rv = new ArrayList<>();
@@ -97,19 +97,19 @@ public class Node extends AbstractNode<AbstractDataType> {
 	}
 
 	/**
-	 * Gets the user.
+	 * Retrieve the ith user
 	 *
-	 * @param i the i
-	 * @return the user
+	 * @param i Index of the user to retrieve
+	 * @return The user located at the ith position
 	 */
 	private String getUser(int i) {
 		return this.getUserNames().get(i);
 	}
 	
 	/**
-	 * Pick user.
+	 * Randomly pick a user from the collection of them
 	 *
-	 * @return the string
+	 * @return The randomly chosen user
 	 */
 	public String pickUser() {
 		return this.getUser(WordFactory.getRandom().nextInt(this.getUserNames().size()));
@@ -137,29 +137,20 @@ public class Node extends AbstractNode<AbstractDataType> {
 	@Override
 	protected void addCRDT(SimCRDTManager<? extends AbstractDataType> crdt) {
 		super.addCRDT(crdt);
-		getExecutive().registerCrdt(crdt);
+		Executive.getExecutive().registerCrdt(crdt);
 	}
 	
 	/**
-	 * Gets the executive.
+	 * Given a collection of operations, build the corresponding collection of messages to deliver the operations to each of the nodes 
 	 *
-	 * @return the executive
-	 */
-	public static Executive getExecutive() {
-		return Executive.getExecutive();
-	}
-	
-	/**
-	 * Builds the messages.
-	 *
-	 * @param op the op
-	 * @return the collection< message<? extends abstract data type>>
+	 * @param op Collection of operations to bundle and deliver
+	 * @return The collection of messages each for delivery to a single Node destination
 	 */
 	private Collection<Message<? extends AbstractDataType>> buildMessages(SimOperationManager<? extends AbstractDataType> op) {
 		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
 		
 		if (null != op) {
-			for (Map.Entry<String, Node> entry : getExecutive().getNodes().entrySet()) {
+			for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
 				rv.add(new Message<>(entry.getKey(), op));
 			}
 		}
@@ -167,6 +158,13 @@ public class Node extends AbstractNode<AbstractDataType> {
 		return rv;
 	}
 	
+	/**
+	 * Builds the known messages derived from the operations presented in the collection
+	 *
+	 * @param <T> The type of object the operations are intended to modify
+	 * @param ops The collection of operations to ensure are applied to the each of the Nodes in the distributed model
+	 * @return The collection of messages to deliver the operations to each of the other nodes in the distributed architecture
+	 */
 	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> buildKnownMessages(Collection<SimOperationManager<T>> ops) {
 		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
 		
@@ -179,11 +177,18 @@ public class Node extends AbstractNode<AbstractDataType> {
 		return rv;
 	}
 	
+	/**
+	 * Builds the known messages for a single operation
+	 *
+	 * @param <T> The type of object the operation will affect
+	 * @param op The operation for which to generate a collection of messages for all of the nodes
+	 * @return The collection of messages resulting from the distribution of the single operation given 
+	 */
 	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> buildKnownMessages(SimOperationManager<T> op) {
 		Collection<Message<? extends AbstractDataType>> rv = new ArrayList<>();
 		
 		if (null != op) {
-			for (Map.Entry<String, Node> entry : getExecutive().getNodes().entrySet()) {
+			for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
 				if (!entry.getKey().equals(this.getNodeName())) {
 					rv.add(new Message<>(entry.getKey(), op));
 				}
@@ -275,8 +280,8 @@ public class Node extends AbstractNode<AbstractDataType> {
 	protected <T extends AbstractDataType> Collection<Message <? extends AbstractDataType>> deliver(SimOperationManager<T> mgr, Double pReject) {
 		String id = mgr.getObjectId();
 		
-		String ownerUser = getExecutive().getOwnerUser(id); 
-		String ownerNode = getExecutive().getOwnerNode(id); 
+		String ownerUser = Executive.getExecutive().getOwnerUser(id); 
+		String ownerNode = Executive.getExecutive().getOwnerNode(id); 
 
 		String user = (null == ownerUser ? mgr.getUsername() : ownerUser);
 		String node = (null == ownerNode ? mgr.getNodename() : ownerNode);

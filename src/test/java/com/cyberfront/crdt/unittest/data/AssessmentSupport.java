@@ -1,8 +1,12 @@
-package com.cyberfront.crdt.unittest.support;
+package com.cyberfront.crdt.unittest.data;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class TestSupport {
+/**
+ * The AssessmentSupport class is a base class for all of the unit test classes.  It manages a number of attributes for test
+ * cases which comprise the collection of its derived classes.
+ */
+public class AssessmentSupport {
 	/** Constant defining the number of AbstractDataType elements to create in the unit test */
 	private static final long TRIAL_COUNT = 128L;
 
@@ -16,20 +20,32 @@ public class TestSupport {
 	private static final boolean STRESSED = false;
 	
 	/** Factor to apply during stress tests */
-	private static final long STRESSED_FACTOR = 2;//4;
+	private static final long STRESSED_FACTOR = 4;
 	
 	/** The ObjectMapper used to translate between JSON and any of the classes derived from
 	 * com.cyberfront.crdt.unittest.data.AbstractDataType */
 	private ObjectMapper mapper = new ObjectMapper();
 
+	/** Number of trials to conduct in the unit test*/
 	private long trialCount;
+	
+	/** Factor used to enhance the various counts when attempting to test under higher stress levels */ 
 	private long stressedFactor;
+	
+	/** Division factor to reduce the various counts when running abbreviated tests. */
 	private long abbreviatedFactor;
 	
+	/** Flag indicating whether the unit test derived from this class are to be stressed */   
 	private boolean stressed;
+	
+	/** Flag indicating whether the unit test derived from this class are to be abbreviated */   
 	private boolean abbreviated;
 
-	public TestSupport() {
+	/**
+	 * Default class constructor which initializes the members to their default values given by the 
+	 * corresponding static constant values.
+	 */
+	public AssessmentSupport() {
 		this.setAbbreviated(ABBREVIATED);
 		this.setAbbreviatedFactor(ABBREVIATED_FACTOR);
 		this.setStressed(STRESSED);
@@ -37,7 +53,16 @@ public class TestSupport {
 		this.setTrialCount(TRIAL_COUNT);
 	}
 
-	public TestSupport(long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed) {
+	/**
+	 * Class constructor used to explicitly define the various parameters for the base test class
+	 * 
+	 * @param trialCount Number of trials to perform over the course of the unit test
+	 * @param abbreviatedFactor Division factor to use on the argument when performing an abbreviated test
+	 * @param stressedFactor Multiplication factor to use on the arguments when performing a stress test
+	 * @param abbreviated Flag indicating whether this is an abbreviated test
+	 * @param stressed Flag indicating whether this is a stress test
+	 */
+	public AssessmentSupport(long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed) {
 		this.setAbbreviated(abbreviated);
 		this.setAbbreviatedFactor(abbreviatedFactor);
 		this.setStressed(stressed);
@@ -45,34 +70,61 @@ public class TestSupport {
 		this.setTrialCount(trialCount);
 	}
 
+	/**
+	 * Retrieve the ObjectMapper primarily used to perform bidirectional transformations between JSON and 
+	 * POJO representations of objects  
+	 * @return The static ObjectMapper for the AssessmentSupport class and its derived classes
+	 */
 	protected ObjectMapper getMapper() {
 		return mapper;
 	}
 
 	/**
-	 * Retrieve the number of trials to perform constrained by the ABBREVIATION_FACTOR if the ABREVIATION flag is true	
+	 * Retrieve the number of trials to perform adjusted for stress and abbreviation factors if eith
+	 * of those flags are set to rue.	
+	 * 
 	 * @return The number of trials to perform
 	 */
 	public long getTrialCount() {
 		return this.trialCount * this.getStressedFactor() / this.getAbbreviatedFactor();
 	}
-	
+
+	/**
+	 * Retrieve the value of the abbreviated flag
+	 * @return The current value of the abbreviated flag
+	 */
 	public boolean isAbbreviated() {
 		return abbreviated;
 	}
 
+	/**
+	 * Retrieve the abbreviation factor which is used to divide other test parameters when performing abbreviated tests
+	 * @return The current value of the abbreviation factor
+	 */
 	public long getAbbreviatedFactor() {
 		return this.isAbbreviated() ? this.abbreviatedFactor : 1;
 	}
 
+	/**
+	 * Retrieve the value of the stressed flag
+	 * @return The current value of the stressed flag
+	 */
 	public boolean isStressed() {
 		return stressed;
 	}
 
+	/**
+	 * Retrieve the stressing factor which is used to multiply other test parameters when performing stress tests
+	 * @return The current value of the abbreviation factor
+	 */
 	public long getStressedFactor() {
 		return this.isStressed() ? this.stressedFactor : 1;
 	}
 
+	/**
+	 * Set the number of trials to perform
+	 * @param trialCount New value of the trialCount
+	 */
 	public void setTrialCount(long trialCount) {
 		this.trialCount = trialCount;
 	}

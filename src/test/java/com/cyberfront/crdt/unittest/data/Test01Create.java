@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package com.cyberfront.crdt.unittest.data.assessment;
+package com.cyberfront.crdt.unittest.data;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -28,17 +28,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
-import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.data.Factory;
-import com.cyberfront.crdt.unittest.support.TestSupport;
-
 /**
  * This contains a class used for performing unit tests designed to create a number of 
  * AbstractDataType instances using the factory.  It is successful if it creates these
  * objects and doesn't return null.
  */
 public class Test01Create {
-	public static class CreateTest extends TestSupport {
+	public static class CreateTest extends AssessmentSupport {
 		/** Logger to use when displaying state information */
 		private static final Logger logger = LogManager.getLogger(Test01Create.CreateTest.class);
 

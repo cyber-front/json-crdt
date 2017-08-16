@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package com.cyberfront.crdt.unittest.simulator.assessment;
+package com.cyberfront.crdt.unittest.simulator;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -34,10 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import com.cyberfront.crdt.unittest.data.AbstractDataType;
-import com.cyberfront.crdt.unittest.simulator.Executive;
-import com.cyberfront.crdt.unittest.simulator.Node;
-import com.cyberfront.crdt.unittest.simulator.SimCRDTManager;
-import com.cyberfront.crdt.unittest.support.TestSupport;
+import com.cyberfront.crdt.unittest.data.AssessmentSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 // import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
@@ -48,7 +45,7 @@ import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
  * com.cyberfront.crdt.unitest.simulator.
  */
 public class Test01Simulation {
-	public static class SimulationTest extends TestSupport {
+	public static class SimulationTest extends AssessmentSupport {
 		/** Logger to use when displaying state information */
 		private static final Logger logger = LogManager.getLogger(Test01Simulation.SimulationTest.class);
 		
