@@ -24,6 +24,8 @@ package com.cyberfront.crdt;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -33,7 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
-import com.cyberfront.crdt.unittest.data.WordFactory;
+import com.cyberfront.crdt.support.Support;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonPatchApplicationException;	// Use this with zjsonpatch
@@ -43,7 +45,7 @@ import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatc
  * order.  There is both an add and remove set, where removing an operation takes precedence over adding.  It also contains
  * a list of invalid operations which is used to hold operations which fail during reconstitution of the underlying data element
  */
-public class LastWriteWins extends OperationTwoSet {
+public class LastWriteWins extends OperationTwoSet implements Observer {
 	
 	/**
 	 * The Class TrialResult is used to process a collection of operations provided to it.  It is intended to augment the LastWriteWins class
@@ -231,8 +233,8 @@ public class LastWriteWins extends OperationTwoSet {
 		protected String getSegment() {
 			StringBuilder sb = new StringBuilder();
 			
-			sb.append("\"operations\":" + WordFactory.convert(this.getOperations()) + ",");
-			sb.append("\"invalid\":" + WordFactory.convert(this.getInvalidOperations()) + ",");
+			sb.append("\"operations\":" + Support.convert(this.getOperations()) + ",");
+			sb.append("\"invalid\":" + Support.convert(this.getInvalidOperations()) + ",");
 			sb.append("\"document\":" + (null == this.document ? "null" : this.document.toString()));
 			
 			return sb.toString();
@@ -250,8 +252,15 @@ public class LastWriteWins extends OperationTwoSet {
 	private static final Logger logger = LogManager.getLogger(LastWriteWins.class);
 	
 	/** The TrialResult associated with this LastWriteWins instance. */
-	@SuppressWarnings("unused")
 	private TrialResult trial = null;
+	
+	/**
+	 * Default constructor used to initialize this as its own observer for changes to the 
+	 * set entries for the CRDT
+	 */
+	public LastWriteWins() {
+		this.addObserver(this);
+	}
 
 	/**
 	 * Retrieve a trial result based on the current collection of operations in the CRDT
@@ -264,6 +273,13 @@ public class LastWriteWins extends OperationTwoSet {
 //		
 //		return this.trial;
 		return new TrialResult(this);
+	}
+	
+	/**
+	 * Clear the trial value so if can be regenerated on the next read operation
+	 */
+	public void clearTrial() {
+		this.trial = null;
 	}
 	
 	/* (non-Javadoc)
@@ -281,6 +297,15 @@ public class LastWriteWins extends OperationTwoSet {
 	public Collection<AbstractOperation> getInvalidOperations() {
 		return this.getTrial().getInvalidOperations();
 	}
+
+	/**
+	 * Initiate a reset by invoking the observers which should cause a complete reset across all 
+	 * uses of the CRDT.
+	 */
+	public void reset() {
+		this.setChanged();
+		this.notifyObservers();
+	}
 	
 	/**
 	 * Insert an operation to the ADD set 
@@ -289,11 +314,10 @@ public class LastWriteWins extends OperationTwoSet {
 	 */
 	@Override
 	protected void addOperation(AbstractOperation op) {
-		if (OperationType.READ != op.getType()) {
-			this.trial = null;
+		if (null != op) {
+			super.addOperation(op);
+			reset();
 		}
-
-		this.getAddSet().add(op);
 	}
 	
 	/**
@@ -303,14 +327,12 @@ public class LastWriteWins extends OperationTwoSet {
 	 */
 	@Override
 	protected void remOperation(AbstractOperation op) {
-		if (OperationType.READ != op.getType()) {
-			this.trial = null;
+		if (null != op) {
+			super.remOperation(op);
+			reset();
 		}
-
-		this.getRemSet().add(op);
 	}
-	
-	
+
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.manager.OperationTwoSet#getSegment()
 	 */
@@ -322,5 +344,21 @@ public class LastWriteWins extends OperationTwoSet {
 		sb.append("\"trial\":" + this.getTrial().toString());
 
 		return sb.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+	 */
+	@Override
+	public void update(Observable o, Object arg) {
+		this.clearTrial();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.OperationTwoSet#clear()
+	 */
+	public void clear() {
+		super.clear();
+		this.clearTrial();
 	}
 }

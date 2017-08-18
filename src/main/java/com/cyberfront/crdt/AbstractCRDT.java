@@ -22,12 +22,14 @@
  */
 package com.cyberfront.crdt;
 
+import java.util.Observable;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * This is an abstract base class for CRDT classes.  It specifies the standard interfaces for all derived CRDT classes
  */
-public abstract class AbstractCRDT {
+public abstract class AbstractCRDT extends Observable {
 	
 	/**
 	 * This will return true exactly when there is at least one com.cyberfront.crdt.operations.DeleteOperation in the list being maintained by the CRDT 

@@ -22,8 +22,6 @@
  */
 package com.cyberfront.crdt.operations;
 
-import com.cyberfront.crdt.unittest.simulator.SimOperationManager;
-
 /**
  * This is the base class for wrapping AbstractOperations.  It provides the basic functionality for associating various
  * elements of metadata associated with the operation bound to the derived manager class.  
@@ -133,11 +131,11 @@ public class OperationManager implements Comparable<OperationManager> {
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
-		} else if (null == obj || !(obj instanceof SimOperationManager<?>) || !super.equals(obj)) { 
+		} else if (null == obj || !(obj instanceof OperationManager) || !super.equals(obj)) { 
 			return false;
 		}
 		
-		SimOperationManager<?> mgr = (SimOperationManager<?>) obj;
+		OperationManager mgr = (OperationManager) obj;
 		
 		return this.getOperation().equals(mgr.getOperation());
 	}

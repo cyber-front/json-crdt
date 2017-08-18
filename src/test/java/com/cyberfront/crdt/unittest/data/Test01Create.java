@@ -28,6 +28,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
+import com.cyberfront.crdt.sample.data.AbstractDataType;
+import com.cyberfront.crdt.sample.data.Factory;
+
 /**
  * This contains a class used for performing unit tests designed to create a number of 
  * AbstractDataType instances using the factory.  It is successful if it creates these

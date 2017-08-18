@@ -22,6 +22,9 @@
  */
 package com.cyberfront.crdt;
 
+import java.util.Observable;
+import java.util.Observer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,7 +45,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * accepts no arguments.
  */
 public class GenericCRDTManager <T>
-	extends CRDTManager {
+	extends CRDTManager implements Observer {
 
 	/** A logger for writing to the local log output. */
 	private static final Logger logger = LogManager.getLogger(GenericCRDTManager.class);
@@ -62,6 +65,7 @@ public class GenericCRDTManager <T>
 	 * @param objectClass the object class
 	 */
 	public GenericCRDTManager(Class<T> objectClass) {
+		this.getCrdt().addObserver(this);
 		this.setObjectClass(objectClass);
 	}
 
@@ -91,6 +95,7 @@ public class GenericCRDTManager <T>
 		if (null == this.object) {
 			this.updateObject();
 		}
+		this.updateObject();
 		return this.object;
 	}
 	
@@ -117,7 +122,7 @@ public class GenericCRDTManager <T>
 	 */
 	@Override
 	protected void deliver(OperationManager op) {
-		this.setObject(null);
+		this.getCrdt().reset();
 		super.deliver(op);
 	}
 	
@@ -144,11 +149,11 @@ public class GenericCRDTManager <T>
 					System.exit(0);
 				}
 
-				this.setObject(null);
+				this.getCrdt().clearTrial();
 				this.getCrdt().getInvalidOperations().clear();
 			}
 		} else {
-			this.setObject(null);
+			this.getCrdt().clearTrial();
 			this.getCrdt().getInvalidOperations().clear();
 		}
 	}
@@ -173,7 +178,7 @@ public class GenericCRDTManager <T>
 	 * @return The resulting CreateOperation
 	 */
 	public CreateOperation generateCreate(long timestamp, T object) {
-		this.setObject(null);
+		this.getCrdt().reset();
 		return generateCreateOperation(getMapper().valueToTree(object), timestamp);
 	}
 	
@@ -184,6 +189,7 @@ public class GenericCRDTManager <T>
 	 * @return The resulting ReadOperation
 	 */
 	protected ReadOperation generateRead(long timestamp) {
+		this.getCrdt().reset();
 		return generateReadOperation(timestamp);
 	}
 	
@@ -195,7 +201,7 @@ public class GenericCRDTManager <T>
 	 * @return The resulting UpdateOperation
 	 */
 	public UpdateOperation generateUpdate(long timestamp, T object) {
-		this.setObject(null);
+		this.getCrdt().reset();
 		return generateUpdateOperation(this.getCrdt().readValue(), getMapper().valueToTree(object), timestamp);
 	}
 
@@ -206,7 +212,7 @@ public class GenericCRDTManager <T>
 	 * @return The resulting DeleteOperation
 	 */
 	public DeleteOperation generateDelete(long timestamp) {
-		this.setObject(null);
+		this.getCrdt().reset();
 		return generateDeleteOperation(timestamp);
 	}
 	
@@ -258,5 +264,13 @@ public class GenericCRDTManager <T>
 		sb.append("\"object\":" + (null == this.object ? "null" : this.object.toString()));
 		
 		return sb.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+	 */
+	@Override
+	public void update(Observable o, Object arg) {
+		this.setObject(null);
 	}
 }

@@ -27,7 +27,7 @@ import java.util.TreeSet;
 
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
-import com.cyberfront.crdt.unittest.data.WordFactory;
+import com.cyberfront.crdt.support.Support;
 
 /**
  * This is an abstract class which defines a Two Set CRDT.  One set contains operations to use, called an ADD set, and the other contains
@@ -241,9 +241,9 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"addSet\":" + WordFactory.convert(this.getAddSet()) + ",");
-		sb.append("\"remSet\":" + WordFactory.convert(this.getRemSet()) + ",");
-		sb.append("\"opSet\":" + WordFactory.convert(this.getOpsSet()));
+		sb.append("\"addSet\":" + Support.convert(this.getAddSet()) + ",");
+		sb.append("\"remSet\":" + Support.convert(this.getRemSet()) + ",");
+		sb.append("\"opSet\":" + Support.convert(this.getOpsSet()));
 
 		return sb.toString();
 	}
