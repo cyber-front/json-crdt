@@ -429,9 +429,6 @@ public class Test01Simulation {
 		private void assessValidity() {
 			logger.info("        Test01Simulation.assessValidity()");
 			
-			// TODO:  Only APPROVED operations should be in the operations in each CRDT; all PENDING
-			// operations should be removed at the conclusion of the sequence.
-			
 			Node baseNode = Executive.getExecutive().pickNode();
 			assertNotNull("baseNode found to be null", baseNode);
 
@@ -589,7 +586,7 @@ public class Test01Simulation {
 	@Test
 	public void simulateStressTest() {
 		SimulationTest test = new SimulationTest();
-		test.setStressed(true);
+		test.setStressed(false);
 		test.setAssessContentConsistency(false);
 		test.test();
 	}

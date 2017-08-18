@@ -189,9 +189,10 @@ public class Node extends AbstractNode<AbstractDataType> {
 		
 		if (null != op) {
 			for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
-				if (!entry.getKey().equals(this.getNodeName())) {
+				// TODO Uncomment these lines if this is a problem
+//				if (!entry.getKey().equals(this.getNodeName())) {
 					rv.add(new Message<>(entry.getKey(), op));
-				}
+//				}
 			}
 		}
 		

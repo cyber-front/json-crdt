@@ -30,7 +30,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.operations.CreateOperation;
 import com.cyberfront.crdt.operations.DeleteOperation;
-import com.cyberfront.crdt.operations.OperationManager;
 import com.cyberfront.crdt.operations.ReadOperation;
 import com.cyberfront.crdt.operations.UpdateOperation;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -56,8 +55,8 @@ public class GenericCRDTManager <T>
 	/** The object class. */
 	private Class<T> objectClass;
 	
-	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = false; 
-	private static final boolean TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS = false; 
+	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = true; 
+	private static final boolean TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS = true; 
 	
 	/**
 	 * Instantiates a new CRDT manager.
@@ -116,22 +115,13 @@ public class GenericCRDTManager <T>
 		super.clear();
 		this.setObject(null);
 	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.crdt.CRDTManager#deliver(com.cyberfront.crdt.operations.OperationManager)
-	 */
-	@Override
-	protected void deliver(OperationManager op) {
-		this.getCrdt().reset();
-		super.deliver(op);
-	}
 	
 	/**
 	 * Update the object being managed by the CRDT to have the final value associated with the operations currently
 	 * held in the CRDT.  If something goes wrong, the value for the stored object is null. 
 	 */
 	protected void updateObject() {
-		JsonNode json = this.getCrdt().readValue();
+		JsonNode json = this.getCrdt().getDocument();
 
 		if (null != json) {
 			try {
@@ -149,12 +139,10 @@ public class GenericCRDTManager <T>
 					System.exit(0);
 				}
 
-				this.getCrdt().clearTrial();
-				this.getCrdt().getInvalidOperations().clear();
+				this.getCrdt().resetObservers();
 			}
 		} else {
-			this.getCrdt().clearTrial();
-			this.getCrdt().getInvalidOperations().clear();
+			this.getCrdt().resetObservers();
 		}
 	}
 	
@@ -178,7 +166,6 @@ public class GenericCRDTManager <T>
 	 * @return The resulting CreateOperation
 	 */
 	public CreateOperation generateCreate(long timestamp, T object) {
-		this.getCrdt().reset();
 		return generateCreateOperation(getMapper().valueToTree(object), timestamp);
 	}
 	
@@ -189,7 +176,6 @@ public class GenericCRDTManager <T>
 	 * @return The resulting ReadOperation
 	 */
 	protected ReadOperation generateRead(long timestamp) {
-		this.getCrdt().reset();
 		return generateReadOperation(timestamp);
 	}
 	
@@ -201,8 +187,7 @@ public class GenericCRDTManager <T>
 	 * @return The resulting UpdateOperation
 	 */
 	public UpdateOperation generateUpdate(long timestamp, T object) {
-		this.getCrdt().reset();
-		return generateUpdateOperation(this.getCrdt().readValue(), getMapper().valueToTree(object), timestamp);
+		return generateUpdateOperation(this.getCrdt().getDocument(), getMapper().valueToTree(object), timestamp);
 	}
 
 	/**
@@ -212,7 +197,6 @@ public class GenericCRDTManager <T>
 	 * @return The resulting DeleteOperation
 	 */
 	public DeleteOperation generateDelete(long timestamp) {
-		this.getCrdt().reset();
 		return generateDeleteOperation(timestamp);
 	}
 	

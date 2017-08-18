@@ -22,6 +22,8 @@
  */
 package com.cyberfront.crdt;
 
+import static org.junit.Assert.assertNull;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Observable;
@@ -266,13 +268,12 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	 * Retrieve a trial result based on the current collection of operations in the CRDT
 	 * @return TrailResult instance derived from the operations in this CRDT instance
 	 */
-	public TrialResult getTrial() {
+	private TrialResult getTrial() {
 //		if (null == this.trial) {
-//			this.trial = new TrialResult(this);
+			this.trial = new TrialResult(this);
 //		}
-//		
-//		return this.trial;
-		return new TrialResult(this);
+		
+		return this.trial;
 	}
 	
 	/**
@@ -286,7 +287,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#readValue()
 	 */
 	@Override
-	public JsonNode readValue() {
+	public JsonNode getDocument() {
 		return this.getTrial().getDocument();
 	}
 	
@@ -302,7 +303,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	 * Initiate a reset by invoking the observers which should cause a complete reset across all 
 	 * uses of the CRDT.
 	 */
-	public void reset() {
+	public void resetObservers() {
 		this.setChanged();
 		this.notifyObservers();
 	}
@@ -316,7 +317,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	protected void addOperation(AbstractOperation op) {
 		if (null != op) {
 			super.addOperation(op);
-			reset();
+			resetObservers();
 		}
 	}
 	
@@ -329,7 +330,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	protected void remOperation(AbstractOperation op) {
 		if (null != op) {
 			super.remOperation(op);
-			reset();
+			resetObservers();
 		}
 	}
 
@@ -360,5 +361,6 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	public void clear() {
 		super.clear();
 		this.clearTrial();
+		this.resetObservers();
 	}
 }

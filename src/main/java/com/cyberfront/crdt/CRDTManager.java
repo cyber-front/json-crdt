@@ -103,7 +103,7 @@ public class CRDTManager {
 	}
 
 	/**
-	 * Cancel an operation which currently is, or potentially in the future will be, included in the AddOperation set  
+	 * Cancel an operation which currently is, or potentially in the future will be, included in the RemOperation set  
 	 * @param op The AbstractOperation instance to include in the RemoveOperation list
 	 */
 	private void cancel(AbstractOperation op) {
@@ -127,7 +127,7 @@ public class CRDTManager {
 			break;
 		}
 		
-		this.getCrdt().getInvalidOperations().clear();
+//		this.getCrdt().getInvalidOperations().clear();
 	}
 	
 	/**

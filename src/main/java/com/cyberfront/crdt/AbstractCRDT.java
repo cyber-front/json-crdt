@@ -71,7 +71,7 @@ public abstract class AbstractCRDT extends Observable {
 	 * Process the operations and return the resulting JsonNode document
 	 * @return The JSON document resulting from processing the operations in the CRDT
 	 */
-	public abstract JsonNode readValue();
+	public abstract JsonNode getDocument();
 
 	/**
 	 * This is used to create a string representation of the CRDT in support of the toString() method
@@ -79,7 +79,7 @@ public abstract class AbstractCRDT extends Observable {
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
-		JsonNode value = this.readValue();
+		JsonNode value = this.getDocument();
 		
 		sb.append("\"created\":\"" + this.isCreated() + "\",");
 		sb.append("\"deleted\":\"" + this.isDeleted() + "\",");

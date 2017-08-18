@@ -219,26 +219,29 @@ public class SimCRDTManager <T extends AbstractDataType>
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 
 		// We don't want to do anything else if a pending update was not delivered to the owning node for the CRDT
-		if (StatusType.PENDING == op.getStatus() && OperationType.UPDATE == op.getOperation().getType() && !this.isOwner(op)) {
-	
-			SimOperationManager<T> rejection = new SimOperationManager<>(op);
-			rejection.setStatus(StatusType.REJECTED);
-	
-			operations.add(rejection);
-			if (Support.getRandom().nextDouble() > pReject) {
-				JsonNode source = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
-	
-				this.deliverOperation(op);
-	
-				JsonNode target = (null != this.getCrdt().readValue() ? this.getCrdt().readValue() : getMapper().createObjectNode());
-				JsonNode diff = JsonDiff.asJson(source, target);
-	
-				if (this.getCrdt().getInvalidOperations().isEmpty() && diff.size() > 0) {
-					UpdateOperation updateOp = new UpdateOperation(diff, Executive.getExecutive().getTimestamp());
-					SimOperationManager<T> update = new SimOperationManager<T>(StatusType.APPROVED, updateOp, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
-	
-					operations.add(update);
-				}
+		if (StatusType.PENDING != op.getStatus() ||
+			OperationType.UPDATE != op.getOperation().getType() ||
+			!this.isOwner(op)) {
+			return operations;
+		}
+		
+		SimOperationManager<T> rejection = new SimOperationManager<>(op);
+		rejection.setStatus(StatusType.REJECTED);
+
+		operations.add(rejection);
+		if (Support.getRandom().nextDouble() > pReject) {
+			JsonNode source = (null != this.getCrdt().getDocument() ? this.getCrdt().getDocument() : getMapper().createObjectNode());
+
+			this.deliverOperation(op);
+
+			JsonNode target = (null != this.getCrdt().getDocument() ? this.getCrdt().getDocument() : getMapper().createObjectNode());
+			JsonNode diff = JsonDiff.asJson(source, target);
+
+			if (0 == this.getInvalidOperationCount() && 0 < diff.size()) {
+				UpdateOperation updateOp = new UpdateOperation(diff, Executive.getExecutive().getTimestamp());
+				SimOperationManager<T> update = new SimOperationManager<T>(StatusType.APPROVED, updateOp, this.getObjectId(), this.getUsername(), this.getNodename(), this.getObjectClass());
+
+				operations.add(update);
 			}
 		}
 
@@ -414,8 +417,7 @@ public class SimCRDTManager <T extends AbstractDataType>
 	 * @return the invalid operation count
 	 */
 	public int getInvalidOperationCount() {
-		int rv = this.getCrdt().getInvalidOperations().size();
-		return rv;
+		return this.getCrdt().getInvalidOperations().size();
 	}
 
 	/* (non-Javadoc)
