@@ -74,14 +74,6 @@ public class DeleteOperation extends AbstractOperation {
 	public boolean equals(Object obj) {
 		return (this == obj) || (obj instanceof DeleteOperation && super.equals(obj));
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return 47 * super.hashCode();
-	}
 
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#getType()
@@ -97,6 +89,14 @@ public class DeleteOperation extends AbstractOperation {
 	@Override
 	public AbstractOperation copy() {
 		return new DeleteOperation(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#copy()
+	 */
+	@Override
+	public AbstractOperation mimic() {
+		return new DeleteOperation(this.getTimeStamp());
 	}
 
 	/* (non-Javadoc)

@@ -35,8 +35,8 @@ import org.junit.Test;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.data.Factory;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
-// import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+//import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 
 /**
  * This contains a class used for performing unit tests designed to create and clone a number of 

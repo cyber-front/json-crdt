@@ -22,6 +22,8 @@
  */
 package com.cyberfront.crdt.sample.simlation;
 
+import java.util.UUID;
+
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.GenericOperationManager;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
@@ -36,94 +38,59 @@ public class SimOperationManager<T extends AbstractDataType>
 	extends GenericOperationManager<T> {
 	
 	/** The object id. */
-	private String objectId;
+	private final UUID objectId;
 	
-	/** The username. */
-	private String username;
-	
-	/** The nodename. */
-	private String nodename;
+	/** The node identifier. */
+	private final UUID nodeId;
 	
 	/**
 	 * Instantiates a new operation manager.
 	 *
 	 * @param objectId the object id
-	 * @param username the username
-	 * @param nodename the nodename
+	 * @param nodeId the node identifier
 	 * @param objectClass the object class
 	 * @param operation the operation
 	 */
-	public SimOperationManager(StatusType status, AbstractOperation operation, String objectId, String username, String nodename, Class<T> objectClass) {
+	public SimOperationManager(StatusType status, AbstractOperation operation, UUID objectId, UUID nodeId, Class<T> objectClass) {
 		super(status, operation, objectClass);
-		this.setObjectId(objectId);
-		this.setUsername(username);
-		this.setNodename(nodename);
+		this.objectId = objectId;
+		this.nodeId = nodeId;
 	}
 	
-	/**
-	 * Instantiates a new operation manager.
-	 *
-	 * @param src the src
-	 */
-	public SimOperationManager(SimOperationManager<T> src) {
-		super(src);
-		this.setObjectId(src.getObjectId());
-		this.setUsername(src.getUsername());
-		this.setNodename(src.getNodename());
-	}
-	
+//	/**
+//	 * Instantiates a new operation manager.
+//	 *
+//	 * @param src the src
+//	 */
+//	private SimOperationManager(SimOperationManager<T> src) {
+//		this(src.getStatus(), src.getOperation().copy(), src.getObjectId(), src.getNodeId(), src.getObjectClass());
+//	}
+//	
+//	/**
+//	 * Instantiates a new operation manager.
+//	 *
+//	 * @param src the src
+//	 */
+//	private SimOperationManager(SimOperationManager<T> src, StatusType status) {
+//		this(status, src.getOperation().mimic(), src.getObjectId(), src.getNodeId(), src.getObjectClass());
+//	}
+//	
 	/**
 	 * Gets the object id.
 	 *
 	 * @return the object id
 	 */
-	public String getObjectId(){
+	public UUID getObjectId(){
 		return this.objectId;
 	}
 	
 	/**
-	 * Gets the username.
+	 * Gets the node identifier.
 	 *
-	 * @return the username
+	 * @return the node identifier
 	 */
-	public String getUsername(){
-		return this.username;
-	}
-	
-	/**
-	 * Gets the nodename.
-	 *
-	 * @return the nodename
-	 */
-	public String getNodename() {
-		return this.nodename;
-	}
-
-	/**
-	 * Sets the object id.
-	 *
-	 * @param id the new object id
-	 */
-	private void setObjectId(String id) {
-		this.objectId = id;
-	}
-	
-	/**
-	 * Sets the username.
-	 *
-	 * @param user the new username
-	 */
-	private void setUsername(String user) {
-		this.username = user;
-	}
-	
-	/**
-	 * Sets the nodename.
-	 *
-	 * @param source the new nodename
-	 */
-	private void setNodename(String source) {
-		this.nodename = source;
+	public UUID getNodeId() {
+		return this.nodeId;
 	}
 
 	/**
@@ -132,7 +99,34 @@ public class SimOperationManager<T extends AbstractDataType>
 	 * @return the operation manager
 	 */
 	public SimOperationManager<T> copy() {
-		return new SimOperationManager<>(this);
+		return new SimOperationManager<>(this.getStatus(), this.getOperation().copy(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
+	}
+
+	/**
+	 * Copy.
+	 *
+	 * @return the operation manager
+	 */
+	public SimOperationManager<T> copy(StatusType status) {
+		return new SimOperationManager<>(status, this.getOperation().copy(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
+	}
+
+	/**
+	 * Mimic.
+	 *
+	 * @return the operation manager
+	 */
+	public SimOperationManager<T> mimic() {
+		return new SimOperationManager<>(this.getStatus(), this.getOperation().mimic(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
+	}
+
+	/**
+	 * Mimic.
+	 *
+	 * @return the operation manager
+	 */
+	public SimOperationManager<T> mimic(StatusType status) {
+		return new SimOperationManager<>(status, this.getOperation().mimic(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
 	}
 
 	/* (non-Javadoc)
@@ -159,9 +153,8 @@ public class SimOperationManager<T extends AbstractDataType>
 		int hash = super.hashCode();
 		
 		hash = 31 * hash + this.getObjectId().hashCode();
-		hash = 37 * hash + this.getNodename().hashCode();
-		hash = 41 * hash + this.getUsername().hashCode();
-		hash = 43 * hash + this.getObjectClass().hashCode();
+		hash = 37 * hash + this.getNodeId().hashCode();
+		hash = 41 * hash + this.getObjectClass().hashCode();
 		
 		return hash;
 	}
@@ -174,8 +167,7 @@ public class SimOperationManager<T extends AbstractDataType>
 		
 		sb.append(super.getSegment() + ",");
 		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
-		sb.append("\"username\":\"" + this.getUsername() + "\",");
-		sb.append("\"nodename\":\"" + this.getNodename() + "\"");
+		sb.append("\"nodeId\":\"" + this.getNodeId() + "\"");
 		
 		return sb.toString();
 	}

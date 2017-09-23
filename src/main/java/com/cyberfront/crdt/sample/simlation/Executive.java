@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +41,7 @@ import com.cyberfront.crdt.support.Support;
  * distributed nodes are intended to have identical values for the objects managed within each CRDT at the conclusion of the
  * test.
  */
-public class Executive implements ITimeStamp {
+public class Executive {
 	
 	/** The logger to log elements to the Log4J output */
 	@SuppressWarnings("unused")
@@ -86,13 +87,10 @@ public class Executive implements ITimeStamp {
 	private static Executive instance;
 
 	/** The nodes the executive is managing */
-	private Map<String, Node> nodes;
+	private Map<UUID, Node> nodes;
 	
 	/** A queue which manages messages awaiting delivery */
 	private MessageRouter router;
-	
-	/** The current timestamp */
-	private long timestamp;
 	
 	/** The number of nodes the executive is simulating */
 	private long nodeCount;
@@ -116,17 +114,12 @@ public class Executive implements ITimeStamp {
 	private double updateProbability;
 	
 	/** A map relating a CRDT name to the name of the node which manages it */
-	private Map<String, String> crdtLookup;
+	private Map<UUID, UUID> crdtLookup;
 	
-	/** A map relating a username to the name of the node where the user operates */
-	private Map<String, String> userLookup;
-
 	/**
 	 * Instantiates a new executive using the default parameters
 	 */
 	public Executive() {
-		this.setTimestamp(0L);
-
 		this.setCreateCount(DEFAULT_CREATE_COUNT);
 		this.setDeleteCount(DEFAULT_DELETE_COUNT);
 		this.setNodeCount(DEFAULT_NODE_COUNT);
@@ -139,7 +132,7 @@ public class Executive implements ITimeStamp {
 	 *
 	 * @return A map of all the nodes currently being managed
 	 */
-	public Map<String, Node> getNodes() {
+	public Map<UUID, Node> getNodes() {
 		if (null == this.nodes) {
 			this.nodes = new TreeMap<>();
 		}
@@ -153,17 +146,17 @@ public class Executive implements ITimeStamp {
 	 * @param node Node instance to add to the node map
 	 */
 	public void addNode(Node node) {
-		this.getNodes().put(node.getNodeName(), node);
+		this.getNodes().put(node.getId(), node);
 	}
 	
 	/**
 	 * Retrieve the node of the given name
 	 *
-	 * @param nodeName Name of the node to retrieve
+	 * @param id Identifier of the node to retrieve
 	 * @return The node with the given name
 	 */
-	public Node getNode(String nodeName) {
-		return this.getNodes().get(nodeName);
+	public Node getNode(UUID id) {
+		return this.getNodes().get(id);
 	}
 	
 	/**
@@ -192,27 +185,13 @@ public class Executive implements ITimeStamp {
 		return Executive.instance;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.ITimeStamp#getTimeStamp()
-	 */
-	@Override
-	public long getTimestamp() {
-		return this.timestamp;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.support.ITimeStamp#setTimeStamp(java.lang.long)
-	 */
-	@Override
-	public void setTimestamp(long timestamp) {
-		this.timestamp = timestamp;
-	}
-	
 	/**
-	 * Increment the timer to the next value
+	 * Retrieve the current timestamps value.  This is primarily a convenience function since the MessaegRouter
+	 * is prmarily responsible for 
+	 * @return The current timestamp for the simulation
 	 */
-	public void incrementTime() {
-		this.setTimestamp(this.getTimestamp() + Support.getRandom().nextInt(256));
+	public long getTimestamp() {
+		return this.getRouter().getTimestamp();
 	}
 
 	/**
@@ -220,7 +199,7 @@ public class Executive implements ITimeStamp {
 	 *
 	 * @param messages Collection of messages to queue up for delivery
 	 */
-	public void transmit(Collection<Message<? extends AbstractDataType>> messages) {
+	public  void transmit(Collection<Message<? extends AbstractDataType>> messages) {
 		this.getRouter().getMessages().addAll(messages);
 	}
 
@@ -388,7 +367,7 @@ public class Executive implements ITimeStamp {
 	public Node pickNode() {
 		int pick = Support.getRandom().nextInt(this.getNodes().size());
 		
-		for (Map.Entry<String, Node> entry : this.getNodes().entrySet()) {
+		for (Map.Entry<UUID, Node> entry : this.getNodes().entrySet()) {
 			if (pick-- <= 0) {
 				return entry.getValue();
 			}
@@ -406,9 +385,13 @@ public class Executive implements ITimeStamp {
 	 * @param object Object for the Node to manage as an owning node
 	 * @return The collection of messages generated in response to the creation of the new object in the specified node 
 	 */
-	private <T extends AbstractDataType> Collection<Message<? extends AbstractDataType>> doCreate(Node node, T object) {
+	private Collection<Message<? extends AbstractDataType>> doCreate(Node node, AbstractDataType object) {
 		Collection<Message<? extends AbstractDataType>> messages = node.generateCreateOperation(object);
-		--this.createCount;
+
+		if (!messages.isEmpty()) {
+			--this.createCount;
+		}
+		
 		return messages;
 	}
 
@@ -488,11 +471,15 @@ public class Executive implements ITimeStamp {
 	 * @return The collection of messages which results from delivery of the next message in the delivery queue
 	 */
 	private Collection<Message<? extends AbstractDataType>> doDeliver() {
+		Collection<Message<? extends AbstractDataType>> rv;
+
 		if (this.getRouter().isEmpty()) {
-			return new TreeSet<>();
+			rv =  new TreeSet<>();
+		} else {
+			rv = this.getRouter().deliverNextMessage(this.getRejectProbability());
 		}
 
-		return this.getRouter().deliverNextMessage(this.getRejectProbability());
+		return rv;
 	}
 	
 	/**
@@ -504,36 +491,42 @@ public class Executive implements ITimeStamp {
 	 * @return Collection of messages to deliver 
 	 */
 	private Collection<Message<? extends AbstractDataType>> handleEvent(EventType type, Node node) {
+		Collection<Message<? extends AbstractDataType>> rv;
+
 		switch(type) {
 		case CREATE:
-			return doCreate(node, Factory.getInstance());
+			rv =  doCreate(node, Factory.getInstance());
+			break;
 		case READ:
-			return doRead(node);
+			rv = doRead(node);
+			break;
 		case UPDATE:
-			return doUpdate(node, this.getUpdateProbability());
+			rv = doUpdate(node, this.getUpdateProbability());
+			break;
 		case DELETE:
-			return doDelete(node);
+			rv = doDelete(node);
+			break;
 		case DELIVER:
-			return doDeliver();
+			rv = doDeliver();
+			break;
 		default:
-			return new TreeSet<>();
+			rv = new TreeSet<>();
 		}
+		
+		return rv;
 	}
 	
 	/**
 	 * Execute the simulation with the settings given. 
 	 */
-	public void execute() { 
+	public void execute() {
 		this.generateNodes();
+		
 		while (this.eventCount() > 0) {
-
 			Node node = this.pickNode();
 			EventType event = this.pickEvent();
-
 			Collection<Message<? extends AbstractDataType>> messages = this.handleEvent(event, node);
-			
 			this.transmit(messages);
-			this.incrementTime();
 		}
 	}
 
@@ -543,8 +536,7 @@ public class Executive implements ITimeStamp {
 	private void generateNodes() {
 		for (int i=0; i<this.getNodeCount(); ++i) {
 			Node node = new Node();
-			this.getNodes().put(node.getNodeName(), node);
-			
+			this.getNodes().put(node.getId(), node);
 		}
 	}
 
@@ -588,26 +580,25 @@ public class Executive implements ITimeStamp {
 	 * Initialize the simulation Executive for a new run.
 	 */
 	public void clear() {
-		for (Map.Entry<String, Node> entry : this.getNodes().entrySet()) {
+		for (Map.Entry<UUID, Node> entry : this.getNodes().entrySet()) {
 			entry.getValue().clear();
 		}
 		
 		this.getNodes().clear();
 		this.getRouter().clear();
 		this.getCrdtLookup().clear();
-		this.getUserLookup().clear();
-
-		this.setTimestamp(0L);
 	}
 
 	/**
-	 * Registers the node and username for the owner of the CRDT and the object it manages
+	 * Registers the node and username for the owner of the CRDT and the object it manages.  If the entry already
+	 * exists in the CRDT registry, it is not added (that is it does not override a previous entry)
 	 *
 	 * @param crdt The CRDT to register to look up owner name and user name associated with the CRDT
 	 */
 	public void registerCrdt(SimCRDTManager<? extends AbstractDataType> crdt) {
-		this.getCrdtLookup().put(crdt.getObjectId(), crdt.getNodename());
-		this.getUserLookup().put(crdt.getObjectId(), crdt.getUsername());
+		if (null == this.getCrdtLookup().get(crdt.getObjectId())) {
+			this.getCrdtLookup().put(crdt.getObjectId(), crdt.getManagerNodeId());
+		}
 	}
 
 	/**
@@ -616,18 +607,8 @@ public class Executive implements ITimeStamp {
 	 * @param id The id of the CRDT for which we're trying to get the owner node
 	 * @return The ID value for the Node which owns the CRDT with the given ID value
 	 */
-	public String getOwnerNode(String id) {
+	public UUID getOwnerNode(UUID id) {
 		return this.getCrdtLookup().get(id);
-	}
-
-	/**
-	 * Gets the owner node of the user with the given ID
-	 *
-	 * @param id The id of the CRDT for which we're trying to get the owner user
-	 * @return The ID value for the user which owns the CRDT with the given ID value
-	 */
-	public String getOwnerUser(String id) {
-		return this.getUserLookup().get(id);
 	}
 
 	/**
@@ -635,7 +616,7 @@ public class Executive implements ITimeStamp {
 	 *
 	 * @return The CRDT owner node lookup map
 	 */
-	private Map<String, String> getCrdtLookup() {
+	private Map<UUID, UUID> getCrdtLookup() {
 		if (null == this.crdtLookup) {
 			this.crdtLookup = new TreeMap<>();
 		}
@@ -643,19 +624,6 @@ public class Executive implements ITimeStamp {
 		return this.crdtLookup;
 	}
 
-	/**
-	 * Return the CRDT username lookup map to the calling routine
-	 *
-	 * @return The CRDT owner user lookup map
-	 */
-	private Map<String, String> getUserLookup() {
-		if (null == this.userLookup) {
-			this.userLookup = new TreeMap<>();
-		}
-		
-		return userLookup;
-	}
-	
 	/**
 	 * Return a segment needed to generate the serialized version of the Executive.  The format is JSON-like
 	 * @return The segment containing a string serialization of the Executiv in a JSON-like format.
@@ -669,11 +637,10 @@ public class Executive implements ITimeStamp {
 		sb.append("\"nodeCount\":" + this.getNodeCount() + ",");
 		sb.append("\"readCount\":" + this.getReadCount() + ",");
 		sb.append("\"updateCount\":" + this.getUpdateCount() + ",");
-		sb.append("\"timestamp\":" + this.getTimestamp() + ",");
 		sb.append("\"rejectProbability\":" + this.getRejectProbability() + ",");
 		sb.append("\"updateProbability\":" + this.getUpdateProbability() + ",");
-		sb.append("\"crdtLookup\":" + Support.convert(this.getCrdtLookup()));
-		sb.append("\"userLookup\":" + Support.convert(this.getUserLookup()));
+		sb.append("\"router\":" + this.getRouter().toString() + ",");
+		sb.append("\"crdtLookup\":" + Support.convert(this.getCrdtLookup()) + ",");
 		sb.append("\"nodes\":" + Support.convert(this.getNodes()));
 		
 		return sb.toString();
@@ -685,5 +652,25 @@ public class Executive implements ITimeStamp {
 	@Override
 	public String toString() {
 		return "{" + this.getSegment() + "}";
+	}
+	
+	public void checkMessageConsistency() {
+		for (Map.Entry<UUID, Node> node : this.getNodes().entrySet()) {
+			node.getValue().checkMessageConsistency();
+		}
+		
+		this.getRouter().checkMessageConsistency();
+	}
+	
+	public void checkMessageCount() {
+		for (Map.Entry<UUID, Node> node : this.getNodes().entrySet()) {
+			node.getValue().checkMessageCount();
+		}
+	}
+	
+	public void checkOperationValidity() {
+		for (Map.Entry<UUID, Node> node : this.getNodes().entrySet()) {
+			node.getValue().checkOperationValidity();;
+		}
 	}
 }

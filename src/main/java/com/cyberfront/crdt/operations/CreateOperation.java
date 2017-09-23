@@ -22,16 +22,15 @@
  */
 package com.cyberfront.crdt.operations;
 
-import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonpatch.JsonPatch;				// Use this with jsonpatch
-import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
-
-//import com.flipkart.zjsonpatch.JsonPatch;				// Use this with zjsonpatch
+import com.flipkart.zjsonpatch.JsonPatch;					// Use this with zjsonpatch
+//import java.io.IOException;				                // Use this with jsonpatch
+//import com.github.fge.jsonpatch.JsonPatch;				// Use this with jsonpatch
+//import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
 
 /**
  * The CreateOperation encapsulates the creation of a new JSON document in the CRDT.  It should have
@@ -70,9 +69,10 @@ public class CreateOperation extends AbstractOperation {
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#processOperation(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-	public JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException {
-		return JsonPatch.fromJson(this.getOp()).apply(getMapper().createObjectNode());		// Use this with jsonpatch 
-//		return JsonPatch.apply(this.getOp(), getMapper().createObjectNode());				// Use this with zjsonpatch
+//	public JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException {		// Use this with jsonpatch 
+	public JsonNode processOperation(JsonNode document) {                                               // Use this with zjsonpatch
+//		return JsonPatch.fromJson(this.getOp()).apply(getMapper().createObjectNode());		// Use this with jsonpatch 
+		return JsonPatch.apply(this.getOp(), getMapper().createObjectNode());				// Use this with zjsonpatch
 	}
 
 	/* (non-Javadoc)
@@ -92,19 +92,19 @@ public class CreateOperation extends AbstractOperation {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#hashCode()
+	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#copy()
 	 */
 	@Override
-	public int hashCode() {
-		return 31*super.hashCode();
+	public AbstractOperation copy() {
+		return new CreateOperation(this);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#copy()
 	 */
 	@Override
-	public AbstractOperation copy() {
-		return new CreateOperation(this);
+	public AbstractOperation mimic() {
+		return new CreateOperation(this.getOp(), this.getTimeStamp());
 	}
 
 	/* (non-Javadoc)

@@ -22,6 +22,8 @@
  */
 package com.cyberfront.crdt.sample.simlation;
 
+import java.util.UUID;
+
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 
 /**
@@ -43,19 +45,12 @@ public interface IManager<T extends AbstractDataType> {
 	 *
 	 * @return the object id
 	 */
-	public abstract String getObjectId();
+	public abstract UUID getObjectId();
 	
 	/**
-	 * Gets the username.
+	 * Gets the owner node identifier.
 	 *
-	 * @return the username
+	 * @return The owner node identifier
 	 */
-	public abstract String getUsername();
-	
-	/**
-	 * Gets the nodename.
-	 *
-	 * @return the nodename
-	 */
-	public abstract String getNodename();
+	public abstract UUID getOwnerNodeID();
 }

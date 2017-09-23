@@ -44,10 +44,11 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 
 	/** The status associated with the operation. */
-	private StatusType status = StatusType.PENDING;
+//	private StatusType status = StatusType.PENDING;
+	private final StatusType status;
 
 	/** The operation bound with the metadata. */
-	private AbstractOperation operation;
+	private final AbstractOperation operation;
 	
 	/**
 	 * Instantiates a new operation manager given a status and an operation
@@ -55,9 +56,9 @@ public class OperationManager implements Comparable<OperationManager> {
 	 * @param status The status associated with the operations
 	 * @param op The operation associated with its metadata
 	 */
-	public OperationManager(StatusType status, AbstractOperation op) {
-		this.setStatus(status);
-		this.setOperation(op);
+	public OperationManager(StatusType status, AbstractOperation operation) {
+		this.status = status;
+		this.operation = operation;
 	}
 
 	/**
@@ -66,8 +67,7 @@ public class OperationManager implements Comparable<OperationManager> {
 	 * @param src The source object
 	 */
 	public OperationManager(OperationManager src) {
-		this.setStatus(src.getStatus());
-		this.setOperation(src.getOperation());
+		this(src.getStatus(), src.getOperation());
 	}
 
 	/**
@@ -86,24 +86,6 @@ public class OperationManager implements Comparable<OperationManager> {
 	 */
 	public OperationManager.StatusType getStatus() {
 		return this.status;
-	}
-
-	/**
-	 * Sets the operation to the value given
-	 *
-	 * @param operation The new operation value
-	 */
-	private void setOperation(AbstractOperation operation) {
-		this.operation = operation;
-	}
-
-	/**
-	 * Sets the status associated with the operation
-	 *
-	 * @param status The new status associated with the operation
-	 */
-	public void setStatus(OperationManager.StatusType status) {
-		this.status = status;
 	}
 
 	/**

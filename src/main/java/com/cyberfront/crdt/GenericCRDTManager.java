@@ -22,9 +22,6 @@
  */
 package com.cyberfront.crdt;
 
-import java.util.Observable;
-import java.util.Observer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,17 +40,13 @@ import com.fasterxml.jackson.databind.JsonNode;
  * com.cyberfront.crdt.unittest.data.AbstractDataType for an example of this annotation.  Also, the type T should have a constructor which
  * accepts no arguments.
  */
-public class GenericCRDTManager <T>
-	extends CRDTManager implements Observer {
+public class GenericCRDTManager <T> extends CRDTManager {
 
 	/** A logger for writing to the local log output. */
 	private static final Logger logger = LogManager.getLogger(GenericCRDTManager.class);
 
-	/** This is the object at the current state of the CRDT.  It is memoized, meaning, when available and nor */
-	private T object = null;
-
 	/** The object class. */
-	private Class<T> objectClass;
+	private final Class<T> objectClass;
 	
 	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = true; 
 	private static final boolean TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS = true; 
@@ -64,8 +57,7 @@ public class GenericCRDTManager <T>
 	 * @param objectClass the object class
 	 */
 	public GenericCRDTManager(Class<T> objectClass) {
-		this.getCrdt().addObserver(this);
-		this.setObjectClass(objectClass);
+		this.objectClass = objectClass;
 	}
 
 	/**
@@ -78,54 +70,25 @@ public class GenericCRDTManager <T>
 	}
 
 	/**
-	 * Sets the Class for the type being managed.
-	 *
-	 * @param objectClass the Class for the managed type
-	 */
-	private void setObjectClass(Class<T> objectClass) {
-		this.objectClass = objectClass;
-	}
-	/**
 	 * Gets the object.
 	 *
 	 * @return the object
 	 */
 	public T getObject() {
-		if (null == this.object) {
-			this.updateObject();
-		}
-		this.updateObject();
-		return this.object;
+		return this.getObject(Long.MAX_VALUE);
 	}
 	
 	/**
-	 * Set the value of the object the CRDT represents
+	 * Gets the object.
 	 *
-	 * @param object The new value of the object the CRDT represents
+	 * @return the object
 	 */
-	private void setObject(T object) {
-		this.object = object;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.crdt.CRDTManager#clear()
-	 */
-	@Override
-	public void clear() {
-		super.clear();
-		this.setObject(null);
-	}
-	
-	/**
-	 * Update the object being managed by the CRDT to have the final value associated with the operations currently
-	 * held in the CRDT.  If something goes wrong, the value for the stored object is null. 
-	 */
-	protected void updateObject() {
-		JsonNode json = this.getCrdt().getDocument();
+	public T getObject(long timestamp) {
+		JsonNode json = this.getCrdt().getDocument(timestamp);
 
 		if (null != json) {
 			try {
-				this.setObject(getMapper().treeToValue(json, this.getObjectClass()));
+				return getMapper().treeToValue(json, this.getObjectClass());
 			} catch (JsonProcessingException e) {
 				if (LOG_JSON_PROCESSING_EXCEPTIONS) {
 					logger.error(e);
@@ -138,12 +101,10 @@ public class GenericCRDTManager <T>
 				if (TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS) {
 					System.exit(0);
 				}
-
-				this.getCrdt().resetObservers();
 			}
-		} else {
-			this.getCrdt().resetObservers();
 		}
+		
+		return null;
 	}
 	
 	/**
@@ -242,19 +203,12 @@ public class GenericCRDTManager <T>
 	@Override
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
+		T object = this.getObject();
 
 		sb.append(super.getSegment() + ",");
 		sb.append("\"objectClass\":\"" + this.getObjectClass().getName() + "\",");
-		sb.append("\"object\":" + (null == this.object ? "null" : this.object.toString()));
+		sb.append("\"object\":" + (null == object ? "null" : object.toString()));
 		
 		return sb.toString();
-	}
-
-	/* (non-Javadoc)
-	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
-	 */
-	@Override
-	public void update(Observable o, Object arg) {
-		this.setObject(null);
 	}
 }

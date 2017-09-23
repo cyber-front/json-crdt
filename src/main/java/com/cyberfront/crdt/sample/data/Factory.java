@@ -24,6 +24,7 @@ package com.cyberfront.crdt.sample.data;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 import com.cyberfront.crdt.sample.simlation.Node;
 import com.cyberfront.crdt.sample.simlation.SimCRDTManager;
@@ -151,39 +152,36 @@ public class Factory {
 	/**
 	 * Generate and return a CRDTManager for the given `node`.   
 	 *
-	 * @param node The node for which the resulting CRDTManager is to be generated
+	 * @param ownerNode The node for which the resulting CRDTManager is to be generated
 	 * @param id The identifier for the new CRDT
 	 * @return The CRDTManager with the managed type 
 	 */
-	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node node, String id) {
-		return genCRDT(node, pickType(), id);
+	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node ownerNode, Node managerNode, UUID id) {
+		return genCRDT(ownerNode, managerNode, pickType(), id);
 	}
 		
 	/**
 	 * Generate and return a CRDTManager for the given `node` and of the given `type`   
 	 *
-	 * @param node The node for which the resulting CRDTManager is to be generated
+	 * @param ownerNode The node for which the resulting CRDTManager is to be generated
 	 * @param type The enumeration corresponding to the concrete type of AbstractDataType to generate 
 	 * @param id The identifier for the new CRDT
 	 * @return The CRDTManager with the managed type 
 	 */
-	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node node, TYPE type, String id) {
-		String nodeName = node.getNodeName();
-		String userName = node.pickUser();
-		
+	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node ownerNode, Node managerNode, TYPE type, UUID id) {
 		switch (type) {
 		case SIMPLE_A:
-			return new SimCRDTManager<SimpleA>(id, userName, nodeName, SimpleA.class);
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleA.class);
 		case SIMPLE_B:
-			return new SimCRDTManager<SimpleB>(id, userName, nodeName, SimpleB.class);
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleB.class);
 		case SIMPLE_C:
-			return new SimCRDTManager<SimpleC>(id, userName, nodeName, SimpleC.class);
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleC.class);
 		case SIMPLE_D:
-			return new SimCRDTManager<SimpleD>(id, userName, nodeName, SimpleD.class);
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleD.class);
 		case SIMPLE_COLLECTION:
-			return new SimCRDTManager<SimpleCollection>(id, userName, nodeName, SimpleCollection.class);
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleCollection.class);
 		case SIMPLE_REFERENCE:
-			return new SimCRDTManager<SimpleReference>(id, userName, nodeName, SimpleReference.class);
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleReference.class);
 		default:
 			return null;
 		}

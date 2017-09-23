@@ -33,8 +33,8 @@ import com.cyberfront.crdt.operations.ReadOperation;
 import com.cyberfront.crdt.operations.UpdateOperation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
-// import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+//import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 
 /**
  * The CRDTManager class is used to wrap a CRDT instance so as to interact with it.  The intent of this class is to 
@@ -55,7 +55,7 @@ public class CRDTManager {
 	 * Gets the CRDT this manager is managing
 	 * @return the CRDT this manager is managing
 	 */
-	protected LastWriteWins getCrdt() {
+	public LastWriteWins getCrdt() {
 		if (null == this.crdt) {
 			this.crdt = new LastWriteWins();
 		}
@@ -98,7 +98,7 @@ public class CRDTManager {
 	 * Deliver the operation, which has the effect of inserting the operation into the AddOperation set
 	 * @param op Operation to deliver to the CRDT
 	 */
-	private void deliver(AbstractOperation op) {
+	private void pushAdd(AbstractOperation op) {
 		this.getCrdt().addOperation(op);
 	}
 
@@ -106,7 +106,7 @@ public class CRDTManager {
 	 * Cancel an operation which currently is, or potentially in the future will be, included in the RemOperation set  
 	 * @param op The AbstractOperation instance to include in the RemoveOperation list
 	 */
-	private void cancel(AbstractOperation op) {
+	private void pushRemove(AbstractOperation op) {
 		this.getCrdt().remOperation(op);
 	}
 
@@ -114,20 +114,18 @@ public class CRDTManager {
 	 * Deliver an operation embedded in the OperationManager and based upon the StatusType of that OperationManager
 	 * @param op OperationsManager instance wrapping the operation to persist in this CRDT
 	 */
-	protected void deliver(OperationManager op) {
+	protected void push(OperationManager op) {
 		switch(op.getStatus()) {
 		case APPROVED:
 		case PENDING:
-			this.deliver(op.getOperation());
+			this.pushAdd(op.getOperation());
 			break;
 		case REJECTED:
-			this.cancel(op.getOperation());
+			this.pushRemove(op.getOperation());
 			break;
 		default:
 			break;
 		}
-		
-//		this.getCrdt().getInvalidOperations().clear();
 	}
 	
 	/**

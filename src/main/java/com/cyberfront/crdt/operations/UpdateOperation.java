@@ -22,17 +22,17 @@
  */
 package com.cyberfront.crdt.operations;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonpatch.JsonPatch;				// Use this with jsonpatch
-import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
-// import com.flipkart.zjsonpatch.JsonPatch;  			// Use this with zjsonpatch
+
+import com.flipkart.zjsonpatch.JsonPatch;  			// Use this with zjsonpatch
+
+//import java.io.IOException;                              // Use this with jsonpatch
+//import com.github.fge.jsonpatch.JsonPatch;				// Use this with jsonpatch
+//import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
 
 /**
  * The UpdateOperation encapsulates the creation of a new JSON document in the CRDT.  It should have
@@ -69,12 +69,12 @@ public class UpdateOperation extends AbstractOperation {
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#processOperation(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-	public JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException {
-		assertNotNull("Update Operation is null", this.getOp());
+//	public JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException { 		// Use this with jsonpatch
+	public JsonNode processOperation(JsonNode document) {		                                        // Use this with zjsonpatch
 		return null == document
 				? null
-				: JsonPatch.fromJson(this.getOp()).apply(document);		// Use this with jsonpatch
-//				: JsonPatch.apply(this.getOp(), document);				// Use this with zjsonpatch
+//				: JsonPatch.fromJson(this.getOp()).apply(document);		// Use this with jsonpatch
+				: JsonPatch.apply(this.getOp(), document);				// Use this with zjsonpatch
 	}
 
 	/* (non-Javadoc)
@@ -85,14 +85,6 @@ public class UpdateOperation extends AbstractOperation {
 		return (this == obj) || (obj instanceof UpdateOperation && super.equals(obj));
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return 53 * super.hashCode();
-	}
-
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#getType()
 	 */
@@ -107,6 +99,14 @@ public class UpdateOperation extends AbstractOperation {
 	@Override
 	public AbstractOperation copy() {
 		return new UpdateOperation(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#copy()
+	 */
+	@Override
+	public AbstractOperation mimic() {
+		return new UpdateOperation(this.getOp(), this.getTimeStamp());
 	}
 
 	/* (non-Javadoc)

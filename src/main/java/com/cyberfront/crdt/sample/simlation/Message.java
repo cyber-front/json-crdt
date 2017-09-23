@@ -22,6 +22,17 @@
  */
 package com.cyberfront.crdt.sample.simlation;
 
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
+import com.cyberfront.crdt.operations.OperationManager.StatusType;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
 
@@ -31,28 +42,37 @@ import com.cyberfront.crdt.support.Support;
  *
  * @param <T> the generic type
  */
-public class Message<T extends AbstractDataType> implements Comparable<Message<? extends AbstractDataType>> {
+public final class Message<T extends AbstractDataType> implements Comparable<Message<? extends AbstractDataType>> {
+	/** A logger for writing to the local log output. */
+	@SuppressWarnings("unused")
+	private static final Logger logger = LogManager.getLogger(Message.class);
 	
-	/** The priority. */
-	private Long priority;
+	/** The delivery timestamp associated with the message. */
+	private final Long deliveryTime;
 	
-	/** The destination. */
-	private String destination;
+	/** The destination node identifier. */
+	private final UUID dstNodeId;
+	
+	/** The source node identifier */
+	private final UUID srcNodeId;
 	
 	/** The mgr. */
-	private SimOperationManager<T> mgr;
+	private final SimOperationManager<T> mgr;
 	
 	/**
 	 * Instantiates a new message.
 	 *
-	 * @param destination the destination
-	 * @param mgr the mgr
-	 * @param priority the priority
+	 * @param srcNodeId Name of the source node for the message
+	 * @param dstNodeId Name of the message destination node
+	 * @param mgr Operation manager containing the operation details to pass from the source to destination node
+	 * @param timestamp The scheduled delivery time stamp
 	 */
-	public Message(String destination, SimOperationManager<T> mgr, Long priority) {
-		this.setPriority(priority);
-		this.setDestination(destination);
-		this.setManager(mgr.copy());
+	public Message(UUID srcNodeId, UUID dstNodeId, SimOperationManager<T> mgr, Long timestamp) {
+		this.srcNodeId = srcNodeId;
+		this.dstNodeId = dstNodeId;
+		this.mgr = mgr.copy();
+		this.deliveryTime  = timestamp;
+		assertTrue(this.deliveryTime >= Executive.getExecutive().getTimestamp());
 	}
 	
 	/**
@@ -61,8 +81,12 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	 * @param destination the destination
 	 * @param mgr the mgr
 	 */
-	public Message(String destination, SimOperationManager<T> mgr) {
-		this(destination, mgr, Support.getRandom().nextLong());
+	public Message(UUID srcNodeId, UUID dstNodeId, SimOperationManager<T> mgr) {
+		this(srcNodeId,
+			dstNodeId,
+			 mgr,
+			 Executive.getExecutive().getTimestamp() + Support.getRandom().nextInt(65536)
+		);
 	}
 	
 	/**
@@ -70,63 +94,59 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	 *
 	 * @param src the src
 	 */
-	public Message(Message<T> src) {
-		this.setDestination(src.getDestination());
-		this.setManager(src.getManager());
-		this.setPriority(this.getPriority());
+	private Message(Message<T> src) {
+		this(src.getSource(),
+			src.getDestination(),
+			src.getManager(),
+			src.getDeliveryTime());
 	}
 	
 	/**
-	 * Gets the destination.
+	 * Gets the destination node name
 	 *
-	 * @return the destination
+	 * @return the destination node name
 	 */
-	public String getDestination() { return destination; }
-	
+	public UUID getDestination() { return this.dstNodeId; }
+
 	/**
-	 * Gets the manager.
+	 * Gets the source node name
+	 *
+	 * @return the source node name
+	 */
+	public UUID getSource() { return this.srcNodeId; }
+
+	/**
+	 * Gets the manager
 	 *
 	 * @return the manager
 	 */
 	public SimOperationManager<T> getManager() { return mgr; }
 	
 	/**
-	 * Gets the priority.
+	 * Gets the time to deliver the message.
 	 *
-	 * @return the priority
+	 * @return The delivery time stamp value
 	 */
-	public Long getPriority() { return priority; }
+	public Long getDeliveryTime() { return this.deliveryTime; }
 
 	/**
-	 * Sets the destination.
-	 *
-	 * @param destination the new destination
+	 * Build and return a copy of the given message
+	 * @param msg Message to copy
+	 * @return Copy of the given message
 	 */
-	private void setDestination(String destination) { this.destination = destination; }
-	
-	/**
-	 * Sets the manager.
-	 *
-	 * @param mgr the new manager
-	 */
-	private void setManager(SimOperationManager<T> mgr) { this.mgr = mgr; }
-	
-	/**
-	 * Sets the priority.
-	 *
-	 * @param priority the new priority
-	 */
-	private void setPriority(Long priority) { this.priority = priority; }
+	public Message<T> copy(Message<T> msg) {
+		return new Message<>(msg);
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
 	public int compareTo(Message<? extends AbstractDataType> o) {
-		int comparePri = Long.compare(this.getPriority(), o.getPriority());
-		int compareTim = Long.compare(this.getManager().getOperation().getTimeStamp(), o.getManager().getOperation().getTimeStamp());
+		int compareDelTime = Long.compare(this.getDeliveryTime(), o.getDeliveryTime());
+		int compareGenTime = Long.compare(this.getManager().getOperation().getTimeStamp(), o.getManager().getOperation().getTimeStamp());
 		
-		return comparePri == 0 ? compareTim : comparePri;
+		return compareDelTime == 0 ? compareGenTime : compareDelTime;
 	}
 	
 	/* (non-Javadoc)
@@ -150,8 +170,9 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 		Message<? extends AbstractDataType> msg = (Message<? extends AbstractDataType>) obj;
 		
 		boolean rv = this.getDestination().equals(msg.getDestination());
+		rv = rv && this.getSource().equals(msg.getSource());
 		rv = rv && this.getManager().equals(msg.getManager());
-		rv = rv && Long.compare(this.getPriority(),  msg.getPriority()) == 0;
+		rv = rv && Long.compare(this.getDeliveryTime(),  msg.getDeliveryTime()) == 0;
 		
 		return rv;
 	}
@@ -164,8 +185,9 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 		int hash = 1;
 		
 		hash = hash * 11 + this.getDestination().hashCode();
-		hash = hash * 13 + this.getPriority().hashCode();
-		hash = hash * 17 + this.getManager().hashCode();
+		hash = hash * 13 + this.getSource().hashCode();
+		hash = hash * 17 + this.getDeliveryTime().hashCode();
+		hash = hash * 19 + this.getManager().hashCode();
 		
 		return hash;
 	}
@@ -178,8 +200,9 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 
+		sb.append("\"source\":\"" + this.getSource() + "\",");
 		sb.append("\"destination\":\"" + this.getDestination() + "\",");
-		sb.append("\"priority\":" + this.getPriority() + ",");
+		sb.append("\"deliveryTime\":" + this.getDeliveryTime() + ",");
 		sb.append("\"manager\":" + this.getManager().toString());
 		
 		return sb.toString();
@@ -197,5 +220,42 @@ public class Message<T extends AbstractDataType> implements Comparable<Message<?
 		sb.append('}');
 		
 		return sb.toString();
+	}
+
+	public static Collection<Message<? extends AbstractDataType>> filterReceived(Collection<Message<? extends AbstractDataType>> collection, OperationType opType, boolean criteriaType) {
+		return collection.stream()
+				.filter(op -> (opType == op.getManager().getOperation().getType()) == criteriaType)
+				.collect(Collectors.toList());
+	}
+
+	public static Collection<Message<? extends AbstractDataType>> filterReceived(Collection<Message<? extends AbstractDataType>> collection, StatusType stType, boolean criteriaStatus) {
+		return collection.stream()
+				.filter(op -> (stType == op.getManager().getStatus()) == criteriaStatus)
+				.collect(Collectors.toList());
+	}
+
+	public static Collection<Message<? extends AbstractDataType>> filterReceived(Collection<Message<? extends AbstractDataType>> collection, OperationType opType, boolean criteriaType, StatusType stType, boolean criteriaStatus) {
+		return collection.stream()
+				.filter(op -> (stType == op.getManager().getStatus()) == criteriaType && (opType == op.getManager().getOperation().getType()) == criteriaStatus)
+				.collect(Collectors.toList());
+	}
+	
+	public static void checkConsistency(Message<? extends AbstractDataType> msg) {
+		StatusType type = msg.getManager().getStatus();
+		UUID sourceId = msg.getSource();
+		UUID authId = Executive.getExecutive().getOwnerNode(msg.getManager().getObjectId());
+		
+		boolean authoritative = type == StatusType.APPROVED || type == StatusType.REJECTED;
+		if (authoritative != (sourceId == authId) && OperationType.READ != msg.getManager().getOperation().getType()) {
+			String text = "Message with status: " + type.toString();
+			text += " but with message sourceID: " + sourceId + " and authId: " + authId + "\n" + msg;
+			throw new IllegalStateException(text);
+		}
+	}
+	
+	public static void checkConsistency(Collection<Message<? extends AbstractDataType>> messages) {
+		for(Message<? extends AbstractDataType> msg : messages) {
+			Message.checkConsistency(msg);
+		}
 	}
 }

@@ -22,12 +22,10 @@
  */
 package com.cyberfront.crdt;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -39,15 +37,16 @@ import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
 import com.cyberfront.crdt.support.Support;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
-//import com.flipkart.zjsonpatch.JsonPatchApplicationException;	// Use this with zjsonpatch
+import com.flipkart.zjsonpatch.JsonPatchApplicationException;		// Use this with zjsonpatch
+//import java.io.IOException;										// Use this with jsonpatch
+//import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
 
 /**
  * The LastWriteWins class implements a Last Write Wins commutative CRDT.  Operations are stored and recalled in time stamp
  * order.  There is both an add and remove set, where removing an operation takes precedence over adding.  It also contains
  * a list of invalid operations which is used to hold operations which fail during reconstitution of the underlying data element
  */
-public class LastWriteWins extends OperationTwoSet implements Observer {
+public class LastWriteWins extends OperationTwoSet {
 	
 	/**
 	 * The Class TrialResult is used to process a collection of operations provided to it.  It is intended to augment the LastWriteWins class
@@ -62,16 +61,20 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	public static class TrialResult {
 		
 		/** Flag to indicate whether invalid operations are to be logged to the console */
+//		@SuppressWarnings("unused")
 		private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = false;
 		
-		/** The document which results from processing all of the operations in the Trial. */
-		private JsonNode document = null;
-		
 		/** The set of operations to process; they are processed in timestamp order */
-		private Set<AbstractOperation> operations;
+		private final Set<AbstractOperation> operations;
 		
 		/** The set of invalid operations detected.  Ideally this is empty, but there are reasons why it may not be empty. */
-		private Set<AbstractOperation> invalidOperations;
+		private Collection<AbstractOperation> invalidOperations;
+
+		/** Latest operation timestamp to include among the applicable operations */
+		private final long timestamp;
+
+		/** JsonNode document containing the result of executing the sequence of operations */
+		private JsonNode document;
 		
 		/**
 		 * Instantiates a new trial result given a CRDT to process; the operations list is copied from
@@ -80,68 +83,41 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 		 * @param crdt The CRDT to process
 		 */
 		public TrialResult(LastWriteWins crdt) {
-			this.getOperations().addAll(crdt.getOpsSet().stream()
-														.filter(op -> (OperationType.READ != op.getType()))
-														.collect(Collectors.toList()));
+			this(crdt, Long.MAX_VALUE);
+		}
+		
+		/**
+		 * Instantiates a new trial result given a CRDT to process; the operations list is copied from
+		 * the CRDT instance to be processed and used to generate the resulting JSON object.
+		 *
+		 * @param timestamp Latest timestamp to process operations
+		 * @param crdt The CRDT to process
+		 */
+		public TrialResult(LastWriteWins crdt, long timestamp) {
+			this.timestamp = timestamp;
+			this.operations = new TreeSet<>();
+			this.operations.addAll(
+					crdt.getOpsSet().
+					stream().
+					filter(op -> (OperationType.READ != op.getType())).
+					filter(op -> (op.getTimeStamp() <= this.timestamp)).
+					collect(Collectors.toList()));
 		}
 
-		/**
-		 * Instantiates a new TrialResult instance from an existing TrialResult and a new collection of operations.
-		 * The resulting operations are the union of those in the provided trial and those in the newOps collection passed
-		 *
-		 * @param trial The trial containing the initial set of operations to copy into this TrialResult.
-		 * @param newOps The new operations to add to those given in trial
-		 */
-		private TrialResult(TrialResult trial, Collection<AbstractOperation> newOps) {
-			this.getOperations().addAll(trial.getOperations());
-			this.getOperations().addAll(newOps.stream()
-											  .filter(op -> (OperationType.READ != op.getType()))
-											  .collect(Collectors.toList()));
-		}
-		
-		/**
-		 * Instantiates a new TrialResult instance from an existing TrialResult and a single operation.
-		 * The resulting operations are the union of those in the provided trial and those in the newOp passed
-		 *
-		 * @param trial The trial containing the initial set of operations to copy into this TrialResult.
-		 * @param newOp The new operation to add to those given in trial
-		 */
-		private TrialResult(TrialResult trial, AbstractOperation newOp) {
-			this.getOperations().addAll(trial.getOperations());
-			if (OperationType.READ != newOp.getType()) {
-				this.getOperations().add(newOp);
-			}
-		}
-		
-		/**
-		 * Instantiates a new TrialResult from the merger of two TrialResults
-		 *
-		 * @param trial0 The first TrialResult to use as the basis for the new TrialResult
-		 * @param trial1 The second TrialResult to use as the basis for the new TrialResult
-		 */
-		private TrialResult(TrialResult trial0, TrialResult trial1) {
-			this(trial0, trial1.getOperations());
-		}
-		
 		/**
 		 * Retrieve the document resulting from running the operations in this TrialResult.
 		 *
 		 * @return The document resulting from running the operations in this TrialResult
 		 */
 		public JsonNode getDocument() {
-			if (null == this.document) {
-				this.processOperations();
+			if (null == this.document || null == this.invalidOperations) {
+				this.invalidOperations = new ArrayList<>();
+				for (AbstractOperation op : this.getOperations()) {
+					this.document = this.applyOperation(this.document, op);
+				}
 			}
-
+			
 			return this.document;
-		}
-
-		/**
-		 * Clear the document and invalid operations to initialize processing the TrialResult
-		 */
-		private void clearResults() {
-			this.document = null;
-			this.invalidOperations = new TreeSet<>();
 		}
 
 		/**
@@ -149,12 +125,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 		 *
 		 * @return A the set of operations in this TrialResult
 		 */
-		public Set<AbstractOperation> getOperations() {
-			if (null == this.operations) {
-				this.operations = new TreeSet<>();
-			}
-			
-			this.clearResults();
+		private Set<AbstractOperation> getOperations() {
 			return this.operations;
 		}
 		
@@ -163,67 +134,45 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 		 *
 		 * @return the invalid
 		 */
-		public Set<AbstractOperation> getInvalidOperations() {
-			Set<AbstractOperation> rv = new TreeSet<>();
-			if (null != this.invalidOperations) {
-				rv.addAll(this.invalidOperations);
+		public Collection<AbstractOperation> getInvalidOperations() {
+			if (null == this.invalidOperations) {
+				this.getDocument();
 			}
-			return rv;
+
+			assertNotNull("Invalid Operation List was not allocated", this.invalidOperations);
+
+			return this.invalidOperations;
 		}
 
 		/**
-		 * Process the set of operations compute both the resulting JSON document and the set of 
-		 * invalid operations.
+		 * Retrieve the latest timestamp for the operations in this TrailResult instance
+		 *  
+		 * @return Latest timestamp for the operatiions in this TrialResult instance 
 		 */
-		private void processOperations() {
-			this.clearResults();
-			
-			for (AbstractOperation op : this.getOperations()) {
-				try {
-					this.document = op.processOperation(this.document);
-				} catch (JsonPatchException | IOException e) {	// Use this with jsonpatch
-//				} catch (JsonPatchApplicationException e) {		// Use this with zjsonpatch
-					if (LOG_JSON_PROCESSING_EXCEPTIONS) {
-						logger.error(e);
-						logger.error(" op: " + op.toString());
-						logger.error("doc: " + document);
-						for (StackTraceElement el : e.getStackTrace()) {
-							logger.error(el);
-						}
+		public long getTimestamp() {
+			return this.timestamp;
+		}
+
+		private JsonNode applyOperation(JsonNode document, AbstractOperation op) {
+			if (null == this.invalidOperations) {
+				this.invalidOperations = new TreeSet<>();
+			}
+
+			try {
+				return op.processOperation(document);
+//			} catch (JsonPatchException | IOException e) {  // Use this with jsonpatch
+			} catch (JsonPatchApplicationException e) {		// Use this with zjsonpatch
+				if (LOG_JSON_PROCESSING_EXCEPTIONS) {
+					logger.error(e);
+					logger.error(" op: " + op.toString());
+					logger.error("doc: " + document);
+					for (StackTraceElement el : e.getStackTrace()) {
+						logger.error(el);
 					}
-					this.invalidOperations.add(op);
 				}
+				this.invalidOperations.add(op);
 			}
-		}
-		
-		/**
-		 * Create a new TrialResult which is the result of merging this one with a collection of operations
-		 *
-		 * @param newOps Set of new operations to merge with this TrialResult 
-		 * @return The new TrialResult which merges this with the operations in the list
-		 */
-		public TrialResult merge(Collection<AbstractOperation> newOps) {
-			return new TrialResult(this, newOps);
-		}
-		
-		/**
-		 * Create a new TrialResult which is the result of merging this one with a single operation
-		 *
-		 * @param newOp New operation to merge with this TrialResult 
-		 * @return The new TrialResult which merges this with the operation
-		 */
-		public TrialResult merge(AbstractOperation newOp) {
-			return new TrialResult(this, newOp);
-		}
-
-		/**
-		 * Create a new TrialResult which is the result of merging this one with another TrialResult
-		 *
-		 * @param trial The other TrialResult to merge with this TrialResult
-		 * @return The resulting TrialResult instance to merge with this TrialResult
-		 */
-		public TrialResult merge(TrialResult trial) {
-			return new TrialResult(this, trial);
+			return document;
 		}
 		
 		/**
@@ -237,6 +186,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 			
 			sb.append("\"operations\":" + Support.convert(this.getOperations()) + ",");
 			sb.append("\"invalid\":" + Support.convert(this.getInvalidOperations()) + ",");
+			sb.append("\"timestamp\":" + this.getTimestamp() + ",");
 			sb.append("\"document\":" + (null == this.document ? "null" : this.document.toString()));
 			
 			return sb.toString();
@@ -251,44 +201,29 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	}
 
 	/** Logger for writing data to the log. */
+//	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(LastWriteWins.class);
 	
-	/** The TrialResult associated with this LastWriteWins instance. */
 	private TrialResult trial = null;
-	
-	/**
-	 * Default constructor used to initialize this as its own observer for changes to the 
-	 * set entries for the CRDT
-	 */
-	public LastWriteWins() {
-		this.addObserver(this);
-	}
-
-	/**
-	 * Retrieve a trial result based on the current collection of operations in the CRDT
-	 * @return TrailResult instance derived from the operations in this CRDT instance
-	 */
-	private TrialResult getTrial() {
-//		if (null == this.trial) {
-			this.trial = new TrialResult(this);
-//		}
-		
-		return this.trial;
-	}
-	
-	/**
-	 * Clear the trial value so if can be regenerated on the next read operation
-	 */
-	public void clearTrial() {
-		this.trial = null;
-	}
 	
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#readValue()
 	 */
 	@Override
 	public JsonNode getDocument() {
-		return this.getTrial().getDocument();
+		return this.getDocument(Long.MAX_VALUE);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#readValue()
+	 */
+	@Override
+	public JsonNode getDocument(long timestamp) {
+		if (null == this.trial || this.trial.getTimestamp() != timestamp) {
+			this.trial = new TrialResult(this, timestamp);
+		}
+
+		return this.trial.getDocument();
 	}
 	
 	/**
@@ -296,16 +231,11 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	 * @return List of invalid operations
 	 */
 	public Collection<AbstractOperation> getInvalidOperations() {
-		return this.getTrial().getInvalidOperations();
-	}
-
-	/**
-	 * Initiate a reset by invoking the observers which should cause a complete reset across all 
-	 * uses of the CRDT.
-	 */
-	public void resetObservers() {
-		this.setChanged();
-		this.notifyObservers();
+		if (null == trial) {
+			this.trial = new TrialResult(this);
+		}
+		
+		return this.trial.getInvalidOperations();
 	}
 	
 	/**
@@ -317,7 +247,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	protected void addOperation(AbstractOperation op) {
 		if (null != op) {
 			super.addOperation(op);
-			resetObservers();
+			this.trial = null;
 		}
 	}
 	
@@ -330,7 +260,7 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 	protected void remOperation(AbstractOperation op) {
 		if (null != op) {
 			super.remOperation(op);
-			resetObservers();
+			this.trial = null;
 		}
 	}
 
@@ -342,25 +272,8 @@ public class LastWriteWins extends OperationTwoSet implements Observer {
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"trial\":" + this.getTrial().toString());
+		sb.append("\"trial\":" + (null == this.trial ? "null" : this.trial.toString()));
 
 		return sb.toString();
-	}
-
-	/* (non-Javadoc)
-	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
-	 */
-	@Override
-	public void update(Observable o, Object arg) {
-		this.clearTrial();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.cyberfront.crdt.OperationTwoSet#clear()
-	 */
-	public void clear() {
-		super.clear();
-		this.clearTrial();
-		this.resetObservers();
 	}
 }

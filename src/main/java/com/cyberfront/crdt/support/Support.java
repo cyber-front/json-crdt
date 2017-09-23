@@ -345,7 +345,7 @@ public class Support {
 		String delimiter = "[";
 	
 		for (Map.Entry<KEY, VALUE> entry : map.entrySet()) {
-			sb.append("{\"KEY\":\"" + entry.getKey().toString() + "\",\"VALUE\":" + entry.getValue() + "}" + delimiter);
+			sb.append(delimiter + "{\"KEY\":\"" + entry.getKey().toString() + "\",\"VALUE\":" + entry.getValue().toString() + "}");
 			delimiter = ",";
 		}
 		

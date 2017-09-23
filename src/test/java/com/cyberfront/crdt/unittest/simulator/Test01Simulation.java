@@ -22,12 +22,14 @@
  */
 package com.cyberfront.crdt.unittest.simulator;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,8 +41,8 @@ import com.cyberfront.crdt.sample.simlation.Node;
 import com.cyberfront.crdt.sample.simlation.SimCRDTManager;
 import com.cyberfront.crdt.unittest.data.AssessmentSupport;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
-// import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+//import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 
 /**
  * This test module will assess the behavior of the CRDT through the use of a simulated distributed
@@ -65,7 +67,7 @@ public class Test01Simulation {
 		private static final long DELETE_COUNT = 32;
 		
 		/** Number of nodes to simulate in tests related to internodal synchronization quality */
-		private static final long NODE_COUNT = 8;
+		private static final long NODE_COUNT = 4;
 		
 		/** Probability of rejecting an update or delete event once it reaches the "owner" node */
 		private static final double REJECTION_PROBABILITY = 0.10d;
@@ -80,6 +82,9 @@ public class Test01Simulation {
 		 * as that of the owner node for a particular CRDT
 		 */
 		private static final boolean ASSESS_CONTENT_CONSISTENCY = true;
+		
+		/** Flag used to assess whether the each CRDT operation count is consistent */
+		private static final boolean ASSESS_OPERATION_COUNT_CONSISTENCY = true;
 		
 		/**
 		 * Flag used to assess whether the CRDT is valid.  When used it will determine whether any invalid operations
@@ -114,6 +119,9 @@ public class Test01Simulation {
 		/** Flag set to check the content consistency of CRDT objects on all nodes */
 		private boolean assessContentConsistency;
 
+		/** Flag used to assess whether the each CRDT operation count is consistent */
+		private boolean assessOperationCountConsistency;
+
 		/** Flag set to check the content consistency of CRDT objects on all nodes */
 		private boolean assessValidity;
 
@@ -133,6 +141,7 @@ public class Test01Simulation {
 			this.setAssessCountConsistency(ASSESS_COUNT_CONSISTENCY);
 			this.setAssessValidity(ASSESS_VALIDITY);
 			this.setAssessContentConsistency(ASSESS_CONTENT_CONSISTENCY);
+			this.setAssessOperationCountConsistency(ASSESS_OPERATION_COUNT_CONSISTENCY);
 		}
 
 		/**
@@ -153,7 +162,7 @@ public class Test01Simulation {
 		 * @param assessContentConsistency Flag to check the object value consistency between nodes
 		 * @param assessValidity Flag to check the validity of the CRDT values at each node
 		 */
-		public SimulationTest(long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectionProbability, double updateProbability, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed, boolean assessCountConsistency, boolean assessContentConsistency, boolean assessValidity) {
+		public SimulationTest(long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectionProbability, double updateProbability, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed, boolean assessCountConsistency, boolean assessContentConsistency, boolean assessValidity, boolean assessOperationCountConsistency) {
 			super(trialCount, abbreviatedFactor, stressedFactor, abbreviated, stressed);
 			this.setCreateCount(createCount);
 			this.setReadCount(readCount);
@@ -165,6 +174,7 @@ public class Test01Simulation {
 			this.setAssessCountConsistency(assessCountConsistency);
 			this.setAssessContentConsistency(assessContentConsistency);
 			this.setAssessValidity(assessValidity);
+			this.setAssessOperationCountConsistency(assessOperationCountConsistency);
 		}
 
 		/**
@@ -247,6 +257,10 @@ public class Test01Simulation {
 			return assessValidity;
 		}
 
+		public boolean isAssessOperationCountConsistency() {
+			return assessOperationCountConsistency;
+		}
+
 		/**
 		 * Set the base number of create operations to perform in a given simulation run 
 		 * @param createCount Number of create operations to perform in a given simulation run
@@ -326,6 +340,10 @@ public class Test01Simulation {
 		public void setAssessValidity(boolean assessValidity) {
 			this.assessValidity = assessValidity;
 		}
+
+		public void setAssessOperationCountConsistency(boolean assessOperationCountConsistency) {
+			this.assessOperationCountConsistency = assessOperationCountConsistency;
+		}
 		
 		/**
 		 * Perform the count consistency check to ensure each node has the same number of elements, which should
@@ -334,9 +352,9 @@ public class Test01Simulation {
 		private void assessCountConsistency() {
 			logger.info("        Test01Simulation.assessCountConsistency()");
 			
-			for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
+			for (Map.Entry<UUID, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
 				
-				String name = entry.getKey();
+				UUID id = entry.getKey();
 				Node node = entry.getValue();
 				long count = node.getDatastore().size();
 
@@ -344,11 +362,14 @@ public class Test01Simulation {
 
 				if (this.getCreateCount() != count) {
 					sb.append("CRDT count mismatch on node \"");
-					sb.append(name);
+					sb.append(id);
 					sb.append("\"; expected: ");
 					sb.append(String.valueOf(this.getCreateCount()));
 					sb.append("; found: ");
 					sb.append(String.valueOf(count));
+					
+					logger.info("{\"node-id\":\"" + node.getId().toString() + "\",");
+					logger.info("\"executive\":" + Executive.getExecutive().toString() + "}");
 
 					assertTrue(sb.toString(), this.getCreateCount() == count);
 				}
@@ -361,18 +382,26 @@ public class Test01Simulation {
 		private void assessContentConsistency() {
 			logger.info("        Test01Simulation.assessContentConsistency()");
 
-			for (Map.Entry<String, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
-
+			Executive.getExecutive().checkOperationValidity();
+			
+			for (Map.Entry<UUID, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
 				Node baseNode = entry.getValue();
 				assertNotNull("baseNode found to be null", baseNode);
 
-				for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
+				for (Entry<UUID, SimCRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
 					SimCRDTManager<? extends AbstractDataType> crdt = baseEntry.getValue();
-					if (crdt.getNodename().equals(baseNode.getNodeName())) {
+					if (crdt.getOwnerNodeID().equals(baseNode.getId())) {
 						assessContentConsistency(baseEntry.getValue());
 					}
 				}
 			}
+		}
+		
+		private void assessOperationCountConsistency() {
+			logger.info("        Test01Simulation.assessOperationCountConsistency()");
+			
+			Executive.getExecutive().checkMessageConsistency();
+			Executive.getExecutive().checkMessageCount();
 		}
 
 		/**
@@ -384,15 +413,20 @@ public class Test01Simulation {
 		 * in all other Node instances.
 		 */
 		private <T extends AbstractDataType> void assessContentConsistency(SimCRDTManager<T> crdt) {
-			assertNotNull("crdt found to be null", crdt);
-			assertTrue("crdt is not created", crdt.isCreated());
+			long addCount = crdt.getCrdt().getAddCount();
+			long remCount = crdt.getCrdt().getRemCount();
+			long opCount = crdt.getCrdt().getOpsSet().size();
+			
+			assertTrue("crdt has unmatch remove operations: " + crdt.toString(), opCount == addCount - remCount);
+			
+			// If all of the operations have been rejected, then just return 
+			if (opCount == 0) {
+				return;
+			}
 			
 			AbstractDataType baseValue = crdt.getObject();
 
-			assertTrue("Deleted value should be null, but is not: " + crdt.toString(), !crdt.isDeleted() || (null == baseValue && crdt.isDeleted()));
-			assertTrue("Created value should not be null, but is: " + crdt.toString(), crdt.isDeleted() || (null != baseValue && !crdt.isDeleted()));
-
-			for (Map.Entry<String, Node> compEntry : Executive.getExecutive().getNodes().entrySet()) {
+			for (Map.Entry<UUID, Node> compEntry : Executive.getExecutive().getNodes().entrySet()) {
 				Node compNode = compEntry.getValue();
 				assertNotNull("compNode found to be null", compNode);
 
@@ -418,6 +452,8 @@ public class Test01Simulation {
 					assertTrue(sb.toString(), diff.size() == 0);
 				}
 			}
+
+			return;
 		}
 
 		/**
@@ -432,7 +468,7 @@ public class Test01Simulation {
 			Node baseNode = Executive.getExecutive().pickNode();
 			assertNotNull("baseNode found to be null", baseNode);
 
-			for (Entry<String, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
+			for (Entry<UUID, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
 				AbstractDataType val = baseEntry.getValue().getObject();
 				boolean created = baseEntry.getValue().isCreated();
 				boolean deleted = baseEntry.getValue().isDeleted();
@@ -444,6 +480,10 @@ public class Test01Simulation {
 				if (!created) {
 					assertNull("CRDT has no create operations but is not null" + errMsg, val);
 				} else if (deleted) {
+					if (null != val) {
+						logger.info(Executive.getExecutive().toString());
+					}
+					
 					assertNull("CRDT was deleted but is not null" + errMsg, val);
 				} else {
 					assertNotNull("CRDT is created and not deleted, but is null" + errMsg, val);
@@ -453,13 +493,15 @@ public class Test01Simulation {
 				
 				if (invalidOperations > 0) {
 					StringBuilder sb = new StringBuilder();
-					sb.append("    Node : " + baseNode.getNodeName() + "\n");
-					sb.append("    count : " + baseEntry.getValue().getInvalidOperationCount() + "\n");
-					logger.info("    Residual invalid operations detected: \n" + sb.toString());
-					logger.info(baseEntry.getValue().toString());
+					sb.append("\n*** Residual invalid operations detected:\n");
+					sb.append("{\"Count\":" + baseEntry.getValue().getInvalidOperationCount() + ",");
+					sb.append("\"NodeID\":\"" + baseNode.getId() + "\",");
+					sb.append("\"ObjectId\":\"" + baseEntry.getValue().getObjectId().toString() + "\",");
+					sb.append("\"crdt\":" + baseEntry.getValue().toString() + "}");
+					logger.info(sb.toString());
 				}
 				
-				assertTrue("Residual operations remain", invalidOperations == 0);
+				assertEquals("Residual operations remain", 0, invalidOperations);
 			}
 		}
 
@@ -481,7 +523,11 @@ public class Test01Simulation {
 			}
 
 			if (this.isAssessContentConsistency()) {
-				assessContentConsistency();
+				this.assessContentConsistency();
+			}
+			
+			if (this.isAssessOperationCountConsistency()) {
+				this.assessOperationCountConsistency();
 			}
 		}
 		
@@ -507,7 +553,7 @@ public class Test01Simulation {
 			crud += deleteCount > 0 ? 'D' : 'x';
 			
 			for (long trial=0; trial<this.getTrialCount(); ++trial) {
-				logger.info("   simulateTest: " + crud + "; trial " + (trial+1) + " of " + this.getTrialCount() + ".");
+				logger.info("\n   simulateTest: " + crud + "; trial " + (trial+1) + " of " + this.getTrialCount() + ".");
 				
 				executive.clear();
 				executive.setCreateCount(this.getCreateCount());
@@ -524,6 +570,12 @@ public class Test01Simulation {
 			}
 			logger.info("   SUCCESS");
 		}
+
+//	public static Collection<AbstractOperation> filterOperationsByTimestamp(Collection<AbstractOperation> opList, long timestamp, boolean criteria) {
+//		return opList.stream()
+//				.filter(op -> (timestamp <= op.getTimeStamp()) == criteria)
+//				.collect(Collectors.toList());
+//	}
 	}
 
 	/**

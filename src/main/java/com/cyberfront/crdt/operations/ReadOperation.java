@@ -74,14 +74,6 @@ public class ReadOperation extends AbstractOperation {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return 37 * super.hashCode();
-	}
-
-	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#getType()
 	 */
 	@Override
@@ -95,6 +87,14 @@ public class ReadOperation extends AbstractOperation {
 	@Override
 	public AbstractOperation copy() {
 		return new ReadOperation(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#copy()
+	 */
+	@Override
+	public AbstractOperation mimic() {
+		return new ReadOperation(this.getTimeStamp());
 	}
 
 	/* (non-Javadoc)

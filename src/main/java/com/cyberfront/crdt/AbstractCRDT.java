@@ -72,6 +72,13 @@ public abstract class AbstractCRDT extends Observable {
 	 * @return The JSON document resulting from processing the operations in the CRDT
 	 */
 	public abstract JsonNode getDocument();
+	
+	/**
+	 * Process the operations and return the resulting JsonNode document
+	 * @param timestamp Timestamp effective for getting the document in question
+	 * @return The JSON document resulting from processing the operations in the CRDT
+	 */
+	public abstract JsonNode getDocument(long timestamp);
 
 	/**
 	 * This is used to create a string representation of the CRDT in support of the toString() method

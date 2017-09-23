@@ -37,7 +37,7 @@ public class GenericOperationManager<T>
 	extends OperationManager {
 	
 	/** The object class to instantiate new objects. */
-	private Class<T> objectClass;
+	private final Class<T> objectClass;
 	
 	/**
 	 * Instantiates a new operation manager.
@@ -47,7 +47,7 @@ public class GenericOperationManager<T>
 	 */
 	public GenericOperationManager(StatusType status, AbstractOperation operation, Class<T> objectClass) {
 		super(status, operation);
-		this.setObjectClass(objectClass);
+		this.objectClass = objectClass;
 	}
 	
 	/**
@@ -57,7 +57,7 @@ public class GenericOperationManager<T>
 	 */
 	public GenericOperationManager(GenericOperationManager<T> src) {
 		super(src);
-		this.setObjectClass(src.getObjectClass());
+		this.objectClass = src.getObjectClass();
 	}
 	
 	/**
@@ -67,15 +67,6 @@ public class GenericOperationManager<T>
 	 */
 	public Class<T> getObjectClass() {
 		return this.objectClass;
-	}
-
-	/**
-	 * Sets the Class for the type being managed.
-	 *
-	 * @param objectClass the Class for the managed type
-	 */
-	private void setObjectClass(Class<T> objectClass) {
-		this.objectClass = objectClass;
 	}
 
 	/* (non-Javadoc)
@@ -114,7 +105,7 @@ public class GenericOperationManager<T>
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"objectClass\":\"" + this.getObjectClass().getName() + "\",");
+		sb.append("\"objectClass\":\"" + this.getObjectClass().getName() + "\"");
 		
 		return sb.toString();
 	}

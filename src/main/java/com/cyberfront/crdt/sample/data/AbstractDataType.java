@@ -62,12 +62,12 @@ public abstract class AbstractDataType {
 	private static final ObjectMapper mapper = new ObjectMapper();
 
 	/** A unique identifier for the object */
-	private String id;
+	private final UUID id;
 	
 	/** Notes associated with the data instance. */
 	private String notes;
 	
-	/** A description of the objec. */
+	/** A description of the object. */
 	private String description;
 	
 	/** The version, relating to the number of times the object was revised */
@@ -78,8 +78,8 @@ public abstract class AbstractDataType {
 	 * the version is set initially to 0 since it hasn't been changed.
 	 */
 	public AbstractDataType() {
+		this.id = UUID.randomUUID();
 		this.setDescription(LoremIpsum.getInstance().getWords(5, 10));
-		this.setId(UUID.randomUUID().toString());
 		this.setNotes(LoremIpsum.getInstance().getWords(5, 10));
 		this.setVersion(0L);
 	}
@@ -137,17 +137,8 @@ public abstract class AbstractDataType {
 	 *
 	 * @return the id
 	 */
-	public String getId() {
+	public UUID getId() {
 		return id;
-	}
-
-	/**
-	 * Sets the id to the given value.
-	 *
-	 * @param id The new id
-	 */
-	public void setId(String id) {
-		this.id = id;
 	}
 	
 	/**

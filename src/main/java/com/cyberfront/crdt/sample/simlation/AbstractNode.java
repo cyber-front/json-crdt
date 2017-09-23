@@ -23,9 +23,10 @@
 package com.cyberfront.crdt.sample.simlation;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.UUID;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
@@ -36,38 +37,24 @@ import com.cyberfront.crdt.support.Support;
  *
  * @param <T> the generic type
  */
-public abstract class AbstractNode<T extends AbstractDataType> {
+public abstract class AbstractNode {
 	
 	/** The node name. */
-	private String nodeName;
-	
-	/** The user names. */
-	private List<String> userNames;
+	private final UUID id;
 	
 	/** The crdt ids. */
-	private List<String> crdtIds;
+	private List<UUID> crdtIds;
 
 	/** The datastore. */
-	private Map<String, SimCRDTManager<? extends T>> datastore;
+	private Map<UUID, SimCRDTManager<? extends AbstractDataType>> datastore;
 
 	/**
 	 * Instantiates a new abstract node.
 	 *
-	 * @param nodeName the node name
+	 * @param id the node name
 	 */
-	public AbstractNode(String nodeName) {
-		this.setNodeName(nodeName);
-	}
-
-	/**
-	 * Instantiates a new abstract node.
-	 *
-	 * @param nodeName the node name
-	 * @param userNames the user names
-	 */
-	public AbstractNode(String nodeName, Collection<String> userNames) {
-		this.setNodeName(nodeName);
-		this.getUserNames().addAll(userNames);
+	public AbstractNode(UUID id) {
+		this.id = id;
 	}
 
 	/**
@@ -75,30 +62,8 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @return the node name
 	 */
-	public String getNodeName() {
-		return nodeName;
-	}
-
-	/**
-	 * Sets the node name.
-	 *
-	 * @param nodeName the new node name
-	 */
-	private void setNodeName(String nodeName) {
-		this.nodeName = nodeName;
-	}
-
-	/**
-	 * Gets the user names.
-	 *
-	 * @return the user names
-	 */
-	public List<String> getUserNames() {
-		if (null == this.userNames) {
-			this.userNames = new ArrayList<>();
-		}
-
-		return userNames;
+	public UUID getId() {
+		return id;
 	}
 	
 	/**
@@ -106,9 +71,9 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @return the datastore
 	 */
-	public Map<String, SimCRDTManager<? extends T>> getDatastore() {
+	public Map<UUID, SimCRDTManager<? extends AbstractDataType>> getDatastore() {
 		if (null == datastore) {
-			this.datastore = this.createDatastore();
+			this.datastore = new TreeMap<>();
 		}
 		
 		return this.datastore;
@@ -118,7 +83,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 * Clear.
 	 */
 	public void clear() {
-		for (Map.Entry<String, SimCRDTManager<? extends T>> entry : this.getDatastore().entrySet()) {
+		for (Map.Entry<UUID, SimCRDTManager<? extends AbstractDataType>> entry : this.getDatastore().entrySet()) {
 			entry.getValue().clear();
 		}
 
@@ -130,7 +95,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @return the crdt ids
 	 */
-	protected List<String> getCrdtIds() {
+	private List<UUID> getCrdtIds() {
 		if (null == this.crdtIds) {
 			this.crdtIds = new ArrayList<>();
 		}
@@ -143,45 +108,17 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @param crdt the crdt
 	 */
-	protected void addCRDT(SimCRDTManager<? extends T> crdt) {
+	protected void addCRDT(SimCRDTManager<? extends AbstractDataType> crdt) {
 		this.getDatastore().put(crdt.getObjectId(), crdt);
 		this.getCrdtIds().add(crdt.getObjectId());
 	}
-	
-	/**
-	 * Adds the username.
-	 *
-	 * @param username the username
-	 */
-	public void addUsername(String username) {
-		this.getUserNames().add(username);
-	}
-	
-	/**
-	 * Adds the usernames.
-	 *
-	 * @param usernames the usernames
-	 */
-	public void addUsernames(Collection<String> usernames) {
-		this.getUserNames().addAll(usernames);
-	}
 
-	/**
-	 * Gets the datastore.
-	 *
-	 * @param id the id
-	 * @return the datastore
-	 */
-//	public SimCRDTManager<? extends T> getDatastore(String id) {
-//		return this.getDatastore().get(id);
-//	}
-//	
 	/**
 	 * Pick crdt id.
 	 *
 	 * @return the string
 	 */
-	public String pickCrdtId() {
+	public UUID pickCrdtId() {
 		int index = Support.getRandom().nextInt(this.getCrdtIds().size());
 		return this.getCrdtIds().get(index);
 	}
@@ -191,7 +128,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 *
 	 * @return the CRDTManager
 	 */
-	public SimCRDTManager<? extends T> pickCRDT() {
+	public SimCRDTManager<? extends AbstractDataType> pickCRDT() {
 		return this.getDatastore().get(this.pickCrdtId());
 	}
 	
@@ -207,7 +144,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 		if (this.getDatastore().isEmpty()) {
 			sb.append(separator);
 		} else {
-			for (Map.Entry<String, SimCRDTManager<? extends T>> entry : this.getDatastore().entrySet()) {
+			for (Map.Entry<UUID, SimCRDTManager<? extends AbstractDataType>> entry : this.getDatastore().entrySet()) {
 				sb.append(separator + "\"" + entry.getKey() + "\":" + entry.getValue().toString());
 				separator = ',';
 			}
@@ -219,24 +156,6 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	}
 	
 	/**
-	 * Usernames to string.
-	 *
-	 * @return the string
-	 */
-	private String usernamesToString() {
-		StringBuilder sb = new StringBuilder();
-		String separator = "[";
-		
-		for (String user : this.getUserNames()) {
-			sb.append(separator + "\"" + user + "\"");
-			separator = ",";
-		}
-		sb.append("]");
-		
-		return sb.toString();
-	}
-
-	/**
 	 * Gets the segment.
 	 *
 	 * @return the segment
@@ -244,8 +163,7 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("\"nodeName\":\"" + this.getNodeName()  + "\",");
-		sb.append("\"userNames\":" + this.usernamesToString() + ",");
+		sb.append("\"nodeId\":\"" + this.getId().toString()  + "\",");
 		sb.append("\"datastore\":" + this.datastoreToString());
 		
 		return sb.toString();
@@ -271,12 +189,12 @@ public abstract class AbstractNode<T extends AbstractDataType> {
 	 * @param id The ID value for the new CRDT
 	 * @return the CRDTManager
 	 */
-	protected abstract SimCRDTManager<? extends T> createCRDT(String id);
+//	protected abstract SimCRDTManager<? extends AbstractDataType> createCRDT(UUID id);
 	
 	/**
 	 * Creates the datastore.
 	 *
 	 * @return the map
 	 */
-	protected abstract Map<String, SimCRDTManager<? extends T>> createDatastore();
+//	protected abstract Map<UUID, SimCRDTManager<? extends AbstractDataType>> createDatastore();
 }

@@ -48,7 +48,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return the ADD set
 	 */
-	protected Collection<AbstractOperation> getAddSet() {
+	private Collection<AbstractOperation> getAddSet() {
 		if (null == this.addSet) {
 			this.addSet = new TreeSet<>();
 		}
@@ -61,11 +61,19 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return the REMOVE set
 	 */
-	protected Collection<AbstractOperation> getRemSet() {
+	private Collection<AbstractOperation> getRemSet() {
 		if (null == this.remSet) {
 			this.remSet = new TreeSet<>();
 		}
 		return this.remSet;
+	}
+	
+	public Collection<AbstractOperation> copyAddSet() {
+		return AbstractOperation.copy(this.getAddSet());
+	}
+
+	public Collection<AbstractOperation> copyRemSet() {
+		return AbstractOperation.copy(this.getRemSet());
 	}
 
 	/**
@@ -73,7 +81,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * 
 	 * @return The number of elements in the Add Set
 	 */
-	public int getAddCount() {
+	public long getAddCount() {
 		return this.getAddSet().size();
 	}
 
@@ -82,7 +90,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * 
 	 * @return The number of elements in the Remove Set
 	 */
-	public int getRemCount() {
+	public long getRemCount() {
 		return this.getRemSet().size();
 	}
 	
@@ -91,7 +99,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * 
 	 * @return The number of elements in the Remove Set
 	 */
-	public int getOperationCount() {
+	public long getOperationCount() {
 		return this.getOpsSet().size();
 	}
 	
