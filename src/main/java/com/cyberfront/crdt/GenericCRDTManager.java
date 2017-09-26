@@ -48,8 +48,11 @@ public class GenericCRDTManager <T> extends CRDTManager {
 	/** The object class. */
 	private final Class<T> objectClass;
 	
-	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = true; 
-	private static final boolean TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS = true; 
+	/** Flag to determine whether to display situations where the Java object could not be reconstructed from a JSON document*/
+	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = false; 
+	
+	/** Flag to determine whether to terminate when Jackson could not reconstitute a Java object from a JSON document. */  
+	private static final boolean TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS = false; 
 	
 	/**
 	 * Instantiates a new CRDT manager.
@@ -79,9 +82,10 @@ public class GenericCRDTManager <T> extends CRDTManager {
 	}
 	
 	/**
-	 * Gets the object.
+	 * Gets the object as it was at the time of the given timestamp
 	 *
-	 * @return the object
+	 * @param timestamp Latest timestamp of operations to process in the reconstruction of the object 
+	 * @return the object as it was at the time of the given timestamp
 	 */
 	public T getObject(long timestamp) {
 		JsonNode json = this.getCrdt().getDocument(timestamp);

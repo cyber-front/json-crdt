@@ -61,9 +61,7 @@ public class Test01Create {
 		}
 
 		/**
-		 * Perform the create test
-		 *
-		 * @param count The number of create operations to perform to generate random AbstractDataType instances
+		 * Test the ability to create a new concrete object derived from AbstractDataType
 		 */
 		public void createDataTest() {
 			logger.info("\n** Test01Create: {\"count\":" + this.getTrialCount() + "}");

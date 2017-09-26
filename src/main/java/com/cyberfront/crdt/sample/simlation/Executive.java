@@ -365,6 +365,10 @@ public class Executive {
 	 * @return The randomly chosen node
 	 */
 	public Node pickNode() {
+		if (this.getNodes().size() == 0) {
+			return null;
+		}
+		
 		int pick = Support.getRandom().nextInt(this.getNodes().size());
 		
 		for (Map.Entry<UUID, Node> entry : this.getNodes().entrySet()) {

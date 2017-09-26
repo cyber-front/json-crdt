@@ -28,105 +28,79 @@ import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.GenericOperationManager;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class OperationManager.
+ * The SimOperationManager class wraps JSON operations with some management code to ensure proper delivery and processing
+ * of the operations specifically tailored for the simulation test harness.
  *
- * @param <T> the generic type
+ * @param <T> The type of object to which the operations is applied.  In this case T should extend the AbstractDataType
+ * class
  */
 public class SimOperationManager<T extends AbstractDataType>
 	extends GenericOperationManager<T> {
 	
-	/** The object id. */
+	/** Identifier of the object which is  */
 	private final UUID objectId;
-	
-	/** The node identifier. */
-	private final UUID nodeId;
-	
+
 	/**
 	 * Instantiates a new operation manager.
 	 *
+	 * @param status Status of the operation being managed, either APPROVED, PENDING or REJECTED
 	 * @param objectId the object id
-	 * @param nodeId the node identifier
 	 * @param objectClass the object class
 	 * @param operation the operation
 	 */
-	public SimOperationManager(StatusType status, AbstractOperation operation, UUID objectId, UUID nodeId, Class<T> objectClass) {
+	public SimOperationManager(StatusType status, AbstractOperation operation, UUID objectId, Class<T> objectClass) {
 		super(status, operation, objectClass);
 		this.objectId = objectId;
-		this.nodeId = nodeId;
 	}
 	
-//	/**
-//	 * Instantiates a new operation manager.
-//	 *
-//	 * @param src the src
-//	 */
-//	private SimOperationManager(SimOperationManager<T> src) {
-//		this(src.getStatus(), src.getOperation().copy(), src.getObjectId(), src.getNodeId(), src.getObjectClass());
-//	}
-//	
-//	/**
-//	 * Instantiates a new operation manager.
-//	 *
-//	 * @param src the src
-//	 */
-//	private SimOperationManager(SimOperationManager<T> src, StatusType status) {
-//		this(status, src.getOperation().mimic(), src.getObjectId(), src.getNodeId(), src.getObjectClass());
-//	}
-//	
 	/**
-	 * Gets the object id.
+	 * Gets the ID reference value of the object for which the operation applies
 	 *
-	 * @return the object id
+	 * @return The ID reference for the object for which the operation applies 
 	 */
 	public UUID getObjectId(){
 		return this.objectId;
 	}
 	
 	/**
-	 * Gets the node identifier.
+	 * Generate and return a near copy of this class instance including the operation identifier
 	 *
-	 * @return the node identifier
-	 */
-	public UUID getNodeId() {
-		return this.nodeId;
-	}
-
-	/**
-	 * Copy.
-	 *
-	 * @return the operation manager
+	 * @return A copy of this class instance
 	 */
 	public SimOperationManager<T> copy() {
-		return new SimOperationManager<>(this.getStatus(), this.getOperation().copy(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
+		return new SimOperationManager<>(this.getStatus(), this.getOperation().copy(), this.getObjectId(), this.getObjectClass());
 	}
 
 	/**
-	 * Copy.
+	 * Generate and return a copy of this class instance including the operation identifier but with the given status type
 	 *
-	 * @return the operation manager
+	 * @param status Status value for the new copy which should be used in lieu of that in this instance
+	 * @return A copy of the operation manager as provided to this routine.
 	 */
 	public SimOperationManager<T> copy(StatusType status) {
-		return new SimOperationManager<>(status, this.getOperation().copy(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
+		return new SimOperationManager<>(status, this.getOperation().copy(), this.getObjectId(), this.getObjectClass());
 	}
 
 	/**
-	 * Mimic.
+	 * Generate and return a near copy of this class instance including the operation identifier,  In this case a new
+	 * operation identifier is set
 	 *
-	 * @return the operation manager
+	 * @return a reference to the new operations based on this one
 	 */
 	public SimOperationManager<T> mimic() {
-		return new SimOperationManager<>(this.getStatus(), this.getOperation().mimic(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
+		return new SimOperationManager<>(this.getStatus(), this.getOperation().mimic(), this.getObjectId(), this.getObjectClass());
 	}
 
 	/**
-	 * Mimic.
+	 * Generate and return a near copy of this class instance including the operation identifier,  In this case a new
+	 * operation identifier is set, and a new status is given through the argument list
 	 *
-	 * @return the operation manager
+	 * @param status Status value for the new copy which should be used in lieu of that in this instance
+	 * @return a reference to the new operations based on this one
 	 */
 	public SimOperationManager<T> mimic(StatusType status) {
-		return new SimOperationManager<>(status, this.getOperation().mimic(), this.getObjectId(), this.getNodeId(), this.getObjectClass());
+		return new SimOperationManager<>(status, this.getOperation().mimic(), this.getObjectId(), this.getObjectClass());
 	}
 
 	/* (non-Javadoc)
@@ -142,7 +116,7 @@ public class SimOperationManager<T extends AbstractDataType>
 		
 		SimOperationManager<?> mgr = (SimOperationManager<?>) obj;
 		
-		return this.getOperation().equals(mgr.getOperation());
+		return this.getObjectId().equals(mgr.getObjectId()) && this.getOperation().equals(mgr.getOperation());
 	}
 	
 	/* (non-Javadoc)
@@ -153,8 +127,7 @@ public class SimOperationManager<T extends AbstractDataType>
 		int hash = super.hashCode();
 		
 		hash = 31 * hash + this.getObjectId().hashCode();
-		hash = 37 * hash + this.getNodeId().hashCode();
-		hash = 41 * hash + this.getObjectClass().hashCode();
+		hash = 37 * hash + this.getObjectClass().hashCode();
 		
 		return hash;
 	}
@@ -166,8 +139,7 @@ public class SimOperationManager<T extends AbstractDataType>
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
-		sb.append("\"nodeId\":\"" + this.getNodeId() + "\"");
+		sb.append("\"objectId\":\"" + this.getObjectId() + "\"");
 		
 		return sb.toString();
 	}

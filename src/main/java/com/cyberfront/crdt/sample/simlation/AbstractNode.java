@@ -31,43 +31,38 @@ import java.util.UUID;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class AbstractNode.
- *
- * @param <T> the generic type
+ * The AbstractNode class establishes a base framework for derived classes to draw upon to manage a collection of CRDT objects
  */
 public abstract class AbstractNode {
 	
-	/** The node name. */
+	/** The node identifier. */
 	private final UUID id;
 	
-	/** The crdt ids. */
-	private List<UUID> crdtIds;
-
-	/** The datastore. */
+	/** The datastore containinf all of the CRDT instances for this node.. */
 	private Map<UUID, SimCRDTManager<? extends AbstractDataType>> datastore;
 
 	/**
 	 * Instantiates a new abstract node.
 	 *
-	 * @param id the node name
+	 * @param id Identifier valud for the new node
 	 */
 	public AbstractNode(UUID id) {
 		this.id = id;
 	}
 
 	/**
-	 * Gets the node name.
+	 * Retrieve the node identifier.
 	 *
-	 * @return the node name
+	 * @return the node identifier
 	 */
 	public UUID getId() {
 		return id;
 	}
 	
 	/**
-	 * Gets the datastore.
+	 * Retrieve the data store and return to the calling routine.  It will create new datastore if none exists, though
+	 * the new one will be empty.  This routine should never return null, but may return an empty datastore
 	 *
 	 * @return the datastore
 	 */
@@ -80,7 +75,7 @@ public abstract class AbstractNode {
 	}
 
 	/**
-	 * Clear.
+	 * Clear the contents of the datastores in this node
 	 */
 	public void clear() {
 		for (Map.Entry<UUID, SimCRDTManager<? extends AbstractDataType>> entry : this.getDatastore().entrySet()) {
@@ -91,51 +86,38 @@ public abstract class AbstractNode {
 	}
 	
 	/**
-	 * Gets the crdt ids.
+	 * Adds a new CRDT to the node
 	 *
-	 * @return the crdt ids
-	 */
-	private List<UUID> getCrdtIds() {
-		if (null == this.crdtIds) {
-			this.crdtIds = new ArrayList<>();
-		}
-		
-		return this.crdtIds;
-	}
-	
-	/**
-	 * Adds the CRDT.
-	 *
-	 * @param crdt the crdt
+	 * @param crdt The CRDT to add to the node
 	 */
 	protected void addCRDT(SimCRDTManager<? extends AbstractDataType> crdt) {
 		this.getDatastore().put(crdt.getObjectId(), crdt);
-		this.getCrdtIds().add(crdt.getObjectId());
 	}
 
 	/**
-	 * Pick crdt id.
+	 * Pick the ID of a randomly selected CRDT in the datastore
 	 *
-	 * @return the string
+	 * @return The randomly selected CRDT Identifier value
 	 */
 	public UUID pickCrdtId() {
-		int index = Support.getRandom().nextInt(this.getCrdtIds().size());
-		return this.getCrdtIds().get(index);
+		List<UUID> idList = new ArrayList<>(this.getDatastore().keySet());
+		return idList.isEmpty() ? null : idList.get(Support.getRandom().nextInt(idList.size()));
 	}
 	
 	/**
-	 * Pick CRDT.
+	 * Randomly pick a CRDT from the list of them and return to the calling routine
 	 *
-	 * @return the CRDTManager
+	 * @return The randomly slected CRDT manager
 	 */
 	public SimCRDTManager<? extends AbstractDataType> pickCRDT() {
 		return this.getDatastore().get(this.pickCrdtId());
 	}
 	
 	/**
-	 * Datastore to string.
+	 * TODO: replace this with JAXB / Jackson conversion rather than doing it this way
+	 * Convert the data store to a string value
 	 *
-	 * @return the string
+	 * @return A string representation of the entire datastore.
 	 */
 	private String datastoreToString() {
 		StringBuilder sb = new StringBuilder();
@@ -156,9 +138,10 @@ public abstract class AbstractNode {
 	}
 	
 	/**
-	 * Gets the segment.
+	 * TODO: replace this with JAXB / Jackson conversion rather than doing it this way
+	 * Get a partial JSON formated representation of the AbstractNode.  
 	 *
-	 * @return the segment
+	 * @return The JSON formated string representation of this AbstractNode instance
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
@@ -182,19 +165,4 @@ public abstract class AbstractNode {
 		
 		return sb.toString();
 	}
-
-	/**
-	 * Creates the CRDT.
-	 *
-	 * @param id The ID value for the new CRDT
-	 * @return the CRDTManager
-	 */
-//	protected abstract SimCRDTManager<? extends AbstractDataType> createCRDT(UUID id);
-	
-	/**
-	 * Creates the datastore.
-	 *
-	 * @return the map
-	 */
-//	protected abstract Map<UUID, SimCRDTManager<? extends AbstractDataType>> createDatastore();
 }

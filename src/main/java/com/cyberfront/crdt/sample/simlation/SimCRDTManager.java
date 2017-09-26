@@ -144,7 +144,7 @@ public class SimCRDTManager<T extends AbstractDataType>
 	protected SimOperationManager<T> getManager(StatusType status, AbstractOperation op) {
 		return null == op 
 				? null 
-				: new SimOperationManager<>(status, op, this.getObjectId(), this.getOwnerNodeID(), this.getObjectClass());
+				: new SimOperationManager<>(status, op, this.getObjectId(), this.getObjectClass());
 	}
 
 	public UUID getManagerNodeId() {

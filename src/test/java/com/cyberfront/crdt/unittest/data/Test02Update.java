@@ -71,9 +71,6 @@ public class Test02Update {
 		/**
 		 * This performs the actual create and update test given a count and update probability.  Each create is accompanied by only 
 		 * a single update session on the object.
-		 *
-		 * @param count The number of create operations to perform; there will be one update per create
-		 * @param updateProb The probability for a particular field in the generated AbstractDataType to be randomly changed
 		 */
 		public void test() {
 			logger.info("\n** Test02Update: {\"count\":" + this.getTrialCount() + ",\"updateProb\":" + this.getUpdateProbability() + "}");
