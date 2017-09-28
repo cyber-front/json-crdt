@@ -37,9 +37,9 @@ import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
 import com.cyberfront.crdt.support.Support;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonPatchApplicationException;		// Use this with zjsonpatch
-//import java.io.IOException;										// Use this with jsonpatch
-//import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
+import java.io.IOException;										// Use this with jsonpatch
+import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonPatchApplicationException;		// Use this with zjsonpatch
 
 /**
  * The LastWriteWins class implements a Last Write Wins commutative CRDT.  Operations are stored and recalled in time stamp
@@ -160,8 +160,8 @@ public class LastWriteWins extends OperationTwoSet {
 
 			try {
 				return op.processOperation(document);
-//			} catch (JsonPatchException | IOException e) {  // Use this with jsonpatch
-			} catch (JsonPatchApplicationException e) {		// Use this with zjsonpatch
+			} catch (JsonPatchException | IOException e) {  // Use this with jsonpatch
+//			} catch (JsonPatchApplicationException e) {		// Use this with zjsonpatch
 				if (LOG_JSON_PROCESSING_EXCEPTIONS) {
 					logger.error(e);
 					logger.error(" op: " + op.toString());

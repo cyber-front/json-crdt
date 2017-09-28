@@ -54,7 +54,7 @@ public class OperationManager implements Comparable<OperationManager> {
 	 * Instantiates a new operation manager given a status and an operation
 	 *
 	 * @param status The status associated with the operations
-	 * @param op The operation associated with its metadata
+	 * @param operation The operation associated with its metadata
 	 */
 	public OperationManager(StatusType status, AbstractOperation operation) {
 		this.status = status;

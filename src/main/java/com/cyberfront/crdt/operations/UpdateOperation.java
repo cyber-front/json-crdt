@@ -28,11 +28,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import com.flipkart.zjsonpatch.JsonPatch;  			// Use this with zjsonpatch
+import java.io.IOException;                             // Use this with jsonpatch
+import com.github.fge.jsonpatch.JsonPatch;				// Use this with jsonpatch
+import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonPatch;  			// Use this with zjsonpatch
 
-//import java.io.IOException;                              // Use this with jsonpatch
-//import com.github.fge.jsonpatch.JsonPatch;				// Use this with jsonpatch
-//import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
 
 /**
  * The UpdateOperation encapsulates the creation of a new JSON document in the CRDT.  It should have
@@ -69,12 +69,12 @@ public class UpdateOperation extends AbstractOperation {
 	 * @see com.cyberfront.cmrdt.operations.AbstractOperation#processOperation(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-//	public JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException { 		// Use this with jsonpatch
-	public JsonNode processOperation(JsonNode document) {		                                        // Use this with zjsonpatch
+	public JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException { 		// Use this with jsonpatch
+//	public JsonNode processOperation(JsonNode document) {		                                        // Use this with zjsonpatch
 		return null == document
 				? null
-//				: JsonPatch.fromJson(this.getOp()).apply(document);		// Use this with jsonpatch
-				: JsonPatch.apply(this.getOp(), document);				// Use this with zjsonpatch
+				: JsonPatch.fromJson(this.getOp()).apply(document);		// Use this with jsonpatch
+//				: JsonPatch.apply(this.getOp(), document);				// Use this with zjsonpatch
 	}
 
 	/* (non-Javadoc)

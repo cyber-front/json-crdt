@@ -306,6 +306,7 @@ public class Support {
 	 * Generate a string as a JSON formated array based on elements of a collection
 	 * 
 	 * @param collection Collection of items to form into JSON formated string
+	 * @param <T> Type of elements in the collection being converted into a JSON string
 	 * @return The JSON formated string representation of the given collection
 	 */
 	public static <T> String convert(Collection<T> collection) {
@@ -332,6 +333,8 @@ public class Support {
 	 * Generate a string as a JSON formated array based on elements of a collection
 	 * 
 	 * @param map Collection of items to form into JSON formated string
+	 * @param <KEY> Type of the key in the Map type
+	 * @param <VALUE> Type of the value in the associative memory map
 	 * @return The JSON formated string representation of the given collection
 	 */
 	public static <KEY, VALUE> String convert(Map<KEY, VALUE> map) {

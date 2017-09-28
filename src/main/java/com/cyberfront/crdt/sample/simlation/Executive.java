@@ -384,7 +384,6 @@ public class Executive {
 	 * Create a new object with the specified node as the owner.  Generate and return the message set required to ensure all 
 	 * the other nodes can duplicate the create operation
 	 *
-	 * @param <T> The generic type of the object to manage 
 	 * @param node The owning node for the new object 
 	 * @param object Object for the Node to manage as an owning node
 	 * @return The collection of messages generated in response to the creation of the new object in the specified node 

@@ -41,9 +41,10 @@ import com.cyberfront.crdt.operations.OperationManager.StatusType;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+// TODO: Auto-generated Javadoc
 //import com.flipkart.zjsonpatch.JsonPatch;		// Use this with zjsonpatch
-//import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
  * The Class SimCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
@@ -65,22 +66,23 @@ public class SimCRDTManager<T extends AbstractDataType>
 	/** List of operations and the associated metadata this SimCRDTManager sent */
 	private Collection<Message<? extends AbstractDataType>> sent;
 	
-	/** The object id. */
+	/** The id of the object this CRDT manager is associated with. */
 	private final UUID objectId;
 	
-	/** This is a reference to the node which owns this CRDT instance. */
+	/** The UUID associated with the node which owns this CRDT instance and which is responsible for approving / rejecting operations. */
 	private final UUID ownerId;
 	
-	/** This is a reference to the node which owns this CRDT instance. */
+	/** This is a reference to the node which owns this CRDT instance and is responsible for getting messages delivered to this instance. */
 	private final UUID managerId;
 	
 	/**
 	 * Instantiates a new CRDT manager.
 	 *
-	 * @param objectId the object id
-	 * @param username the username
+	 * @param objectId ID of the object being shadowed with the CRDT
 	 * @param ownerNodeId Reference to the node which owns this CRDT manager instance
-	 * @param objectClass the object class
+	 * @param managerNodeId Reference to the node which manages this CRDT manager instance
+	 * @param objectClass A Class reference used to transform between JSON and POJO representations of the object being
+	 * managed 
 	 */
 	public SimCRDTManager(UUID objectId, UUID ownerNodeId, UUID managerNodeId, Class<T> objectClass) {
 		super(objectClass);
@@ -90,9 +92,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 
 	/**
-	 * Gets the object id.
+	 * Gets the object identifier
 	 *
-	 * @return the object id
+	 * @return the object identifier
 	 */
 	@Override
 	public UUID getObjectId(){
@@ -100,9 +102,10 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Gets the node identifier.
+	 * Gets the identifier of the owner node which is responsible for approving / rejecting operations presented to it which originate from
+	 * other nodes
 	 *
-	 * @return the node identifier
+	 * @return The identifier of the owner node
 	 */
 	@Override
 	public UUID getOwnerNodeID() {
@@ -136,10 +139,11 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 
 	/**
-	 * Gets the manager.
+	 * Generate an operation manager for this CRDT manager to deliver to other nodes.
 	 *
-	 * @param op the op
-	 * @return the manager
+	 * @param status Status of the operation
+	 * @param op Operation to manage in the resulting operation manager
+	 * @return The manager resulting from the production of the new object
 	 */
 	protected SimOperationManager<T> getManager(StatusType status, AbstractOperation op) {
 		return null == op 
@@ -147,14 +151,32 @@ public class SimCRDTManager<T extends AbstractDataType>
 				: new SimOperationManager<>(status, op, this.getObjectId(), this.getObjectClass());
 	}
 
+	/**
+	 * Gets the manager node id.
+	 *
+	 * @return The manager node id
+	 */
 	public UUID getManagerNodeId() {
 		return this.managerId;
 	}
 	
+	/**
+	 * Checks if is the CRDT manager is locally managed; that is the owner and manager nodes are the same
+	 *
+	 * @return true, if is locally managed
+	 */
 	public boolean isLocallyManaged() {
 		return this.getManagerNodeId().equals(this.getOwnerNodeID());
 	}
 	
+	/**
+	 * Deliver a operation manager with a PENDING CREATE operation 
+	 *
+	 * @param mgr Operation Manager to deliver to this CRDT manager
+	 * @param pReject Probability of rejecting an update
+	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
+	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
+	 */
 	private Collection<SimOperationManager<T>> deliverCreatePending(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 
@@ -170,6 +192,14 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return operations;
 	}
 	
+	/**
+	 * Deliver a operation manager with a PENDING READ operation 
+	 *
+	 * @param mgr Operation Manager to deliver to this CRDT manager
+	 * @param pReject Probability of rejecting an update
+	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
+	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
+	 */
 	private Collection<SimOperationManager<T>> deliverReadPending(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 		
@@ -185,6 +215,14 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return operations;
 	}
 	
+	/**
+	 * Deliver a operation manager with a PENDING UPDATE operation 
+	 *
+	 * @param mgr Operation Manager to deliver to this CRDT manager
+	 * @param pReject Probability of rejecting the UPDATE operation
+	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
+	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
+	 */
 	private Collection<SimOperationManager<T>> deliverUpdatePending(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 
@@ -208,6 +246,14 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return operations;
 	}
 	
+	/**
+	 * Deliver a operation manager with a PENDING DELETE operation 
+	 *
+	 * @param mgr Operation Manager to deliver to this CRDT manager
+	 * @param pReject Probability of rejecting the delete operation at the manager node
+	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
+	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
+	 */
 	private Collection<SimOperationManager<T>> deliverDeletePending(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 		
@@ -224,6 +270,14 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return operations;
 	}
 	
+	/**
+	 * Deliver a pending operation manager to a locally manageed CRDT instance 
+	 *
+	 * @param op Operation Manager to deliver to this CRDT manager
+	 * @param pReject Probability of rejecting the operation at the manager node
+	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
+	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
+	 */
 	private Collection<SimOperationManager<T>> deliverPending(SimOperationManager<T> op, Double pReject) {
 		Collection<SimOperationManager<T>> rv = null;
 
@@ -288,6 +342,15 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return rv;
 	}
 
+	/**
+	 * Push the message given into the CRDT so its operation can be extracted and presented to
+	 * actual CRDT
+	 * 
+	 * @param msg Messsage to process at this node
+	 * @param pReject Probability of rejecting the delivered operation if this CRDT manager is locally managed 
+	 * @return The collection of messages to deliver to the each of the other nodes and which are derived from 
+	 * processing the message delivered in this call to the method
+	 */
 	public Collection<Message<? extends AbstractDataType>> push(Message<T> msg, Double pReject) {
 		SimOperationManager<T> mgr = msg.getManager();
 		Collection<Message<? extends AbstractDataType>> rv = null;
@@ -316,11 +379,15 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 
 	/**
-	 * Process create.
+	 * Generate a CREATE operation and wrap it with a collection of messages such that each operation is delivered to
+	 * each of the recipient nodes
 	 *
-	 * @param timestamp the timestamp
-	 * @param object the object
-	 * @return the operation manager
+	 * @param status Status of the operation which should be PENDING for operations not generated on locally managed
+	 * CRDTs, or APPROVED for those that are
+	 * @param timestamp Timestamp for marking the operation
+	 * @param object The new object to use as the basis for the CREATE operations
+	 * @return The list of messages generated as a result of producing a new CREATE operation which needs to be 
+	 * moved to each of the other nodes.
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateCreate(StatusType status, long timestamp, T object) {
 		if (this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
@@ -334,10 +401,14 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Process read.
+	 * Generate a READ operation and wrap it with a collection of messages such that each operation is delivered to
+	 * each of the recipient nodes
 	 *
-	 * @param timestamp the timestamp
-	 * @return the operation manager
+	 * @param status Status of the operation which should be PENDING for operations not generated on locally managed
+	 * CRDTs, or APPROVED for those that are
+	 * @param timestamp Timestamp for marking the operation
+	 * @return The list of messages generated as a result of producing a new READ operation which needs to be 
+	 * moved to each of the other nodes.
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateRead(StatusType status, long timestamp) {
 		if (!this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
@@ -353,11 +424,15 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 
 	/**
-	 * Process update.
+	 * Generate a UPDATE operation and wrap it with a collection of messages such that each operation is delivered to
+	 * each of the recipient nodes
 	 *
-	 * @param timestamp the timestamp
-	 * @param pChange the change
-	 * @return the operation manager
+	 * @param status Status of the operation which should be PENDING for operations not generated on locally managed
+	 * CRDTs, or APPROVED for those that are
+	 * @param timestamp Timestamp for marking the operation
+	 * @param pChange The probability of changing a particular field in the managed object
+	 * @return The list of messages generated as a result of producing a new UPDATE operation which needs to be 
+	 * moved to each of the other nodes.
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateUpdate(StatusType status, long timestamp, Double pChange) {
 		T obj = this.getObject();
@@ -366,32 +441,41 @@ public class SimCRDTManager<T extends AbstractDataType>
 		}
 
 		obj.update(pChange);
-		SimOperationManager<T> mgr = this.generateUpdate(status, timestamp, obj);
+		return this.generateUpdate(status, timestamp, obj);
+	}
+	
+	/**
+	 * Generate a UPDATE operation and wrap it with a collection of messages such that each operation is delivered to
+	 * each of the recipient nodes
+	 *
+	 * @param status Status of the operation which should be PENDING for operations not generated on locally managed
+	 * CRDTs, or APPROVED for those that are
+	 * @param timestamp Timestamp for marking the operation
+	 * @param update The object which is used to generate the difference for the update operation payload
+	 * @return The list of messages generated as a result of producing a new UPDATE operation which needs to be 
+	 * moved to each of the other nodes.
+	 */
+	public Collection<Message<? extends AbstractDataType>> generateUpdate(StatusType status, long timestamp, T update) {
+		if (!this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
+			return  new ArrayList<>();
+		}
+		
+		SimOperationManager<T> mgr = this.getManager(status, this.generateUpdate(timestamp, update));
 		Collection<Message<? extends AbstractDataType>> rv = this.buildMessages(mgr);
-
 		this.getSent().addAll(rv);
 
 		return rv;
 	}
-	
-	/**
-	 * Process update.
-	 *
-	 * @param timestamp the timestamp
-	 * @param update the object
-	 * @return the operation manager
-	 */
-	public SimOperationManager<T> generateUpdate(StatusType status, long timestamp, T update) {
-		return (!this.getCrdt().isCreated() || this.getCrdt().isDeleted())
-				? null
-				: this.getManager(status, generateUpdate(timestamp, update));
-	}
 
 	/**
-	 * Process delete.
+	 * Generate a DELETE operation and wrap it with a collection of messages such that each operation is delivered to
+	 * each of the recipient nodes
 	 *
-	 * @param timestamp the timestamp
-	 * @return the operation manager
+	 * @param status Status of the operation which should be PENDING for operations not generated on locally managed
+	 * CRDTs, or APPROVED for those that are
+	 * @param timestamp Timestamp for marking the operation
+	 * @return The list of messages generated as a result of producing a new DELETE operation which needs to be 
+	 * moved to each of the other nodes.
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateDelete(StatusType status, long timestamp) {
 		if (!this.getCrdt().isCreated() || this.getCrdt().isDeleted()) {
@@ -479,6 +563,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return sb.toString();
 	}
 	
+	/**
+	 * Check operation validity.
+	 */
 	public void checkOperationValidity() {
 		boolean created = this.isCreated();
 		boolean deleted = this.isDeleted();
@@ -493,6 +580,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 		}
 	}
 	
+	/**
+	 * Check message consistency.
+	 */
 	public void checkMessageConsistency() {
 		Message.checkConsistency(this.getReceived());
 		Message.checkConsistency(this.getSent());
@@ -532,70 +622,148 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return sb.toString();
 	}
 
+	/**
+	 * Gets the creates the count delivered.
+	 *
+	 * @return the creates the count delivered
+	 */
 	public long getCreateCountDelivered() {
-		return Message.filterReceived(this.getReceived(), OperationType.CREATE, true).size();
+		return Message.filterMessages(this.getReceived(), OperationType.CREATE, true).size();
 	}
 	
+	/**
+	 * Gets the read count delivered.
+	 *
+	 * @return the read count delivered
+	 */
 	public long getReadCountDelivered() {
-		return Message.filterReceived(this.getReceived(), OperationType.READ, true).size();
+		return Message.filterMessages(this.getReceived(), OperationType.READ, true).size();
 	}
 	
+	/**
+	 * Gets the update count delivered.
+	 *
+	 * @return the update count delivered
+	 */
 	public long getUpdateCountDelivered() {
-		return Message.filterReceived(this.getReceived(), OperationType.UPDATE, true).size();
+		return Message.filterMessages(this.getReceived(), OperationType.UPDATE, true).size();
 	}
 	
+	/**
+	 * Gets the delete count delivered.
+	 *
+	 * @return the delete count delivered
+	 */
 	public long getDeleteCountDelivered() {
-		return Message.filterReceived(this.getReceived(), OperationType.DELETE, true).size();
+		return Message.filterMessages(this.getReceived(), OperationType.DELETE, true).size();
 	}
 	
 	public long getApprovedCountDelivered() {
-		return Message.filterReceived(this.getReceived(), StatusType.APPROVED, true).size();
+		return Message.filterMessages(this.getReceived(), StatusType.APPROVED, true).size();
 	}
 	
+	/**
+	 * Gets the pending count delivered.
+	 *
+	 * @return the pending count delivered
+	 */
 	public long getPendingCountDelivered() {
-		return Message.filterReceived(this.getReceived(), StatusType.PENDING, true).size();
+		return Message.filterMessages(this.getReceived(), StatusType.PENDING, true).size();
 	}
 	
+	/**
+	 * Gets the rejected count delivered.
+	 *
+	 * @return the rejected count delivered
+	 */
 	public long getRejectedCountDelivered() {
-		return Message.filterReceived(this.getReceived(), StatusType.REJECTED, true).size();
+		return Message.filterMessages(this.getReceived(), StatusType.REJECTED, true).size();
 	}
 	
+	/**
+	 * Gets the count delivered.
+	 *
+	 * @return the count delivered
+	 */
 	public long getCountDelivered() {
 		return this.getReceived().size();
 	}
 	
+	/**
+	 * Gets the creates the count added.
+	 *
+	 * @return the creates the count added
+	 */
 	public long getCreateCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.CREATE, true).size();
 	}
 	
+	/**
+	 * Gets the read count added.
+	 *
+	 * @return the read count added
+	 */
 	public long getReadCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.READ, true).size();
 	}
 	
+	/**
+	 * Gets the update count added.
+	 *
+	 * @return the update count added
+	 */
 	public long getUpdateCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.UPDATE, true).size();
 	}
 	
+	/**
+	 * Gets the delete count added.
+	 *
+	 * @return the delete count added
+	 */
 	public long getDeleteCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.DELETE, true).size();
 	}
 	
+	/**
+	 * Gets the creates the count removed.
+	 *
+	 * @return the creates the count removed
+	 */
 	public long getCreateCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.CREATE, true).size();
 	}
 	
+	/**
+	 * Gets the read count removed.
+	 *
+	 * @return the read count removed
+	 */
 	public long getReadCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.READ, true).size();
 	}
 	
+	/**
+	 * Gets the update count removed.
+	 *
+	 * @return the update count removed
+	 */
 	public long getUpdateCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.UPDATE, true).size();
 	}
 	
+	/**
+	 * Gets the delete count removed.
+	 *
+	 * @return the delete count removed
+	 */
 	public long getDeleteCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.DELETE, true).size();
 	}
 
+	/**
+	 * Validate delivery count.
+	 */
 	private void validateDeliveryCount() {
 		long deliveryCount = this.getCountDelivered();
 		long addCount = this.getCrdt().getAddCount();
@@ -616,8 +784,13 @@ public class SimCRDTManager<T extends AbstractDataType>
 		} 
 	}
 	
+	/**
+	 * Validate operation count.
+	 *
+	 * @param type the type
+	 */
 	private void validateOperationCount(OperationType type) {
-		long messageCount = Message.filterReceived(this.getReceived(), type, true).size();
+		long messageCount = Message.filterMessages(this.getReceived(), type, true).size();
 		long addCount = filterOperationsByType(this.getCrdt().copyAddSet(), type, true).size();
 		long remCount = filterOperationsByType(this.getCrdt().copyRemSet(), type, true).size();
 		long opCount = addCount + remCount;
@@ -637,22 +810,37 @@ public class SimCRDTManager<T extends AbstractDataType>
 		} 
 	}
 	
+	/**
+	 * Validate create operation count.
+	 */
 	private void validateCreateOperationCount() {
 		this.validateOperationCount(OperationType.CREATE);
 	}
 	
+	/**
+	 * Validate read operation count.
+	 */
 	private void validateReadOperationCount() {
 		this.validateOperationCount(OperationType.READ);
 	}
 	
+	/**
+	 * Validate update operation count.
+	 */
 	private void validateUpdateOperationCount() {
 		this.validateOperationCount(OperationType.UPDATE);
 	}
 	
+	/**
+	 * Validate delete operation count.
+	 */
 	private void validateDeleteOperationCount() {
 		this.validateOperationCount(OperationType.DELETE);
 	}
 	
+	/**
+	 * Validate operation count.
+	 */
 	private void validateOperationCount() {
 		this.validateCreateOperationCount();
 		this.validateReadOperationCount();
@@ -660,8 +848,11 @@ public class SimCRDTManager<T extends AbstractDataType>
 		this.validateDeleteOperationCount();
 	}
 	
+	/**
+	 * Validate rejection count.
+	 */
 	private void validateRejectionCount() {
-		long rejectionCount = Message.filterReceived(this.getReceived(), StatusType.REJECTED, true).size();
+		long rejectionCount = Message.filterMessages(this.getReceived(), StatusType.REJECTED, true).size();
 		long remCount = this.getCrdt().getRemCount();
 
 		StringBuilder sb = new StringBuilder();
@@ -676,6 +867,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 		} 
 	}
 	
+	/**
+	 * Check message count.
+	 */
 	public void checkMessageCount() {
 		this.validateDeliveryCount();
 		this.validateOperationCount();

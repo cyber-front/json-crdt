@@ -31,8 +31,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonDiff;				// Use this with zjsonpatch
-//import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
 
 /**
  * The AbstractOperation class is intended to be a base / abstract class for the set of operations which would normally be expected to be 
@@ -159,8 +159,8 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 	 * @throws JsonPatchException results when the operation cannot be applied to the provided document
 	 * @throws IOException results when the something other than an operation is encoded in one of the derived class instances
 	 */
-//	public abstract JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException;  // Use this with jsonpatch
-	public abstract JsonNode processOperation(JsonNode document);               // Use this with zjsonpatch
+	public abstract JsonNode processOperation(JsonNode document) throws JsonPatchException, IOException;  // Use this with jsonpatch
+//	public abstract JsonNode processOperation(JsonNode document);               // Use this with zjsonpatch
 	
 	/**
 	 * This abstract method retrieves the enumerated type specification for the derived class instance 

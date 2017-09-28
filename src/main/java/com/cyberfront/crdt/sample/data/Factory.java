@@ -152,7 +152,8 @@ public class Factory {
 	/**
 	 * Generate and return a CRDTManager for the given `node`.   
 	 *
-	 * @param ownerNode The node for which the resulting CRDTManager is to be generated
+	 * @param ownerNode The node for which the resulting CRDTManager is to be the approver for operations performed elsewhere
+	 * @param managerNode The node which is locally managed (i.e. the local node) 
 	 * @param id The identifier for the new CRDT
 	 * @return The CRDTManager with the managed type 
 	 */
@@ -163,7 +164,8 @@ public class Factory {
 	/**
 	 * Generate and return a CRDTManager for the given `node` and of the given `type`   
 	 *
-	 * @param ownerNode The node for which the resulting CRDTManager is to be generated
+	 * @param ownerNode The node for which the resulting CRDTManager is to be the approver for operations performed elsewhere
+	 * @param managerNode The node which is locally managed (i.e. the local node) 
 	 * @param type The enumeration corresponding to the concrete type of AbstractDataType to generate 
 	 * @param id The identifier for the new CRDT
 	 * @return The CRDTManager with the managed type 

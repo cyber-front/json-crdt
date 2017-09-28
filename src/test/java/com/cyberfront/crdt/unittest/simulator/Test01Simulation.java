@@ -41,8 +41,8 @@ import com.cyberfront.crdt.sample.simlation.Node;
 import com.cyberfront.crdt.sample.simlation.SimCRDTManager;
 import com.cyberfront.crdt.unittest.data.AssessmentSupport;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
-//import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
  * This test module will assess the behavior of the CRDT through the use of a simulated distributed
@@ -170,8 +170,24 @@ public class Test01Simulation {
 		 * @param assessCountConsistency Flag to check the object count consistency between nodes
 		 * @param assessContentConsistency Flag to check the object value consistency between nodes
 		 * @param assessValidity Flag to check the validity of the CRDT values at each node
+		 * @param assessOperationCountConsistency Flag to check the operation count consistency between the nodes
 		 */
-		public SimulationTest(long createCount, long readCount, long updateCount, long deleteCount, long nodeCount, double rejectionProbability, double updateProbability, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed, boolean assessCountConsistency, boolean assessContentConsistency, boolean assessValidity, boolean assessOperationCountConsistency) {
+		public SimulationTest(long createCount,
+							  long readCount,
+							  long updateCount,
+							  long deleteCount,
+							  long nodeCount,
+							  double rejectionProbability,
+							  double updateProbability,
+							  long trialCount,
+							  long abbreviatedFactor,
+							  long stressedFactor,
+							  boolean abbreviated,
+							  boolean stressed,
+							  boolean assessCountConsistency,
+							  boolean assessContentConsistency,
+							  boolean assessValidity,
+							  boolean assessOperationCountConsistency) {
 			super(trialCount, abbreviatedFactor, stressedFactor, abbreviated, stressed);
 			this.setCreateCount(createCount);
 			this.setReadCount(readCount);
@@ -320,7 +336,7 @@ public class Test01Simulation {
 
 		/**
 		 * Set the probability of updating a field during an update operation
-		 * @param rejectionProbability The probability of updating a field during an update operation
+		 * @param updateProbability The probability of updating a field during an update operation
 		 */
 		public void setUpdateProbability(double updateProbability) {
 			this.updateProbability = updateProbability;

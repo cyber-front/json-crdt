@@ -58,10 +58,9 @@ public class Node extends AbstractNode {
 	}
 	
 	/**
-	 * Instantiates a new node.
+	 * Instantiates a new node with a specific identifier.
 	 *
 	 * @param id New name of the node
-	 * @param usernames Collection of usernames associated with the Node
 	 */
 	public Node(UUID id) {
 		super(id);
@@ -102,7 +101,7 @@ public class Node extends AbstractNode {
 	/**
 	 * Generate read operation.
 	 *
-	 * @return the collection
+	 * @return A collection of Messages containing the ReadOperation which is to be delivered to all of the other nodes 
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateReadOperation() {
 		Collection<Message<? extends AbstractDataType>> rv;
@@ -160,7 +159,7 @@ public class Node extends AbstractNode {
 	 * Forward the given message to the intended recipient CRDT this Node manages.
 	 *
 	 * @param <T> Generic type of the object the recipient CRDT manages which is tied to the generic type of the message.
-	 * @param mgr Operation manager used to provide additional metadata for the operation
+	 * @param msg Message to deliver to the node
 	 * @param pReject Probability that the owning CRDT will reject an update or delete operation
 	 * @return A collection of messages which result in delivery of the message.  This will be an empty list if the 
 	 * recipient CRDT is not the owner of the object being managed.

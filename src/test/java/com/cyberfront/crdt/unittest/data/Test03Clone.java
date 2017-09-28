@@ -35,8 +35,8 @@ import org.junit.Test;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.data.Factory;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
-//import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
+//import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
  * This contains a class used for performing unit tests designed to create and clone a number of 
@@ -51,22 +51,41 @@ public class Test03Clone {
 		/** Logger to use when displaying state information */
 		private Logger logger = LogManager.getLogger(Test03Clone.CloneTest.class);
 
+		/** Number of instances to generate for the test */
 		private long instanceCount;
 		
+		/** Default constructor which initializes the unit test component with the default values */
 		public CloneTest() {
 			super();
 			this.setInstanceCount(INSTANCE_COUNT);
 		}
-		
+
+		/**
+		 * Constructor for the clone test where the arguments are specifically passed to be instantiated
+		 * @param instanceCount Number of insteances to generate for a particular test
+		 * @param trialCount Number of trials to perform over the course of the unit test
+		 * @param abbreviatedFactor Division factor to use on the argument when performing an abbreviated test
+		 * @param stressedFactor Multiplication factor to use on the arguments when performing a stress test
+		 * @param abbreviated Flag indicating whether this is an abbreviated test
+		 * @param stressed Flag indicating whether this is a stress test
+		 */
 		public CloneTest(long instanceCount, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed) {
 			super(trialCount, abbreviatedFactor, stressedFactor, abbreviated, stressed);
 			this.setInstanceCount(instanceCount);
 		}
 
+		/**
+		 * Retrieve the number of instances to create while executing the test and return to the calling routine
+		 * @return The instance count
+		 */
 		public long getInstanceCount() {
 			return instanceCount * this.getStressedFactor() / this.getAbbreviatedFactor();
 		}
 
+		/**
+		 * Set the instance count value to that specified
+		 * @param instanceCount New value for the instance counter
+		 */
 		protected void setInstanceCount(long instanceCount) {
 			this.instanceCount = instanceCount;
 		}
@@ -140,10 +159,7 @@ public class Test03Clone {
 		}
 		
 		/**
-		 * Perform the clone test and assess the results
-		 *
-		 * @param count Number of times to run the test 
-		 * @param instances Number of instances to create and clone during each test
+		 * Perform the clone test with the predefined collection of settings and assess the results
 		 */
 		public void test() {
 			logger.info("\n** Test03Clone: {\"count\":" + this.getTrialCount() + ",\"instances\":" + this.getInstanceCount() + "}");

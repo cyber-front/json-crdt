@@ -22,8 +22,6 @@
  */
 package com.cyberfront.crdt.sample.simlation;
 
-import static org.junit.Assert.assertTrue;
-
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,9 +36,11 @@ import com.cyberfront.crdt.support.Support;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class Message.
+ * The Message class encapsulates a delivery mechanism for moving an operation generated at one node on a particular CRDT object
+ * to another Node so that it may be delivered to the corresponding CRDT at the destination node.  The generic type of the Message
+ * corresponds to the type of object for the operation which the Message object is delivering.  
  *
- * @param <T> the generic type
+ * @param <T> The generic type of the object the operations is intended to operate upon
  */
 public final class Message<T extends AbstractDataType> implements Comparable<Message<? extends AbstractDataType>> {
 	/** A logger for writing to the local log output. */
@@ -56,7 +56,7 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 	/** The source node identifier */
 	private final UUID srcNodeId;
 	
-	/** The mgr. */
+	/** The operation manager to deliver to the destination node */
 	private final SimOperationManager<T> mgr;
 	
 	/**
@@ -72,14 +72,14 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 		this.dstNodeId = dstNodeId;
 		this.mgr = mgr.copy();
 		this.deliveryTime  = timestamp;
-		assertTrue(this.deliveryTime >= Executive.getExecutive().getTimestamp());
 	}
 	
 	/**
-	 * Instantiates a new message.
+	 * Instantiates a new message given the specific values needed to build the Message class instance
 	 *
-	 * @param destination the destination
-	 * @param mgr the mgr
+	 * @param srcNodeId The node identifier value of the node from which the Message originated
+	 * @param dstNodeId The node identifier value of the node to which the Message is intended to be delivered
+	 * @param mgr The operation manager which is to be delivered to the destination node
 	 */
 	public Message(UUID srcNodeId, UUID dstNodeId, SimOperationManager<T> mgr) {
 		this(srcNodeId,
@@ -90,9 +90,9 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 	}
 	
 	/**
-	 * Instantiates a new message.
+	 * Instantiates a new message by copying a source Message instance
 	 *
-	 * @param src the src
+	 * @param src The source Message to copy
 	 */
 	private Message(Message<T> src) {
 		this(src.getSource(),
@@ -102,23 +102,23 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 	}
 	
 	/**
-	 * Gets the destination node name
+	 * Gets the destination node identifier
 	 *
-	 * @return the destination node name
+	 * @return the destination node identifier
 	 */
 	public UUID getDestination() { return this.dstNodeId; }
 
 	/**
-	 * Gets the source node name
+	 * Gets the source node identifier
 	 *
-	 * @return the source node name
+	 * @return the source node identifier
 	 */
 	public UUID getSource() { return this.srcNodeId; }
 
 	/**
-	 * Gets the manager
+	 * Gets the operation manager to be delivered
 	 *
-	 * @return the manager
+	 * @return the operation manager to be delivered
 	 */
 	public SimOperationManager<T> getManager() { return mgr; }
 	
@@ -131,6 +131,7 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 
 	/**
 	 * Build and return a copy of the given message
+	 * 
 	 * @param msg Message to copy
 	 * @return Copy of the given message
 	 */
@@ -193,9 +194,9 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 	}
 	
 	/**
-	 * Gets the segment.
+	 * Gets a segment for the class instance to show the value of the various fields
 	 *
-	 * @return the segment
+	 * @return The String segment containing the value of the various fields formatted as a JSON string
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
@@ -222,24 +223,59 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 		return sb.toString();
 	}
 
-	public static Collection<Message<? extends AbstractDataType>> filterReceived(Collection<Message<? extends AbstractDataType>> collection, OperationType opType, boolean criteriaType) {
+	/**
+	 * Filter the given messages with the criteria presented and return a list containing the filtered collection of Message instances
+	 *
+	 * @param collection Input collection of messages to filter
+	 * @param opType The operation type used as the basis of the filter
+	 * @param criteriaType When true return all Messages with an operation of the given type; when false return all Message instances with 
+	 * an operation different than the given type
+	 * @return The collection of Message instance retrieved as part of the filter operation
+	 */
+	public static Collection<Message<? extends AbstractDataType>> filterMessages(Collection<Message<? extends AbstractDataType>> collection, OperationType opType, boolean criteriaType) {
 		return collection.stream()
 				.filter(op -> (opType == op.getManager().getOperation().getType()) == criteriaType)
 				.collect(Collectors.toList());
 	}
 
-	public static Collection<Message<? extends AbstractDataType>> filterReceived(Collection<Message<? extends AbstractDataType>> collection, StatusType stType, boolean criteriaStatus) {
+	/**
+	 * Filter the given messages with the criteria presented and return a list containing the filtered collection of Message instances
+	 *
+	 * @param collection Input collection of messages to filter
+	 * @param stType The status type used as the basis of the filter
+	 * @param criteriaStatus When true return all Messages with an operation of the given status; when false return all Message instances with 
+	 * an operation different than the given status
+	 * @return The collection of Message instance retrieved as part of the filter operation
+	 */
+	public static Collection<Message<? extends AbstractDataType>> filterMessages(Collection<Message<? extends AbstractDataType>> collection, StatusType stType, boolean criteriaStatus) {
 		return collection.stream()
 				.filter(op -> (stType == op.getManager().getStatus()) == criteriaStatus)
 				.collect(Collectors.toList());
 	}
 
-	public static Collection<Message<? extends AbstractDataType>> filterReceived(Collection<Message<? extends AbstractDataType>> collection, OperationType opType, boolean criteriaType, StatusType stType, boolean criteriaStatus) {
+	/**
+	 * Filter the given messages with the criteria presented and return a list containing the filtered collection of Message instances
+	 *
+	 * @param collection Input collection of messages to filter
+	 * @param opType The operation type used as the basis of the filter
+	 * @param criteriaType When true return all Messages with an operation of the given type; when false return all Message instances with 
+	 * an operation different than the given type
+	 * @param stType The status type used as the basis of the filter
+	 * @param criteriaStatus When true return all Messages with an operation of the given status; when false return all Message instances with 
+	 * an operation different than the given status
+	 * @return The collection of Message instance retrieved as part of the filter operation
+	 */
+	public static Collection<Message<? extends AbstractDataType>> filterMessages(Collection<Message<? extends AbstractDataType>> collection, OperationType opType, boolean criteriaType, StatusType stType, boolean criteriaStatus) {
 		return collection.stream()
 				.filter(op -> (stType == op.getManager().getStatus()) == criteriaType && (opType == op.getManager().getOperation().getType()) == criteriaStatus)
 				.collect(Collectors.toList());
 	}
 	
+	/**
+	 * Check consistency.
+	 *
+	 * @param msg the msg
+	 */
 	public static void checkConsistency(Message<? extends AbstractDataType> msg) {
 		StatusType type = msg.getManager().getStatus();
 		UUID sourceId = msg.getSource();
@@ -253,6 +289,11 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 		}
 	}
 	
+	/**
+	 * Check consistency.
+	 *
+	 * @param messages the messages
+	 */
 	public static void checkConsistency(Collection<Message<? extends AbstractDataType>> messages) {
 		for(Message<? extends AbstractDataType> msg : messages) {
 			Message.checkConsistency(msg);
