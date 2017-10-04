@@ -200,7 +200,7 @@ public class Executive {
 	 * @param messages Collection of messages to queue up for delivery
 	 */
 	public  void transmit(Collection<Message<? extends AbstractDataType>> messages) {
-		this.getRouter().getMessages().addAll(messages);
+		this.getRouter().add(messages);
 	}
 
 	/**

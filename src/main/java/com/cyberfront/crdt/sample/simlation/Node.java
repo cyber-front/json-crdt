@@ -34,7 +34,6 @@ import com.cyberfront.crdt.operations.OperationManager.StatusType;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Node class models a node in a distributed data model.  Each Node has  a collection of objects it manages.
  * At the conclusion of the simulation, each node should, ideally, have the same state and all of the objects in
@@ -51,7 +50,7 @@ public class Node extends AbstractNode {
 	private static final ObjectMapper mapper = new ObjectMapper(); 
 	
 	/**
-	 * Instantiates a new node.
+	 * Instantiates a new node and auto generates an ID for the Node
 	 */
 	public Node() {
 		this(UUID.randomUUID());
@@ -75,7 +74,6 @@ public class Node extends AbstractNode {
 		Executive.getExecutive().registerCrdt(crdt);
 	}
 
-	
 	/**
 	 * Upon receipt of a new object to manage, this will allocate the CRDT for the object and return the create operation managers
 	 * so the operation can be replicated at all other nodes.
@@ -99,7 +97,8 @@ public class Node extends AbstractNode {
 	}
 
 	/**
-	 * Generate read operation.
+	 * Generate and return a ReadOperation wrapped in a collection of Message instances to deliver to the other nodes in the
+	 * simulation.  Read operations are always marked as APPROVED even if performed on a non-managing node
 	 *
 	 * @return A collection of Messages containing the ReadOperation which is to be delivered to all of the other nodes 
 	 */
@@ -117,10 +116,12 @@ public class Node extends AbstractNode {
 	}
 
 	/**
-	 * Generate update operation.
+	 * Generate and return an UpdateOperation wrapped in a collection of Message instances to deliver to other nodes in the
+	 * simulation.  The operation is marked APPROVED only when it originates from the object's managing node.  Otherwise it's marked
+	 * PENDING. 
 	 *
-	 * @param pChange the change
-	 * @return the collection
+	 * @param pChange Probability of changing the value of each of the object's field, applied independently against all mutable fields
+	 * @return A collection of Messages containing the UpdateOperation with is to be delivered to all other nodes
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateUpdateOperation(Double pChange) {
 		Collection<Message<? extends AbstractDataType>> rv;
@@ -137,9 +138,11 @@ public class Node extends AbstractNode {
 	}
 
 	/**
-	 * Generate delete operation.
+	 * Generate and return an DeleteOperation wrapped in a collection of Message instances to deliver to other nodes in the
+	 * simulation.  The operation is marked APPROVED only when it originates from the object's managing node.  Otherwise it's marked
+	 * PENDING. 
 	 *
-	 * @return the collection
+	 * @return A collection of Messages containing the DeleteOperation with is to be delivered to all other nodes
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateDeleteOperation() {
 		Collection<Message<? extends AbstractDataType>> rv;
@@ -182,18 +185,28 @@ public class Node extends AbstractNode {
 		return rv;
 	}
 	
+	/**
+	 * Check the content consistency of all of the sent and received messages on all of the CRDT's attached to
+	 * this node.
+	 */
 	public void checkMessageConsistency() {
 		for (Map.Entry<UUID, SimCRDTManager<? extends AbstractDataType>> entry : this.getDatastore().entrySet()) {
 			entry.getValue().checkMessageConsistency();
 		}
 	}
-	
+
+	/**
+	 * Check the count consistency of all of the sent and received messages on all of the CRDT's associated with this node. 
+	 */
 	public void checkMessageCount() {
 		for (Map.Entry<UUID, SimCRDTManager<? extends AbstractDataType>> entry : this.getDatastore().entrySet()) {
 			entry.getValue().checkMessageCount();
 		}
 	}
-	
+
+	/**
+	 * Check the operation validity for all operations managed within each CRDT associated with this node.
+	 */
 	public void checkOperationValidity() {
 		for (Map.Entry<UUID, SimCRDTManager<? extends AbstractDataType>> entry : this.getDatastore().entrySet()) {
 			entry.getValue().checkOperationValidity();

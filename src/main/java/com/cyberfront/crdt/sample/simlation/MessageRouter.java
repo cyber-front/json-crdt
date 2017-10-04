@@ -32,9 +32,9 @@ import org.apache.logging.log4j.Logger;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class MessageRouter.
+ * The MessageRouter class is responsible for message delivery to the correct node in the distributed environment.  Messages are inserted 
+ * into the message priority queue asynchronously 
  */
 public class MessageRouter {
 	/** A logger for writing to the local log output. */
@@ -44,15 +44,15 @@ public class MessageRouter {
 	/** Timestamp of the most recent message delivery, or the current message being delivered and processed. */
 	private long timestamp = 0L;
 	
-	/** The messages. */
+	/** A priority queue ordered byt message time stamp */
 	private PriorityQueue<Message<? extends AbstractDataType>> messages;
 	
 	/**
-	 * Gets the messages.
+	 * Retrieve priority queue containing the messages which are pending delivery
 	 *
-	 * @return the messages
+	 * @return the messages pending delivery
 	 */
-	public PriorityQueue<Message<? extends AbstractDataType>> getMessages() {
+	private PriorityQueue<Message<? extends AbstractDataType>> getMessages() {
 		if (null == this.messages) {
 			this.messages = new PriorityQueue<>();
 		}
@@ -78,27 +78,18 @@ public class MessageRouter {
 	}
 
 	/**
-	 * Gets the executive.
+	 * Gets the number of messages pending delivery
 	 *
-	 * @return the executive
-	 */
-	public static Executive getExecutive() {
-		return Executive.getExecutive();
-	}
-
-	/**
-	 * Gets the message count.
-	 *
-	 * @return the message count
+	 * @return the number of messages pending delivery
 	 */
 	public int getMessageCount() {
 		return this.getMessages().size();
 	}
 	
 	/**
-	 * Checks if is empty.
+	 * Returns true exactly when the message queue is empty
 	 *
-	 * @return true, if is empty
+	 * @return true, if the message queue is empty
 	 */
 	public boolean isEmpty() {
 		return this.getMessages().isEmpty();
@@ -120,7 +111,7 @@ public class MessageRouter {
 		} else {
 			Message<? extends AbstractDataType> msg = this.getMessages().poll();
 			this.setTimestamp(msg.getDeliveryTime());
-			Node node = getExecutive().getNode(msg.getDestination());
+			Node node = Executive.getExecutive().getNode(msg.getDestination());
 			rv = node.push(msg, pReject);
 		}
 
@@ -128,22 +119,35 @@ public class MessageRouter {
 	}
 
 	/**
-	 * Adds the.
+	 * Add a collection of messages to the message queue.
 	 *
-	 * @param message the message
+	 * @param messages the collection of messages to add to the message queue
+	 */
+	public void add(Collection<Message<? extends AbstractDataType>> messages) {
+		this.getMessages().addAll(messages);
+	}
+	
+	/**
+	 * Adds a single message to the message queue
+	 *
+	 * @param message The message to add to the message queue
 	 */
 	public void add(Message<AbstractDataType> message) {
 		this.getMessages().add(message);
 	}
 	
 	/**
-	 * Clear.
+	 * Clear the message queue and reset the timestamp to 0
 	 */
 	public void clear() {
 		this.setTimestamp(0L);
 		this.getMessages().clear();
 	}
-	
+
+	/**
+	 * Generate and return the JSON formated segment for the elements comprising this MessageRouter instance  
+	 * @return the JSON formated segment for the elements comprising this MessageRouter instance
+	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		
@@ -153,10 +157,17 @@ public class MessageRouter {
 		return sb.toString();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
 	public String toString() {
 		return "{" + this.getSegment() + "}";
 	}
 	
+	/**
+	 * Check the message consistency of all the messages pending delivery.
+	 */
 	public void checkMessageConsistency() {
 		Message.checkConsistency(this.getMessages());
 	}

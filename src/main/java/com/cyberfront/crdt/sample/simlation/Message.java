@@ -34,7 +34,6 @@ import com.cyberfront.crdt.operations.OperationManager.StatusType;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Message class encapsulates a delivery mechanism for moving an operation generated at one node on a particular CRDT object
  * to another Node so that it may be delivered to the corresponding CRDT at the destination node.  The generic type of the Message
@@ -138,6 +137,22 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 	public Message<T> copy(Message<T> msg) {
 		return new Message<>(msg);
 	}
+	
+	/**
+	 * Gets a segment for the class instance to show the value of the various fields
+	 *
+	 * @return The String segment containing the value of the various fields formatted as a JSON string
+	 */
+	protected String getSegment() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("\"source\":\"" + this.getSource() + "\",");
+		sb.append("\"destination\":\"" + this.getDestination() + "\",");
+		sb.append("\"deliveryTime\":" + this.getDeliveryTime() + ",");
+		sb.append("\"manager\":" + this.getManager().toString());
+		
+		return sb.toString();
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
@@ -191,22 +206,6 @@ public final class Message<T extends AbstractDataType> implements Comparable<Mes
 		hash = hash * 19 + this.getManager().hashCode();
 		
 		return hash;
-	}
-	
-	/**
-	 * Gets a segment for the class instance to show the value of the various fields
-	 *
-	 * @return The String segment containing the value of the various fields formatted as a JSON string
-	 */
-	protected String getSegment() {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("\"source\":\"" + this.getSource() + "\",");
-		sb.append("\"destination\":\"" + this.getDestination() + "\",");
-		sb.append("\"deliveryTime\":" + this.getDeliveryTime() + ",");
-		sb.append("\"manager\":" + this.getManager().toString());
-		
-		return sb.toString();
 	}
 	
 	/* (non-Javadoc)

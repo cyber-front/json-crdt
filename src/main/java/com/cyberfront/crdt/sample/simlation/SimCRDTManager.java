@@ -42,7 +42,6 @@ import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
-// TODO: Auto-generated Javadoc
 //import com.flipkart.zjsonpatch.JsonPatch;		// Use this with zjsonpatch
 //import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
@@ -92,9 +91,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 
 	/**
-	 * Gets the object identifier
+	 * Return the identifier for the object the CRDT is managing
 	 *
-	 * @return the object identifier
+	 * @return The object identifier for the object the CRDT is managing
 	 */
 	@Override
 	public UUID getObjectId(){
@@ -152,9 +151,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 
 	/**
-	 * Gets the manager node id.
+	 * Gets the identifier of the node which is responsible for managing the CRDT contents.
 	 *
-	 * @return The manager node id
+	 * @return The manager node identifier
 	 */
 	public UUID getManagerNodeId() {
 		return this.managerId;
@@ -271,7 +270,7 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Deliver a pending operation manager to a locally manageed CRDT instance 
+	 * Deliver a pending operation manager to a locally managed CRDT instance 
 	 *
 	 * @param op Operation Manager to deliver to this CRDT manager
 	 * @param pReject Probability of rejecting the operation at the manager node
@@ -491,9 +490,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Gets the invalid operation count.
+	 * Retrieve the number of invalid operations which are included in the current trial
 	 *
-	 * @return the invalid operation count
+	 * @return The number of invalid operations in the current trial
 	 */
 	public int getInvalidOperationCount() {
 		return this.getCrdt().getInvalidOperations().size();
@@ -564,7 +563,7 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Check operation validity.
+	 * Check the validity of the operations in this CRDT instance
 	 */
 	public void checkOperationValidity() {
 		boolean created = this.isCreated();
@@ -581,13 +580,19 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Check message consistency.
+	 * Check the message consistency for all of the sent and received messages in this CRDT instance
 	 */
 	public void checkMessageConsistency() {
 		Message.checkConsistency(this.getReceived());
 		Message.checkConsistency(this.getSent());
 	}
-	
+
+	/**
+	 * This routine constructs a string to display the current state of the CRDT, all of its messages received and all of
+	 * the operations it holds.  It primarily contains summary data, though it does include a JSON base representation of the 
+	 * CRDT as well.  
+	 * @return String containing a JSON formated report of summary and detailed information related to this CRDT instance 
+	 */
 	private String buildReport() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{");
@@ -617,152 +622,158 @@ public class SimCRDTManager<T extends AbstractDataType>
 		sb.append("\t\"objectId\":\"" + this.getObjectId().toString() + "\"");
 		
 //		sb.append("\"executive\":" + Executive.getExecutive().toString());
+		sb.append("\"this\":" + this.toString());
 		sb.append("}");
 		
 		return sb.toString();
 	}
 
 	/**
-	 * Gets the creates the count delivered.
+	 * Retrieves the number of create operations delivered to the CRDT.
 	 *
-	 * @return the creates the count delivered
+	 * @return The number of create operations delivered to the CRDT
 	 */
 	public long getCreateCountDelivered() {
 		return Message.filterMessages(this.getReceived(), OperationType.CREATE, true).size();
 	}
 	
 	/**
-	 * Gets the read count delivered.
+	 * Retrieves the number of read operations delivered to the CRDT.
 	 *
-	 * @return the read count delivered
+	 * @return the number of read operations delivered to the CRDT
 	 */
 	public long getReadCountDelivered() {
 		return Message.filterMessages(this.getReceived(), OperationType.READ, true).size();
 	}
 	
 	/**
-	 * Gets the update count delivered.
+	 * Retrieve the number of update operations which were delivered to this CRDT
 	 *
-	 * @return the update count delivered
+	 * @return the number of update operations delivered to this CRDT
 	 */
 	public long getUpdateCountDelivered() {
 		return Message.filterMessages(this.getReceived(), OperationType.UPDATE, true).size();
 	}
 	
 	/**
-	 * Gets the delete count delivered.
+	 * Retrieve the number of read operations which were delivered to this CRDT`
 	 *
-	 * @return the delete count delivered
+	 * @return the number of read operations delivered to this CRDT
 	 */
 	public long getDeleteCountDelivered() {
 		return Message.filterMessages(this.getReceived(), OperationType.DELETE, true).size();
 	}
-	
+
+	/**
+	 * Retrieve the number of APPROVED messages delivered to this CRDT
+	 *
+	 * @return the number of APPROVED messages delivered to this CRDT
+	 */
 	public long getApprovedCountDelivered() {
 		return Message.filterMessages(this.getReceived(), StatusType.APPROVED, true).size();
 	}
 	
 	/**
-	 * Gets the pending count delivered.
+	 * Retrieve the number of PENDING messages delivered to this CRDT
 	 *
-	 * @return the pending count delivered
+	 * @return the number of PENDING messages delivered to this CRDT
 	 */
 	public long getPendingCountDelivered() {
 		return Message.filterMessages(this.getReceived(), StatusType.PENDING, true).size();
 	}
 	
 	/**
-	 * Gets the rejected count delivered.
+	 * Retrieve the number of REJECTED messages delivered to this CRDT
 	 *
-	 * @return the rejected count delivered
+	 * @return the number of REJECTED messages delivered to this CRDT
 	 */
 	public long getRejectedCountDelivered() {
 		return Message.filterMessages(this.getReceived(), StatusType.REJECTED, true).size();
 	}
 	
 	/**
-	 * Gets the count delivered.
+	 * Retrieve the total number of messages delivered to this CRDT
 	 *
-	 * @return the count delivered
+	 * @return the total number of messages delivered to this CRDT
 	 */
 	public long getCountDelivered() {
 		return this.getReceived().size();
 	}
 	
 	/**
-	 * Gets the creates the count added.
+	 * Gets the number of CREATE operations added to the CRDT add set
 	 *
-	 * @return the creates the count added
+	 * @return the number of CREATE operations added to the CRDT add set
 	 */
 	public long getCreateCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.CREATE, true).size();
 	}
 	
 	/**
-	 * Gets the read count added.
+	 * Gets the number of READ operations added to the CRDT add set
 	 *
-	 * @return the read count added
+	 * @return the number of READ operations added to the CRDT add set
 	 */
 	public long getReadCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.READ, true).size();
 	}
 	
 	/**
-	 * Gets the update count added.
+	 * Gets the number of UPDATE operations added to the CRDT add set
 	 *
-	 * @return the update count added
+	 * @return the number of UPDATE operations added to the CRDT add set
 	 */
 	public long getUpdateCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.UPDATE, true).size();
 	}
 	
 	/**
-	 * Gets the delete count added.
+	 * Gets the number of DELETE operations added to the CRDT add set
 	 *
-	 * @return the delete count added
+	 * @return the number of DELETE operations added to the CRDT add set
 	 */
 	public long getDeleteCountAdded() {
 		return filterOperationsByType(this.getCrdt().copyAddSet(), OperationType.DELETE, true).size();
 	}
 	
 	/**
-	 * Gets the creates the count removed.
+	 * Gets the number of CREATE operations added to the CRDT remove set
 	 *
-	 * @return the creates the count removed
+	 * @return the number of CREATE operations added to the CRDT remove set
 	 */
 	public long getCreateCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.CREATE, true).size();
 	}
 	
 	/**
-	 * Gets the read count removed.
+	 * Gets the number of READ operations added to the CRDT remove set
 	 *
-	 * @return the read count removed
+	 * @return the number of READ operations added to the CRDT remove set
 	 */
 	public long getReadCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.READ, true).size();
 	}
 	
 	/**
-	 * Gets the update count removed.
+	 * Gets the number of UPDATE operations added to the CRDT remove set
 	 *
-	 * @return the update count removed
+	 * @return the number of UPDATE operations added to the CRDT remove set
 	 */
 	public long getUpdateCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.UPDATE, true).size();
 	}
 	
 	/**
-	 * Gets the delete count removed.
+	 * Gets the number of DELETE operations added to the CRDT remove set
 	 *
-	 * @return the delete count removed
+	 * @return the number of DELETE operations added to the CRDT remove set
 	 */
 	public long getDeleteCountRemoved() {
 		return filterOperationsByType(this.getCrdt().copyRemSet(), OperationType.DELETE, true).size();
 	}
 
 	/**
-	 * Validate delivery count.
+	 * Validate the count of the messages and operations delivered to the CRDT
 	 */
 	private void validateDeliveryCount() {
 		long deliveryCount = this.getCountDelivered();
@@ -785,9 +796,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Validate operation count.
+	 * Validate the message and operations deliver counts for the operation type given
 	 *
-	 * @param type the type
+	 * @param type The type of operation to validate
 	 */
 	private void validateOperationCount(OperationType type) {
 		long messageCount = Message.filterMessages(this.getReceived(), type, true).size();
@@ -811,35 +822,35 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Validate create operation count.
+	 * Validate the number of CREATE messages and operation 
 	 */
 	private void validateCreateOperationCount() {
 		this.validateOperationCount(OperationType.CREATE);
 	}
 	
 	/**
-	 * Validate read operation count.
+	 * Validate the number of READ messages and operation 
 	 */
 	private void validateReadOperationCount() {
 		this.validateOperationCount(OperationType.READ);
 	}
 	
 	/**
-	 * Validate update operation count.
+	 * Validate the number of UPDATE messages and operation 
 	 */
 	private void validateUpdateOperationCount() {
 		this.validateOperationCount(OperationType.UPDATE);
 	}
 	
 	/**
-	 * Validate delete operation count.
+	 * Validate the number of DELETE messages and operation 
 	 */
 	private void validateDeleteOperationCount() {
 		this.validateOperationCount(OperationType.DELETE);
 	}
 	
 	/**
-	 * Validate operation count.
+	 * Validate the number of messages and operation for each type of operation 
 	 */
 	private void validateOperationCount() {
 		this.validateCreateOperationCount();
@@ -849,7 +860,8 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Validate rejection count.
+	 * Validate the number of rejection messsages received with the number of operations added to the 
+	 * the remove list in the CRDT.
 	 */
 	private void validateRejectionCount() {
 		long rejectionCount = Message.filterMessages(this.getReceived(), StatusType.REJECTED, true).size();
@@ -868,7 +880,8 @@ public class SimCRDTManager<T extends AbstractDataType>
 	}
 	
 	/**
-	 * Check message count.
+	 * Perform the count validation checks against the types of messages delivered with the operations
+	 * being managed in the CRDT.
 	 */
 	public void checkMessageCount() {
 		this.validateDeliveryCount();
@@ -876,6 +889,16 @@ public class SimCRDTManager<T extends AbstractDataType>
 		this.validateRejectionCount();
 	}
 
+	/**
+	 * Filter a collection of operations given the operation type.  Based on the value of the criteria argument, this can be used
+	 * to perform a positive filter (all operations perform have the given operation type) or a negative filter (all of the
+	 * operations returned have an operation type other than the given operation type) 
+	 * @param opList Operation list to filter
+	 * @param opType Operation type for the filter
+	 * @param criteria Returns all elements of the given operation type when True; returns all elements with operation type
+	 * different from the opType when this is false 
+	 * @return The list of operations from the input collection which meets the criteria given to the method
+	 */
 	public static Collection<AbstractOperation> filterOperationsByType(Collection<AbstractOperation> opList, OperationType opType, boolean criteria) {
 	return opList.stream()
 			.filter(op -> (opType == op.getType()) == criteria)
