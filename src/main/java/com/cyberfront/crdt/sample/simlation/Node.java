@@ -181,8 +181,7 @@ public class Node extends AbstractNode {
 			this.addCRDT(castCrdt);
 		}
 		
-		Collection<Message <? extends AbstractDataType>> rv = castCrdt.push(msg, pReject);
-		return rv;
+		return castCrdt.push(msg, pReject);
 	}
 	
 	/**

@@ -24,11 +24,20 @@ package com.cyberfront.crdt;
 
 import java.util.Observable;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * This is an abstract base class for CRDT classes.  It specifies the standard interfaces for all derived CRDT classes
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+    @Type(value = OperationTwoSet.class, name = "OperationTwoSet"),
+    @Type(value = LastWriteWins.class, name = "LastWriteWins") })
 public abstract class AbstractCRDT extends Observable {
 	
 	/**

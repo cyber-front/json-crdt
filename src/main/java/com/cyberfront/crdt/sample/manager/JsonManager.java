@@ -10,6 +10,8 @@ import com.cyberfront.crdt.operations.UpdateOperation;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class JsonManager extends CRDTManager {
+	public JsonManager() {}
+	
 	public JsonManager(JsonNode document, long timestamp) {
 		CreateOperation create = CRDTManager.generateCreateOperation(document, timestamp);
 		OperationManager mgr = new OperationManager(StatusType.APPROVED, create);

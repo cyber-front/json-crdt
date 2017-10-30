@@ -50,7 +50,7 @@ public class SimpleReference extends AbstractDataType {
 	 */
 	public SimpleReference(SimpleReference src) {
 		super(src);
-		this.referenceValue = Factory.copy(src.referenceValue);
+		this.referenceValue = src.referenceValue.copy();
 	}
 
 	/**
@@ -75,7 +75,15 @@ public class SimpleReference extends AbstractDataType {
 			throw new NullPointerException();
 		}
 		
-		this.referenceValue = Factory.copy(value);
+		this.referenceValue = value.copy();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.sample.data.AbstractDataType#copy()
+	 */
+	@Override
+	public AbstractDataType copy() {
+		return new SimpleReference(this);
 	}
 
 	/* (non-Javadoc)

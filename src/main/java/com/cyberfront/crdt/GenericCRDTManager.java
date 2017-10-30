@@ -99,7 +99,7 @@ public class GenericCRDTManager <T> extends CRDTManager {
 					logger.error("json: " + json.toString());
 					logger.error("this.getObjectClass(): " + this.getObjectClass().getName());
 					logger.error("crdt: " + this.getCrdt().toString());
-					e.printStackTrace();
+					logger.error(e);
 				}
 				
 				if (TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS) {

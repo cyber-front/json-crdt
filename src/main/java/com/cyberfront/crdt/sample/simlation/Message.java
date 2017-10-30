@@ -33,6 +33,8 @@ import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
 import com.cyberfront.crdt.operations.OperationManager.StatusType;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * The Message class encapsulates a delivery mechanism for moving an operation generated at one node on a particular CRDT object
@@ -41,6 +43,8 @@ import com.cyberfront.crdt.support.Support;
  *
  * @param <T> The generic type of the object the operations is intended to operate upon
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public final class Message<T extends AbstractDataType> implements Comparable<Message<? extends AbstractDataType>> {
 	/** A logger for writing to the local log output. */
 	@SuppressWarnings("unused")

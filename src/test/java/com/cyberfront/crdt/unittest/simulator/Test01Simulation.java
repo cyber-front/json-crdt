@@ -58,6 +58,7 @@ public class Test01Simulation {
 		private static final boolean REPORT_INVALID_OPERATIONS = false;
 		
 		/** Flag indicating either of the INVALID_OPERATION responses is set to true */
+//		@SuppressWarnings("unused")
 		private static final boolean RESPOND_TO_INVALID_OPERATIONS = HALT_ON_INVALID_OPERATIONS || REPORT_INVALID_OPERATIONS;
 		
 		/** Logger to use when displaying state information */
@@ -597,9 +598,11 @@ public class Test01Simulation {
 				executive.setUpdateProbability(this.getUpdateProbability());
 				
 				executive.execute();
+				logger.info("      Final Simulation Timestamp: " + executive.getTimestamp());
 				
 				assessSimulation();
 			}
+			
 			logger.info("   SUCCESS");
 		}
 	}

@@ -49,6 +49,7 @@ public class SimpleA extends AbstractDataType {
 	 */
 	public SimpleA(SimpleA src) {
 		super(src);
+		
 		this.stringValue = src.stringValue;
 	}
 
@@ -68,6 +69,14 @@ public class SimpleA extends AbstractDataType {
 	 */
 	public void setStringValue(String value) {
 		this.stringValue = value;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.sample.data.AbstractDataType#copy()
+	 */
+	@Override
+	public AbstractDataType copy() {
+		return new SimpleA(this);
 	}
 
 	/* (non-Javadoc)

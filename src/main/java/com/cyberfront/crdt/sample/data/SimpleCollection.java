@@ -44,7 +44,8 @@ public class SimpleCollection extends AbstractDataType {
 	 */
 	public SimpleCollection() {
 		super();
-		this.getCollectionValue().addAll(Factory.getInstances(Support.getRandom().nextInt(4)));
+		int count = Support.getRandom().nextInt(4);
+		this.getCollectionValue().addAll(Factory.getInstances(count));
 	}
 	
 	/**
@@ -54,8 +55,12 @@ public class SimpleCollection extends AbstractDataType {
 	 */
 	public SimpleCollection(SimpleCollection src) {
 		super(src);
-		
-		this.getCollectionValue().addAll(src.collectionValue);
+
+		this.getCollectionValue();
+
+		for (AbstractDataType obj : src.collectionValue) {
+			this.getCollectionValue().add(obj.copy());
+		}
 	}
 
 	/**
@@ -68,6 +73,14 @@ public class SimpleCollection extends AbstractDataType {
 			this.collectionValue = new ArrayList<>();
 		}
 		return collectionValue;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.sample.data.AbstractDataType#copy()
+	 */
+	@Override
+	public AbstractDataType copy() {
+		return new SimpleCollection(this);
 	}
 
 	/* (non-Javadoc)

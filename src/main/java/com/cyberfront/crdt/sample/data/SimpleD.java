@@ -72,6 +72,14 @@ public class SimpleD extends AbstractDataType {
 	}
 
 	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.sample.data.AbstractDataType#copy()
+	 */
+	@Override
+	public AbstractDataType copy() {
+		return new SimpleD(this);
+	}
+
+	/* (non-Javadoc)
 	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
 	 */
 	@Override

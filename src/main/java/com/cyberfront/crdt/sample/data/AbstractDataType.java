@@ -209,6 +209,13 @@ public abstract class AbstractDataType {
 	 */
 	public abstract TYPE getType();
 	
+
+	/**
+	 * Create a copy of this AbstractDataType derived object
+	 * @return a copy of this AbstractDataType derived object
+	 */
+	public abstract AbstractDataType copy();
+
 	/**
 	 * Generate a string representation of this AbstractDataType
 	 * @return String representation of this AbstractDataType

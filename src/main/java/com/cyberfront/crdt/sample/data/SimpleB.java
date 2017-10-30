@@ -50,6 +50,7 @@ public class SimpleB extends AbstractDataType {
 	 */
 	public SimpleB(SimpleB src) {
 		super(src);
+		
 		this.intValue = src.intValue;
 	}
 
@@ -69,6 +70,14 @@ public class SimpleB extends AbstractDataType {
 	 */
 	public void setIntValue(Integer value) {
 		this.intValue = value;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.sample.data.AbstractDataType#copy()
+	 */
+	@Override
+	public AbstractDataType copy() {
+		return new SimpleB(this);
 	}
 
 	/* (non-Javadoc)

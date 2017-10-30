@@ -109,36 +109,35 @@ public class Factory {
 		}
 	}
 
-	/**
-	 * Copy an instance of the given AbstractDataType instance
-	 *
-	 * @param element Element to copy
-	 * @return A copy of the given source element 
-	 */
-	public static AbstractDataType copy(AbstractDataType element) {
-		TYPE type = element.getType();
-		if (null == type) {
-			return null;
-		}
-
-		switch (type) {
-		case SIMPLE_A:
-			return new SimpleA((SimpleA) element);
-		case SIMPLE_B:
-			return new SimpleB((SimpleB) element);
-		case SIMPLE_C:
-			return new SimpleC((SimpleC) element);
-		case SIMPLE_D:
-			return new SimpleD((SimpleD) element);
-		case SIMPLE_COLLECTION:
-			return new SimpleCollection((SimpleCollection) element);
-		case SIMPLE_REFERENCE:
-			return new SimpleReference((SimpleReference) element);
-		default:
-			return null;
-		}
-		
-	}
+//	/**
+//	 * Copy an instance of the given AbstractDataType instance
+//	 *
+//	 * @param element Element to copy
+//	 * @return A copy of the given source element 
+//	 */
+//	public static AbstractDataType copy(AbstractDataType element) {
+//		TYPE type = element.getType();
+//		if (null == type) {
+//			return null;
+//		}
+//
+//		switch (type) {
+//		case SIMPLE_A:
+//			return new SimpleA((SimpleA) element);
+//		case SIMPLE_B:
+//			return new SimpleB((SimpleB) element);
+//		case SIMPLE_C:
+//			return new SimpleC((SimpleC) element);
+//		case SIMPLE_D:
+//			return new SimpleD((SimpleD) element);
+//		case SIMPLE_COLLECTION:
+//			return new SimpleCollection((SimpleCollection) element);
+//		case SIMPLE_REFERENCE:
+//			return new SimpleReference((SimpleReference) element);
+//		default:
+//			return null;
+//		}
+//	}
 
 	/**
 	 * Pick type at random

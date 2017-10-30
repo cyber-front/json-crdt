@@ -4,5 +4,6 @@ com.cyberfront.crdt.sample.data
 com.cyberfront.crdt.sample.manager
 com.cyberfront.crdt.sample.simlation
 com.cyberfront.crdt.support
+com.cyberfront.crdt.unittest.basiccrdt
 com.cyberfront.crdt.unittest.data
 com.cyberfront.crdt.unittest.simulator

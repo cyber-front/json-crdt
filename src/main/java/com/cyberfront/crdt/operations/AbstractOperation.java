@@ -29,6 +29,10 @@ import java.util.TreeSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
@@ -44,6 +48,14 @@ import com.github.fge.jsonpatch.JsonPatchException;		// Use this with jsonpatch
  * same time stamp and the same ID number, which will lead to ambiguity if the should both appear in the same CRDT.  As a final tie breaker, the
  * hash value of the two operations will be used.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+    @Type(value = CreateOperation.class, name = "CreateOperation"),
+    @Type(value = ReadOperation.class, name = "ReadOperation"),
+    @Type(value = UpdateOperation.class, name = "UpdateOperation"),
+    @Type(value = DeleteOperation.class, name = "DeleteOperation")
+    })
 public abstract class AbstractOperation implements Comparable<AbstractOperation> {
 	
 	/** Logger to use when displaying state information */
@@ -223,6 +235,7 @@ public abstract class AbstractOperation implements Comparable<AbstractOperation>
 		AbstractOperation oper = (AbstractOperation) obj;
 		
 		return this.hashCode() == oper.hashCode() && 
+				this.getType().equals(oper.getType()) &&
 				Long.compare(this.getOperationId(), oper.getOperationId()) == 0	&&
 				Long.compare(this.getTimeStamp(), oper.getTimeStamp()) == 0	&&
 				this.getOp().equals(oper.getOp());

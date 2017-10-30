@@ -116,7 +116,7 @@ public class Test03Clone {
 			Collection<AbstractDataType> rv = new ArrayList<>();
 			
 			for (AbstractDataType element : source) {
-				rv.add(Factory.copy(element));
+				rv.add(element.copy());
 			}
 			
 			return rv;

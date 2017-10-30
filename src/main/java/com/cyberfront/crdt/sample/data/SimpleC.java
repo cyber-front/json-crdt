@@ -71,6 +71,14 @@ public class SimpleC extends AbstractDataType {
 	}
 
 	/* (non-Javadoc)
+	 * @see com.cyberfront.crdt.sample.data.AbstractDataType#copy()
+	 */
+	@Override
+	public AbstractDataType copy() {
+		return new SimpleC(this);
+	}
+
+	/* (non-Javadoc)
 	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
 	 */
 	@Override

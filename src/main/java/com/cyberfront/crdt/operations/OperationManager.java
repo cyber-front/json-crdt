@@ -22,10 +22,22 @@
  */
 package com.cyberfront.crdt.operations;
 
+import com.cyberfront.crdt.sample.simlation.SimOperationManager;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
 /**
  * This is the base class for wrapping AbstractOperations.  It provides the basic functionality for associating various
  * elements of metadata associated with the operation bound to the derived manager class.  
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+    @Type(value = GenericOperationManager.class, name = "GenericOperationManager"),
+    @Type(value = SimOperationManager.class, name = "SimOperationManager")
+    })
 public class OperationManager implements Comparable<OperationManager> {
 	
 	/**
@@ -44,7 +56,6 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 
 	/** The status associated with the operation. */
-//	private StatusType status = StatusType.PENDING;
 	private final StatusType status;
 
 	/** The operation bound with the metadata. */

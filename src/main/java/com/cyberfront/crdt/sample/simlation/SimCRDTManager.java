@@ -36,14 +36,16 @@ import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.GenericCRDTManager;
 import com.cyberfront.crdt.operations.AbstractOperation;
+import com.cyberfront.crdt.operations.OperationManager;
 import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
 import com.cyberfront.crdt.operations.OperationManager.StatusType;
+import com.cyberfront.crdt.operations.UpdateOperation;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonPatch;		// Use this with zjsonpatch
-//import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
+//import com.flipkart.zjsonpatch.;		// Use this with zjsonpatch
 
 /**
  * The Class SimCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
@@ -168,6 +170,20 @@ public class SimCRDTManager<T extends AbstractDataType>
 		return this.getManagerNodeId().equals(this.getOwnerNodeID());
 	}
 	
+	@Override
+	protected void push(OperationManager mgr) {
+		super.push(mgr);
+
+		// TODO: Remove before flight
+//		if (this.isLocallyManaged() && !this.getCrdt().getInvalidOperations().isEmpty() && mgr.getStatus().equals(StatusType.APPROVED)) {
+//			logger.info("*** AFTER: push()");
+//			logger.info("    mgr: " + mgr.toString());
+//			logger.info("    this: " + this.toString());
+//			assertTrue("initial source document has validity errors: ", this.getCrdt().getInvalidOperations().isEmpty());
+//		}
+		// TODO: End Remove before flight
+	}
+	
 	/**
 	 * Deliver a operation manager with a PENDING CREATE operation 
 	 *
@@ -176,7 +192,7 @@ public class SimCRDTManager<T extends AbstractDataType>
 	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
 	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
 	 */
-	private Collection<SimOperationManager<T>> deliverCreatePending(SimOperationManager<T> mgr, Double pReject) {
+	private Collection<SimOperationManager<T>> deliverPendingCreate(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 
 		assertTrue(OperationType.CREATE == mgr.getOperation().getType());
@@ -199,7 +215,7 @@ public class SimCRDTManager<T extends AbstractDataType>
 	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
 	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
 	 */
-	private Collection<SimOperationManager<T>> deliverReadPending(SimOperationManager<T> mgr, Double pReject) {
+	private Collection<SimOperationManager<T>> deliverPendingRead(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 		
 		assertTrue(OperationType.READ == mgr.getOperation().getType());
@@ -222,23 +238,26 @@ public class SimCRDTManager<T extends AbstractDataType>
 	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
 	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
 	 */
-	private Collection<SimOperationManager<T>> deliverUpdatePending(SimOperationManager<T> mgr, Double pReject) {
+	private Collection<SimOperationManager<T>> deliverPendingUpdate(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 
 		assertTrue(OperationType.UPDATE == mgr.getOperation().getType());
+		JsonNode source = (null != this.getCrdt().getDocument() ? this.getCrdt().getDocument() : getMapper().createObjectNode());
 		
 		this.push(mgr);
 		
-		operations.add(mgr.copy(StatusType.REJECTED));
+		JsonNode target = (null != this.getCrdt().getDocument() ? this.getCrdt().getDocument() : getMapper().createObjectNode());
+		SimOperationManager<T> rejection = mgr.copy(StatusType.REJECTED);
+
+		operations.add(rejection);
 
 		if (Support.getRandom().nextDouble() > pReject && this.getCrdt().getInvalidOperations().isEmpty()) {
-			JsonNode source = (null != this.getCrdt().getDocument() ? this.getCrdt().getDocument() : getMapper().createObjectNode());
-
-			JsonNode target = (null != this.getCrdt().getDocument() ? this.getCrdt().getDocument() : getMapper().createObjectNode());
 			JsonNode diff = JsonDiff.asJson(source, target);
 
 			if (0 == this.getInvalidOperationCount() && 0 < diff.size()) {
-				operations.add(mgr.mimic(StatusType.APPROVED));
+				UpdateOperation update = new UpdateOperation(diff, Executive.getExecutive().getTimestamp());
+				SimOperationManager<T> updateMgr = new SimOperationManager<>(StatusType.APPROVED, update, this.getObjectId(), mgr.getOperationId(), this.getObjectClass());
+				operations.add(updateMgr);
 			}
 		}
 
@@ -253,7 +272,7 @@ public class SimCRDTManager<T extends AbstractDataType>
 	 * @return The collection of operation managers resulting from processing the one provided.  This primarily be a list
 	 * of no more than two operation, one a REJECT notice and the other an APPROVED notice
 	 */
-	private Collection<SimOperationManager<T>> deliverDeletePending(SimOperationManager<T> mgr, Double pReject) {
+	private Collection<SimOperationManager<T>> deliverPendingDelete(SimOperationManager<T> mgr, Double pReject) {
 		Collection<SimOperationManager<T>> operations = new ArrayList<>();
 		
 		assertTrue(OperationType.DELETE == mgr.getOperation().getType());
@@ -285,16 +304,16 @@ public class SimCRDTManager<T extends AbstractDataType>
 
 		switch (op.getOperation().getType()) {
 		case CREATE:
-			rv = this.deliverCreatePending(op, pReject);
+			rv = this.deliverPendingCreate(op, pReject);
 			break;
 		case READ:
-			rv = this.deliverReadPending(op, pReject);
+			rv = this.deliverPendingRead(op, pReject);
 			break;
 		case UPDATE:
-			rv = this.deliverUpdatePending(op, pReject);
+			rv = this.deliverPendingUpdate(op, pReject);
 			break;
 		case DELETE:
-			rv = this.deliverDeletePending(op, pReject);
+			rv = this.deliverPendingDelete(op, pReject);
 			break;
 		default:
 			rv = new ArrayList<>();
@@ -332,8 +351,9 @@ public class SimCRDTManager<T extends AbstractDataType>
 		
 		if (null != mgr) {
 			for (Map.Entry<UUID, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
+				boolean localDelivery = entry.getKey().equals(this.getOwnerNodeID());
 				long timestamp = Executive.getExecutive().getTimestamp() + 
-						Support.getRandom().nextInt(65536);
+						(localDelivery ? 0 : (1 + Support.getRandom().nextInt(65535)));
 				rv.add(new Message<>(this.getOwnerNodeID(), entry.getKey(), mgr, timestamp));
 			}
 		}
@@ -552,8 +572,8 @@ public class SimCRDTManager<T extends AbstractDataType>
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(super.getSegment() + ",");
-		sb.append("\"received\":" + (null == this.sent ? "null" : Support.convert(this.getSent())) + Support.convert(this.getReceived()) + ",");
-		sb.append("\"sent\":" + (null == this.sent ? "null" : Support.convert(this.getSent())) + ",");
+		sb.append("\"received\":" + (null == this.getReceived() ? "null" : Support.convert(this.getReceived())) + ",");
+		sb.append("\"sent\":" + (null == this.getSent() ? "null" : Support.convert(this.getSent())) + ",");
 		sb.append("\"isLocal\":" + this.isLocallyManaged() + ",");
 		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
 		sb.append("\"ownerNodeId\":\"" + this.getOwnerNodeID() + "\",");

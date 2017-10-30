@@ -31,11 +31,15 @@ import org.apache.logging.log4j.Logger;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * The MessageRouter class is responsible for message delivery to the correct node in the distributed environment.  Messages are inserted 
  * into the message priority queue asynchronously 
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public class MessageRouter {
 	/** A logger for writing to the local log output. */
 	@SuppressWarnings("unused")

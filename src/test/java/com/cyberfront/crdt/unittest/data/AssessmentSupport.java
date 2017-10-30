@@ -1,11 +1,28 @@
 package com.cyberfront.crdt.unittest.data;
 
+import com.cyberfront.crdt.unittest.data.Test01Create.CreateTest;
+import com.cyberfront.crdt.unittest.data.Test02Update.UpdateTest;
+import com.cyberfront.crdt.unittest.data.Test03Clone.CloneTest;
+import com.cyberfront.crdt.unittest.simulator.Test01Simulation.SimulationTest;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * The AssessmentSupport class is a base class for all of the unit test classes.  It manages a number of attributes for test
  * cases which comprise the collection of its derived classes.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+    @Type(value = CreateTest.class, name = "CreateTest"),
+    @Type(value = UpdateTest.class, name = "UpdateTest"),
+    @Type(value = CloneTest.class, name = "CloneTest"),
+    @Type(value = SimulationTest.class, name = "SimulationTest"),
+    @Type(value = Test04Json.class, name = "Test04Json")
+    })
 public class AssessmentSupport {
 	/** Constant defining the number of AbstractDataType elements to create in the unit test */
 	private static final long TRIAL_COUNT = 128L;

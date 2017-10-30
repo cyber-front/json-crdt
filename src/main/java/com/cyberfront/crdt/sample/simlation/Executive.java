@@ -35,12 +35,16 @@ import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.data.Factory;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * The Executive class is used to manage the overall execution of the simulation of a distributed CRDT data store. Each of the 
  * distributed nodes are intended to have identical values for the objects managed within each CRDT at the conclusion of the
  * test.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public class Executive {
 	
 	/** The logger to log elements to the Log4J output */
@@ -673,7 +677,7 @@ public class Executive {
 	
 	public void checkOperationValidity() {
 		for (Map.Entry<UUID, Node> node : this.getNodes().entrySet()) {
-			node.getValue().checkOperationValidity();;
+			node.getValue().checkOperationValidity();
 		}
 	}
 }

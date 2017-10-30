@@ -30,10 +30,19 @@ import java.util.UUID;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * The AbstractNode class establishes a base framework for derived classes to draw upon to manage a collection of CRDT objects
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+    @Type(value = Node.class, name = "Node")
+    })
 public abstract class AbstractNode {
 	
 	/** The node identifier. */

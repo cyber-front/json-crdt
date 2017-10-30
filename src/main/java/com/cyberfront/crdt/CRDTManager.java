@@ -31,6 +31,13 @@ import com.cyberfront.crdt.operations.DeleteOperation;
 import com.cyberfront.crdt.operations.OperationManager;
 import com.cyberfront.crdt.operations.ReadOperation;
 import com.cyberfront.crdt.operations.UpdateOperation;
+import com.cyberfront.crdt.sample.manager.GenericManager;
+import com.cyberfront.crdt.sample.manager.JsonManager;
+import com.cyberfront.crdt.sample.simlation.SimCRDTManager;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
@@ -40,6 +47,14 @@ import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
  * The CRDTManager class is used to wrap a CRDT instance so as to interact with it.  The intent of this class is to 
  * provide an interface to manage JSON documents with the CRDT types provided.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+    @Type(value = GenericCRDTManager.class, name = "GenericCRDTManager"),
+    @Type(value = JsonManager.class, name = "JsonManager"),
+    @Type(value = GenericManager.class, name = "GenericManager"),
+    @Type(value = SimCRDTManager.class, name = "SimCRDTManager")
+    })
 public class CRDTManager {
 	/** The Constant logger used to generate log entries */
 	@SuppressWarnings("unused")

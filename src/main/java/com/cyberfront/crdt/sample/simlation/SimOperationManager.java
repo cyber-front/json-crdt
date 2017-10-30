@@ -24,6 +24,9 @@ package com.cyberfront.crdt.sample.simlation;
 
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.cyberfront.crdt.operations.AbstractOperation;
 import com.cyberfront.crdt.operations.GenericOperationManager;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
@@ -35,11 +38,20 @@ import com.cyberfront.crdt.sample.data.AbstractDataType;
  * @param <T> The type of object to which the operations is applied.  In this case T should extend the AbstractDataType
  * class
  */
-public class SimOperationManager<T extends AbstractDataType>
-	extends GenericOperationManager<T> {
+public class SimOperationManager<T extends AbstractDataType> extends GenericOperationManager<T> {
+	@SuppressWarnings("unused")
+	private static final Logger logger = LogManager.getLogger(SimOperationManager.class);
+
+	private static final UUID NIL_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 	
 	/** Identifier of the object which is  */
 	private final UUID objectId;
+	
+	/** Identifier for the operation */
+	private final UUID operationId;
+	
+	/** Identifier for the operations which prompted the creation of this operation */
+	private final UUID referenceId;
 
 	/**
 	 * Instantiates a new operation manager.
@@ -52,6 +64,24 @@ public class SimOperationManager<T extends AbstractDataType>
 	public SimOperationManager(StatusType status, AbstractOperation operation, UUID objectId, Class<T> objectClass) {
 		super(status, operation, objectClass);
 		this.objectId = objectId;
+		this.operationId = UUID.randomUUID();
+		this.referenceId = NIL_UUID;
+	}
+	
+	/**
+	 * Instantiates a new operation manager.
+	 *
+	 * @param status Status of the operation being managed, either APPROVED, PENDING or REJECTED
+	 * @param operation the operation
+	 * @param objectId the object id
+	 * @param referenceId Identifier of the operation which initiated this operation
+	 * @param objectClass the object class
+	 */
+	public SimOperationManager(StatusType status, AbstractOperation operation, UUID objectId, UUID referenceId, Class<T> objectClass) {
+		super(status, operation, objectClass);
+		this.objectId = objectId;
+		this.operationId = UUID.randomUUID();
+		this.referenceId = referenceId;
 	}
 	
 	/**
@@ -62,6 +92,25 @@ public class SimOperationManager<T extends AbstractDataType>
 	public UUID getObjectId(){
 		return this.objectId;
 	}
+
+	/**
+	 * Retrieve the identifier for this operation
+	 * 
+	 * @return The ID for this operation
+	 */
+	public UUID getOperationId() {
+		return this.operationId;
+	}
+	
+	/**
+	 * Retrieve the identifier for the operation which prompted the creation of this operation.  This value will be null
+	 * when there is no initiating operation
+	 * 
+	 * @return The ID for the reference operation which prompted the creation of this opeation. 
+	 */
+	public UUID getReferenceId() {
+		return this.referenceId;
+	}
 	
 	/**
 	 * Generate and return a near copy of this class instance including the operation identifier
@@ -69,7 +118,7 @@ public class SimOperationManager<T extends AbstractDataType>
 	 * @return A copy of this class instance
 	 */
 	public SimOperationManager<T> copy() {
-		return new SimOperationManager<>(this.getStatus(), this.getOperation().copy(), this.getObjectId(), this.getObjectClass());
+		return new SimOperationManager<>(this.getStatus(), this.getOperation().copy(), this.getObjectId(), this.getOperationId(), this.getObjectClass());
 	}
 
 	/**
@@ -79,7 +128,7 @@ public class SimOperationManager<T extends AbstractDataType>
 	 * @return A copy of the operation manager as provided to this routine.
 	 */
 	public SimOperationManager<T> copy(StatusType status) {
-		return new SimOperationManager<>(status, this.getOperation().copy(), this.getObjectId(), this.getObjectClass());
+		return new SimOperationManager<>(status, this.getOperation().copy(), this.getObjectId(), this.getOperationId(), this.getObjectClass());
 	}
 
 	/**
@@ -89,7 +138,7 @@ public class SimOperationManager<T extends AbstractDataType>
 	 * @return a reference to the new operations based on this one
 	 */
 	public SimOperationManager<T> mimic() {
-		return new SimOperationManager<>(this.getStatus(), this.getOperation().mimic(), this.getObjectId(), this.getObjectClass());
+		return new SimOperationManager<>(this.getStatus(), this.getOperation().mimic(), this.getObjectId(), this.getOperationId(), this.getObjectClass());
 	}
 
 	/**
@@ -100,7 +149,7 @@ public class SimOperationManager<T extends AbstractDataType>
 	 * @return a reference to the new operations based on this one
 	 */
 	public SimOperationManager<T> mimic(StatusType status) {
-		return new SimOperationManager<>(status, this.getOperation().mimic(), this.getObjectId(), this.getObjectClass());
+		return new SimOperationManager<>(status, this.getOperation().mimic(), this.getObjectId(), this.getOperationId(), this.getObjectClass());
 	}
 
 	/* (non-Javadoc)
@@ -139,7 +188,9 @@ public class SimOperationManager<T extends AbstractDataType>
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"objectId\":\"" + this.getObjectId() + "\"");
+		sb.append("\"objectId\":\"" + this.getObjectId() + "\",");
+		sb.append("\"operationId\":\"" + this.getOperationId() + "\",");
+		sb.append("\"referenceId\":\"" + this.getReferenceId() + "\"");
 		
 		return sb.toString();
 	}

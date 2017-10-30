@@ -34,11 +34,17 @@ import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.thedeanda.lorem.LoremIpsum;
+
+/** TODO: COmplete JavaDoc content in this class declaration */ 
 
 /**
  * This is a helper class for generating a number of random values useful for testing the CRDTs
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public class Support {
 	
 	/** A random number generator used to choose values for testing purposes */
@@ -297,7 +303,7 @@ public class Support {
 	}
 	
 	public static void displayStackTrace(StackTraceElement[] stackTrace) {
-		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+		for (StackTraceElement ste : stackTrace) {
 		    logger.info(ste);
 		}
 	}
@@ -333,11 +339,11 @@ public class Support {
 	 * Generate a string as a JSON formated array based on elements of a collection
 	 * 
 	 * @param map Collection of items to form into JSON formated string
-	 * @param <KEY> Type of the key in the Map type
-	 * @param <VALUE> Type of the value in the associative memory map
+	 * @param <K> Type of the key in the Map type
+	 * @param <V> Type of the value in the associative memory map
 	 * @return The JSON formated string representation of the given collection
 	 */
-	public static <KEY, VALUE> String convert(Map<KEY, VALUE> map) {
+	public static <K, V> String convert(Map<K, V> map) {
 		if (null == map) {
 			return "null";
 		} else if (map.isEmpty()) {
@@ -347,7 +353,7 @@ public class Support {
 		StringBuilder sb = new StringBuilder();
 		String delimiter = "[";
 	
-		for (Map.Entry<KEY, VALUE> entry : map.entrySet()) {
+		for (Map.Entry<K, V> entry : map.entrySet()) {
 			sb.append(delimiter + "{\"KEY\":\"" + entry.getKey().toString() + "\",\"VALUE\":" + entry.getValue().toString() + "}");
 			delimiter = ",";
 		}
