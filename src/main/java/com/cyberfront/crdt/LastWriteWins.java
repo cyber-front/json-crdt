@@ -22,9 +22,7 @@
  */
 package com.cyberfront.crdt;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.util.ArrayList;
+import java.io.IOException;										// Use this with jsonpatch
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
@@ -33,23 +31,24 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.cyberfront.crdt.operations.AbstractOperation;
-import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
+import com.cyberfront.crdt.operation.Operation;
+import com.cyberfront.crdt.operation.Operation.OperationType;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.io.IOException;										// Use this with jsonpatch
 import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonPatchApplicationException;		// Use this with zjsonpatch
 
 /**
- * The LastWriteWins class implements a Last Write Wins commutative CRDT.  Operations are stored and recalled in time stamp
+ * The DeprecatedLastWriteWins class implements a Last Write Wins commutative CRDT.  Operations are stored and recalled in time stamp
  * order.  There is both an add and remove set, where removing an operation takes precedence over adding.  It also contains
  * a list of invalid operations which is used to hold operations which fail during reconstitution of the underlying data element
  */
 public class LastWriteWins extends OperationTwoSet {
-	
 	/**
-	 * The Class TrialResult is used to process a collection of operations provided to it.  It is intended to augment the LastWriteWins class
+	 * The Class TrialResult is used to process a collection of operations provided to it.  It is intended to augment the DeprecatedLastWriteWins class
 	 * by providing an auxiliary location for storing a single set of operations and to manage access to the resulting JsonNode when the
 	 * operations are processed.  It also tracks any invalid operations which are in the set of operations.  Invalid operations are those which
 	 * cannot be processed due to a difference in the way the JSON operations are performed on different nodes.  These invalid operations are 
@@ -65,16 +64,16 @@ public class LastWriteWins extends OperationTwoSet {
 		private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = false;
 		
 		/** The set of operations to process; they are processed in timestamp order */
-		private final Set<AbstractOperation> operations;
+		private final Set<Operation> operations;
 		
 		/** The set of invalid operations detected.  Ideally this is empty, but there are reasons why it may not be empty. */
-		private Collection<AbstractOperation> invalidOperations;
+		private final Collection<Operation> invalidOperations;
 
 		/** Latest operation timestamp to include among the applicable operations */
 		private final long timestamp;
 
 		/** JsonNode document containing the result of executing the sequence of operations */
-		private JsonNode document;
+		private final JsonNode document;
 		
 		/**
 		 * Instantiates a new trial result given a CRDT to process; the operations list is copied from
@@ -100,8 +99,29 @@ public class LastWriteWins extends OperationTwoSet {
 					crdt.getOpsSet().
 					stream().
 					filter(op -> (OperationType.READ != op.getType())).
-					filter(op -> (op.getTimeStamp() <= this.timestamp)).
+					filter(op -> (op.getTimestamp() <= this.timestamp)).
 					collect(Collectors.toList()));
+			
+			JsonNode doc = null;
+			this.invalidOperations = new TreeSet<>();
+			
+			for (Operation op : this.operations) {
+				try {
+					doc = op.processOperation(doc);
+				} catch (JsonPatchException | IOException e) {
+					if (LOG_JSON_PROCESSING_EXCEPTIONS) {
+						logger.error(e);
+						logger.error(" op: " + op.toString());
+						logger.error("doc: " + document);
+						for (StackTraceElement el : e.getStackTrace()) {
+							logger.error(el);
+						}
+					}
+					this.invalidOperations.add(op);
+				}
+			}
+			
+			this.document = doc;
 		}
 
 		/**
@@ -110,13 +130,6 @@ public class LastWriteWins extends OperationTwoSet {
 		 * @return The document resulting from running the operations in this TrialResult
 		 */
 		public JsonNode getDocument() {
-			if (null == this.document || null == this.invalidOperations) {
-				this.invalidOperations = new ArrayList<>();
-				for (AbstractOperation op : this.getOperations()) {
-					this.document = this.applyOperation(this.document, op);
-				}
-			}
-			
 			return this.document;
 		}
 
@@ -125,8 +138,8 @@ public class LastWriteWins extends OperationTwoSet {
 		 *
 		 * @return A the set of operations in this TrialResult
 		 */
-		private Set<AbstractOperation> getOperations() {
-			return this.operations;
+		public Collection<Operation> getOperations() {
+			return Operation.copy(this.operations);
 		}
 		
 		/**
@@ -134,14 +147,18 @@ public class LastWriteWins extends OperationTwoSet {
 		 *
 		 * @return the invalid
 		 */
-		public Collection<AbstractOperation> getInvalidOperations() {
-			if (null == this.invalidOperations) {
-				this.getDocument();
-			}
-
-			assertNotNull("Invalid Operation List was not allocated", this.invalidOperations);
-
-			return this.invalidOperations;
+		public Collection<Operation> getInvalidOperations() {
+			return Operation.copy(this.invalidOperations);
+		}
+		
+		/**
+		 * Retrieves the collection of effective operations, those which can actually be processed
+		 * @return The collection of operations which can be processed
+		 */
+		public Collection<Operation> getEffectiveOperations() {
+			Collection<Operation> ops = this.getOperations();
+			ops.removeAll(this.invalidOperations);
+			return ops;
 		}
 
 		/**
@@ -153,28 +170,6 @@ public class LastWriteWins extends OperationTwoSet {
 			return this.timestamp;
 		}
 
-		private JsonNode applyOperation(JsonNode document, AbstractOperation op) {
-			if (null == this.invalidOperations) {
-				this.invalidOperations = new TreeSet<>();
-			}
-
-			try {
-				return op.processOperation(document);
-			} catch (JsonPatchException | IOException e) {  // Use this with jsonpatch
-//			} catch (JsonPatchApplicationException e) {		// Use this with zjsonpatch
-				if (LOG_JSON_PROCESSING_EXCEPTIONS) {
-					logger.error(e);
-					logger.error(" op: " + op.toString());
-					logger.error("doc: " + document);
-					for (StackTraceElement el : e.getStackTrace()) {
-						logger.error(el);
-					}
-				}
-				this.invalidOperations.add(op);
-			}
-			return document;
-		}
-		
 		/**
 		 * Retrieve a string segment used in the toString() method to build up JSON formatted string used primarily
 		 * by the toString() method
@@ -186,6 +181,7 @@ public class LastWriteWins extends OperationTwoSet {
 			
 			sb.append("\"operations\":" + Support.convert(this.getOperations()) + ",");
 			sb.append("\"invalid\":" + Support.convert(this.getInvalidOperations()) + ",");
+			sb.append("\"effective\":" + Support.convert(this.getEffectiveOperations()) + ",");
 			sb.append("\"timestamp\":" + this.getTimestamp() + ",");
 			sb.append("\"document\":" + (null == this.document ? "null" : this.document.toString()));
 			
@@ -204,12 +200,36 @@ public class LastWriteWins extends OperationTwoSet {
 //	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(LastWriteWins.class);
 	
+	/** Trial contains the state of the object being managed at a particular point in time. */ 
 	private TrialResult trial = null;
+
+	/**
+	 * Default constructor
+	 */
+	public LastWriteWins() { }
 	
+	/**
+	 * Copy constructor to extract the contents of the given CRDT to populate this one 
+	 * @param crdt Source CRDT to copy
+	 */
+	public LastWriteWins(LastWriteWins crdt) { super(crdt); }
+	
+	/**
+	 * Constructor specifying the add and remove sets comprising a CRDT 
+	 * @param addset Add set to use in this CRDT
+	 * @param remset Remove set to use in this CRDT
+	 */
+	@JsonCreator
+	public LastWriteWins(@JsonProperty(ADDSET) Collection<Operation> addset,
+						 @JsonProperty(REMSET) Collection<Operation> remset) {
+		super(addset, remset);
+	}
+
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#readValue()
 	 */
 	@Override
+	@JsonIgnore
 	public JsonNode getDocument() {
 		return this.getDocument(Long.MAX_VALUE);
 	}
@@ -218,6 +238,7 @@ public class LastWriteWins extends OperationTwoSet {
 	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#readValue()
 	 */
 	@Override
+	@JsonIgnore
 	public JsonNode getDocument(long timestamp) {
 		if (null == this.trial || this.trial.getTimestamp() != timestamp) {
 			this.trial = new TrialResult(this, timestamp);
@@ -230,7 +251,8 @@ public class LastWriteWins extends OperationTwoSet {
 	 * Get the list of invalid operations for the current configuration
 	 * @return List of invalid operations
 	 */
-	public Collection<AbstractOperation> getInvalidOperations() {
+	@JsonIgnore
+	public Collection<Operation> getInvalidOperations() {
 		if (null == trial) {
 			this.trial = new TrialResult(this);
 		}
@@ -239,15 +261,77 @@ public class LastWriteWins extends OperationTwoSet {
 	}
 	
 	/**
+	 * Get the list of effective operations for the current configuration
+	 * @return List of effective operations
+	 */
+	@JsonIgnore
+	public Collection<Operation> getEffectiveOperations() {
+		if (null == trial) {
+			this.trial = new TrialResult(this);
+		}
+		
+		return this.trial.getEffectiveOperations();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isCreated()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isCreated() {
+		return doesTypeExist(this.getEffectiveOperations(), OperationType.CREATE);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isRead()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isRead() {
+		return doesTypeExist(this.getEffectiveOperations(), OperationType.READ);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isUpdated()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isUpdated() {
+		return doesTypeExist(this.getEffectiveOperations(), OperationType.UPDATE);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isDeleted()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isDeleted() {
+		return doesTypeExist(this.getEffectiveOperations(), OperationType.DELETE);
+	}
+	
+	/**
 	 * Insert an operation to the ADD set 
 	 *
 	 * @param op The operation to add to the ADD set
 	 */
 	@Override
-	protected void addOperation(AbstractOperation op) {
+	protected void addOperation(Operation op) {
 		if (null != op) {
 			super.addOperation(op);
 			this.trial = null;
+		}
+	}
+	
+	/**
+	 * Add a collection of operations to the current ADD set
+	 * 
+	 * @param operations Operations to add to the ADD set
+	 */
+	protected void addOperation(Collection<Operation> operations) {
+		if (null != operations) {
+			for (Operation op : operations) {
+				this.addOperation(op);
+			}
 		}
 	}
 	
@@ -257,13 +341,26 @@ public class LastWriteWins extends OperationTwoSet {
 	 * @param op The operation to add to the REMOVE set
 	 */
 	@Override
-	protected void remOperation(AbstractOperation op) {
+	protected void remOperation(Operation op) {
 		if (null != op) {
 			super.remOperation(op);
 			this.trial = null;
 		}
 	}
 
+	/**
+	 * Add a collection of operations to the current REMOVE set
+	 * 
+	 * @param operations Operations to add to the REMOVE set
+	 */
+	protected void remOperation(Collection<Operation> operations) {
+		if (null != operations) {
+			for (Operation op : operations) {
+				this.remOperation(op);
+			}
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.manager.OperationTwoSet#getSegment()
 	 */

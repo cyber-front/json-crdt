@@ -36,9 +36,9 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
-import com.cyberfront.crdt.sample.simlation.Executive;
-import com.cyberfront.crdt.sample.simlation.Node;
-import com.cyberfront.crdt.sample.simlation.SimCRDTManager;
+import com.cyberfront.crdt.sample.simulation.Executive;
+import com.cyberfront.crdt.sample.simulation.Node;
+import com.cyberfront.crdt.sample.simulation.SimCRDTManager;
 import com.cyberfront.crdt.unittest.data.AssessmentSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
@@ -55,7 +55,7 @@ public class Test01Simulation {
 		private static final boolean HALT_ON_INVALID_OPERATIONS = false;
 		
 		/** Flag to indicate whether to report residual invalid operations when detected */
-		private static final boolean REPORT_INVALID_OPERATIONS = false;
+		private static final boolean REPORT_INVALID_OPERATIONS = true;
 		
 		/** Flag indicating either of the INVALID_OPERATION responses is set to true */
 //		@SuppressWarnings("unused")
@@ -434,7 +434,7 @@ public class Test01Simulation {
 		 * For a given CRDT instance, ensure all of the nodes have the same CRDT and that
 		 * the state is consistent across all of the nodes.
 		 *
-		 * @param <T> The type the CRDTManager manages
+		 * @param <T> The type the DeprecatedCRDTManager manages
 		 * @param crdt The CRDT which should be compared for synchronization errors with the corresponding CRDTs
 		 * in all other Node instances.
 		 */
@@ -462,13 +462,17 @@ public class Test01Simulation {
 				AbstractDataType compValue = compCRDT.getObject();
 				assertTrue("compCRDT.isDeleted (" + compCRDT.isDeleted() + ") / baseCRDT.isDeleted (" + crdt.isDeleted() + ") deleted flag mismatch: ", compCRDT.isDeleted() == crdt.isDeleted() );
 
-				if (compCRDT.isDeleted()) {
-					assertNull("Deleted compValue should be null, but isn't", compValue);
+				if (!compCRDT.isCreated()) {
+					assertNull("CRDT has no create operations but is not null", compValue);
+				} else if (!compCRDT.isUpdated()) {
+					assertNull("CRDT has no update operations but is not null", compValue);
+				} else if (compCRDT.isDeleted()) {
+					assertNull("CRDT was deleted but is not null", compValue);
 				} else {
-					assertNotNull("Undeleted compValue should not be null, but is", compValue);
+					assertNotNull("CRDT is created and not deleted, but is null", compValue);
 
-					JsonNode source = this.getMapper().valueToTree(baseValue);
-					JsonNode target = this.getMapper().valueToTree(compValue);
+					JsonNode source = getMapper().valueToTree(baseValue);
+					JsonNode target = getMapper().valueToTree(compValue);
 					JsonNode diff = JsonDiff.asJson(source, target);
 					assertNotNull("diff found to be null", diff);
 
@@ -496,20 +500,14 @@ public class Test01Simulation {
 
 			for (Entry<UUID, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
 				AbstractDataType val = baseEntry.getValue().getObject();
-				boolean created = baseEntry.getValue().isCreated();
-				boolean deleted = baseEntry.getValue().isDeleted();
-				
-				String errMsg = (!created || deleted) == (null == val)
-						? "\nWRONG"
-						: "\n{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue() + "}";
 
-				if (!created) {
+				String errMsg = "\n{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue() + "}";
+
+				if (!baseEntry.getValue().isCreated()) {
 					assertNull("CRDT has no create operations but is not null" + errMsg, val);
-				} else if (deleted) {
-					if (null != val) {
-						logger.info(Executive.getExecutive().toString());
-					}
-					
+				} else if (!baseEntry.getValue().isUpdated()) {
+					assertNull("CRDT has no update operations but is not null" + errMsg, val);
+				} else if (baseEntry.getValue().isDeleted()) {
 					assertNull("CRDT was deleted but is not null" + errMsg, val);
 				} else {
 					assertNotNull("CRDT is created and not deleted, but is null" + errMsg, val);
@@ -615,24 +613,9 @@ public class Test01Simulation {
 	@Test
 	public void simulateCreate() {
 		SimulationTest test = new SimulationTest();
+		test.setUpdateCount(0);
+		test.setDeleteCount(0);
 		test.setReadCount(0);
-		test.setUpdateCount(0);
-		test.setDeleteCount(0);
-		test.setRejectionProbability(0.0);
-		test.test();
-	}
-
-	/**
-	 * This test will perform a qualitative assessment of the ability to perform create and read
-	 * operations on a CRDT and have those operations propagate across all the nodes in
-	 * the simulated distributed environment. 
-	 */
-	@Test
-	public void simulateRead() {
-		SimulationTest test = new SimulationTest();
-		test.setUpdateCount(0);
-		test.setDeleteCount(0);
-		test.setRejectionProbability(0.0);
 		test.test();
 	}
 
@@ -645,6 +628,7 @@ public class Test01Simulation {
 	public void simulateUpdate() {
 		SimulationTest test = new SimulationTest();
 		test.setDeleteCount(0);
+		test.setReadCount(0);
 		test.test();
 	}
 
@@ -655,6 +639,18 @@ public class Test01Simulation {
 	 */
 	@Test
 	public void simulateDelete() {
+		SimulationTest test = new SimulationTest();
+		test.setReadCount(0);
+		test.test();
+	}
+
+	/**
+	 * This test will perform a qualitative assessment of the ability to perform create and read
+	 * operations on a CRDT and have those operations propagate across all the nodes in
+	 * the simulated distributed environment. 
+	 */
+	@Test
+	public void simulateRead() {
 		SimulationTest test = new SimulationTest();
 		test.test();
 	}

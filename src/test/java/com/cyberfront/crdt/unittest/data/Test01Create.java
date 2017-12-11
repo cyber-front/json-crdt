@@ -72,8 +72,7 @@ public class Test01Create {
 			logger.info("   SUCCESS");
 		}
 	}
-	
-	
+
 	/**
 	 * The main unit test routine used to perform the actual test execution 
 	 */

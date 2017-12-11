@@ -25,18 +25,25 @@ package com.cyberfront.crdt.sample.data;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.UUID;
 
-import com.cyberfront.crdt.sample.data.Factory.TYPE;
+import com.cyberfront.crdt.sample.data.Factory.DataType;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a collection of
  * AbstractDataType derived class instances
  */
 public class SimpleCollection extends AbstractDataType {
+	/** JSON property name for the value stored in any SimpleCollection instances */
+	protected final static String VALUE = "collectionValue";
 	
-	/** The Collection of AbstractDataType derived values associated with this SimpleCollection instance */
-	Collection<AbstractDataType> collectionValue;
+	/** The Collection of AbstractDataType derived collectionValue associated with this SimpleCollection instance */
+	@JsonProperty(VALUE)
+	private final Collection<AbstractDataType> collectionValue;
 
 	/**
 	 * Instantiates a new SimpleCollection instance with a collection of random objects
@@ -44,8 +51,8 @@ public class SimpleCollection extends AbstractDataType {
 	 */
 	public SimpleCollection() {
 		super();
-		int count = Support.getRandom().nextInt(4);
-		this.getCollectionValue().addAll(Factory.getInstances(count));
+		this.collectionValue = new ArrayList<>();
+		this.collectionValue.addAll(Factory.getInstances(Support.getRandom().nextInt(4)));
 	}
 	
 	/**
@@ -54,24 +61,63 @@ public class SimpleCollection extends AbstractDataType {
 	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleCollection(SimpleCollection src) {
-		super(src);
+		this(src.getId(), src.getVersion(), src.getNotes(), src.getCollectionValue());
+	}
 
-		this.getCollectionValue();
+	/**
+	 * Copy constructor which uses `src` as the source content for the new instance
+	 *
+	 * @param src Source data from which to create the new instance
+	 * @param pChange Probability an individual field will be changed
+	 */
+	public SimpleCollection(SimpleCollection src, double pChange) {
+		super(src, pChange);
 
-		for (AbstractDataType obj : src.collectionValue) {
-			this.getCollectionValue().add(obj.copy());
+		this.collectionValue = new ArrayList<>();
+		
+		for (AbstractDataType element : this.collectionValue) {
+			if (null != element) {
+				double sample = Support.getRandom().nextDouble();
+				
+				if (sample > pChange) {
+					this.collectionValue.add(element.copy());
+				} else if (sample > 2.0 * pChange / 3.0) {
+					this.collectionValue.add(Factory.getInstance());
+					this.collectionValue.add(element);
+				} else if (sample > pChange / 3.0) {
+					this.collectionValue.add(element.copy(pChange));
+				}
+			}
 		}
 	}
 
 	/**
-	 * Gets the Collection of values associated with this instance.
-	 *
-	 * @return The Collection of values
+	 * Constructor used to fully specify the elements of the SimpleCollection instance
+	 * @param id Identifier for the SimpleCollection instance
+	 * @param version Version number for the specific instance
+	 * @param notes Notes associated with the data instance
+	 * @param values Value of the Collection stored in conjunction with this instance
 	 */
-	public Collection<AbstractDataType> getCollectionValue() {
-		if (null == this.collectionValue) {
-			this.collectionValue = new ArrayList<>();
+	@JsonCreator
+	public SimpleCollection(@JsonProperty(ID) UUID id,
+			@JsonProperty(VERSION) Long version,
+			@JsonProperty(NOTES) String notes,
+			@JsonProperty(VALUE) Collection<AbstractDataType> values) {
+		super(id, version, notes);
+
+		this.collectionValue = new ArrayList<>();
+		for (AbstractDataType value : values) {
+			this.collectionValue.add(value.copy());
 		}
+	}
+
+	/**
+	 * Gets the Collection of collectionValue associated with this instance.
+	 *
+	 * @return The Collection of collectionValue
+	 */
+	@JsonProperty(VALUE)
+	public Collection<AbstractDataType> getCollectionValue() {
 		return collectionValue;
 	}
 	
@@ -87,11 +133,12 @@ public class SimpleCollection extends AbstractDataType {
 	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
 	 */
 	@Override
+	@JsonIgnore
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(super.getSegment() + ",");
-		sb.append("\"collectionValue\":" + Support.convert(this.getCollectionValue()));
+		sb.append("\"collectionValue\":" + Support.convert(this.collectionValue));
 		
 		return sb.toString();
 	}
@@ -100,31 +147,8 @@ public class SimpleCollection extends AbstractDataType {
 	 * @see com.cyberfront.cmrdt.data.DataType#update(java.lang.Double)
 	 */
 	@Override
-	public void update(Double prob) {
-		super.update(prob);
-		Collection<AbstractDataType> temp = new ArrayList<>();
-		
-		for (AbstractDataType element : this.collectionValue) {
-			if (null != element) {
-				double sample = Support.getRandom().nextDouble();
-				
-				if (sample > prob) {
-					temp.add(element);
-					this.incrementVersion();
-				} else if (sample > 2.0 * prob / 3.0) {
-					element.update(prob);
-					temp.add(element);
-					this.incrementVersion();
-				} else if (sample > prob / 3.0) {
-					temp.add(Factory.getInstance());
-					temp.add(element);
-					this.incrementVersion();
-				}
-			}
-		}
-		
-		this.getCollectionValue().clear();
-		this.getCollectionValue().addAll(temp);
+	public AbstractDataType copy(Double pChange) {
+		return new SimpleCollection(this, pChange);
 	}
 
 	/* (non-Javadoc)
@@ -170,7 +194,8 @@ public class SimpleCollection extends AbstractDataType {
 	 * @see com.cyberfront.cmrdt.data.DataType#getType()
 	 */
 	@Override
-	public TYPE getType() {
-		return TYPE.SIMPLE_COLLECTION;
+	@JsonIgnore
+	public DataType getType() {
+		return DataType.SIMPLE_COLLECTION;
 	}
 }

@@ -144,8 +144,8 @@ public class Test03Clone {
 					}
 					assertEquals(expected, actual);
 
-					JsonNode source = this.getMapper().valueToTree(el0);
-					JsonNode target = this.getMapper().valueToTree(el1);
+					JsonNode source = getMapper().valueToTree(el0);
+					JsonNode target = getMapper().valueToTree(el1);
 					JsonNode diff = JsonDiff.asJson(source, target);
 
 					if (actual && diff.size() > 0) {

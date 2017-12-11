@@ -61,7 +61,7 @@ public class Test04Json extends AssessmentSupport {
 		for (long i=0; i<count; ++i) {
 			AbstractDataType el0 = Factory.getInstance();
 			AbstractDataType el1 = el0.copy();
-			el1.update(0.2);
+			el1 = el1.copy(0.2);
 			
 			JsonNode source = mapper.valueToTree(el0);
 			JsonNode target = mapper.valueToTree(el1);

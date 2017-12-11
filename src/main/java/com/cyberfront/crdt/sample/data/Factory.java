@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
-import com.cyberfront.crdt.sample.simlation.Node;
-import com.cyberfront.crdt.sample.simlation.SimCRDTManager;
+import com.cyberfront.crdt.sample.simulation.Node;
+import com.cyberfront.crdt.sample.simulation.SimCRDTManager;
 import com.cyberfront.crdt.support.Support;
 
 /**
@@ -38,19 +38,19 @@ public class Factory {
 	/**
 	 * An enumeration of the derived classes from DataTyep
 	 */
-	public enum TYPE {
+	public enum DataType {
 		
-		/** Corresponds to com.cyberfront.cmrdt.data.SimpleA */
-		SIMPLE_A,
+		/** Corresponds to com.cyberfront.cmrdt.data.SimpleString */
+		SIMPLE_STRING,
 		
-		/** Corresponds to com.cyberfront.cmrdt.data.SimpleB */
-		SIMPLE_B,
+		/** Corresponds to com.cyberfront.cmrdt.data.SimpleInteger */
+		SIMPLE_INTEGER,
 		
-		/** Corresponds to com.cyberfront.cmrdt.data.SimpleC */
-		SIMPLE_C,
+		/** Corresponds to com.cyberfront.cmrdt.data.SimpleDouble */
+		SIMPLE_DOUBLE,
 		
-		/** Corresponds to com.cyberfront.cmrdt.data.SimpleD */
-		SIMPLE_D,
+		/** Corresponds to com.cyberfront.cmrdt.data.SimpleBoolean */
+		SIMPLE_BOOLEAN,
 		
 		/** Corresponds to com.cyberfront.cmrdt.data.SimpleCollection */
 		SIMPLE_COLLECTION,
@@ -90,16 +90,16 @@ public class Factory {
 	 * @param type TYPE enumeration value corresponding to the concrete type to instantiate and return
 	 * @return single concrete instance of a AbstractDataType
 	 */
-	public static AbstractDataType getInstance(TYPE type) {
+	public static AbstractDataType getInstance(DataType type) {
 		switch (type) {
-		case SIMPLE_A:
-			return new SimpleA();
-		case SIMPLE_B:
-			return new SimpleB();
-		case SIMPLE_C:
-			return new SimpleC();
-		case SIMPLE_D:
-			return new SimpleD();
+		case SIMPLE_STRING:
+			return new SimpleString();
+		case SIMPLE_INTEGER:
+			return new SimpleInteger();
+		case SIMPLE_DOUBLE:
+			return new SimpleDouble();
+		case SIMPLE_BOOLEAN:
+			return new SimpleBoolean();
 		case SIMPLE_COLLECTION:
 			return new SimpleCollection();
 		case SIMPLE_REFERENCE:
@@ -109,76 +109,46 @@ public class Factory {
 		}
 	}
 
-//	/**
-//	 * Copy an instance of the given AbstractDataType instance
-//	 *
-//	 * @param element Element to copy
-//	 * @return A copy of the given source element 
-//	 */
-//	public static AbstractDataType copy(AbstractDataType element) {
-//		TYPE type = element.getType();
-//		if (null == type) {
-//			return null;
-//		}
-//
-//		switch (type) {
-//		case SIMPLE_A:
-//			return new SimpleA((SimpleA) element);
-//		case SIMPLE_B:
-//			return new SimpleB((SimpleB) element);
-//		case SIMPLE_C:
-//			return new SimpleC((SimpleC) element);
-//		case SIMPLE_D:
-//			return new SimpleD((SimpleD) element);
-//		case SIMPLE_COLLECTION:
-//			return new SimpleCollection((SimpleCollection) element);
-//		case SIMPLE_REFERENCE:
-//			return new SimpleReference((SimpleReference) element);
-//		default:
-//			return null;
-//		}
-//	}
-
 	/**
 	 * Pick type at random
 	 *
 	 * @return The randomly selected type
 	 */
-	private static TYPE pickType() {
-		return TYPE.values()[Support.getRandom().nextInt(TYPE.values().length)];
+	private static DataType pickType() {
+		return DataType.values()[Support.getRandom().nextInt(DataType.values().length)];
 	}
 	
 	/**
-	 * Generate and return a CRDTManager for the given `node`.   
+	 * Generate and return a DeprecatedCRDTManager for the given `node`.   
 	 *
-	 * @param ownerNode The node for which the resulting CRDTManager is to be the approver for operations performed elsewhere
+	 * @param ownerNode The node for which the resulting DeprecatedCRDTManager is to be the approver for operations performed elsewhere
 	 * @param managerNode The node which is locally managed (i.e. the local node) 
 	 * @param id The identifier for the new CRDT
-	 * @return The CRDTManager with the managed type 
+	 * @return The DeprecatedCRDTManager with the managed type 
 	 */
 	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node ownerNode, Node managerNode, UUID id) {
 		return genCRDT(ownerNode, managerNode, pickType(), id);
 	}
 		
 	/**
-	 * Generate and return a CRDTManager for the given `node` and of the given `type`   
+	 * Generate and return a DeprecatedCRDTManager for the given `node` and of the given `type`   
 	 *
-	 * @param ownerNode The node for which the resulting CRDTManager is to be the approver for operations performed elsewhere
+	 * @param ownerNode The node for which the resulting DeprecatedCRDTManager is to be the approver for operations performed elsewhere
 	 * @param managerNode The node which is locally managed (i.e. the local node) 
 	 * @param type The enumeration corresponding to the concrete type of AbstractDataType to generate 
 	 * @param id The identifier for the new CRDT
-	 * @return The CRDTManager with the managed type 
+	 * @return The DeprecatedCRDTManager with the managed type 
 	 */
-	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node ownerNode, Node managerNode, TYPE type, UUID id) {
+	public static SimCRDTManager<? extends AbstractDataType> genCRDT(Node ownerNode, Node managerNode, DataType type, UUID id) {
 		switch (type) {
-		case SIMPLE_A:
-			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleA.class);
-		case SIMPLE_B:
-			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleB.class);
-		case SIMPLE_C:
-			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleC.class);
-		case SIMPLE_D:
-			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleD.class);
+		case SIMPLE_STRING:
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleString.class);
+		case SIMPLE_INTEGER:
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleInteger.class);
+		case SIMPLE_DOUBLE:
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleDouble.class);
+		case SIMPLE_BOOLEAN:
+			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleBoolean.class);
 		case SIMPLE_COLLECTION:
 			return new SimCRDTManager<>(id, ownerNode.getId(), managerNode.getId(), SimpleCollection.class);
 		case SIMPLE_REFERENCE:

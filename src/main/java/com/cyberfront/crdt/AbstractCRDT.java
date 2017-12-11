@@ -22,8 +22,7 @@
  */
 package com.cyberfront.crdt;
 
-import java.util.Observable;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -36,43 +35,59 @@ import com.fasterxml.jackson.databind.JsonNode;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
-    @Type(value = OperationTwoSet.class, name = "OperationTwoSet"),
-    @Type(value = LastWriteWins.class, name = "LastWriteWins") })
-public abstract class AbstractCRDT extends Observable {
+    @Type(value = OperationTwoSet.class, name = "DeprecatedOperationTwoSet"),
+    @Type(value = LastWriteWins.class, name = "DeprecatedLastWriteWins") })
+public abstract class AbstractCRDT {
 	
 	/**
-	 * This will return true exactly when there is at least one com.cyberfront.crdt.operations.DeleteOperation in the list being maintained by the CRDT 
-	 * @return Returns true exactly when there is at least one com.cyberfront.crdt.operations.DeleteOperation in the list of operations
+	 * This will return true exactly when there is at least one operation with a type of OperationType.CREATE in the list being maintained by the CRDT 
+	 * @return Returns true exactly when there is at least one operation with a type of OperationType.CREATE in the list of operations
 	 */
-	public abstract boolean isDeleted();
-	
-	/**
-	 * This will return true exactly when there is at least one com.cyberfront.crdt.operations.CreateOperation in the list being maintained by the CRDT 
-	 * @return Returns true exactly when there is at least one com.cyberfront.crdt.operations.CreateOperation in the list of operations
-	 */
+	@JsonIgnore
 	public abstract boolean isCreated();
 	
 	/**
-	 * Count the number of CreateOperation instances are associated with this CRDT
-	 * @return Number of CreateOperatiopn instances associated with this CRDT  
+	 * This will return true exactly when there is at least one operation with a type of OperationType.READ in the list being maintained by the CRDT 
+	 * @return Returns true exactly when there is at least one operation with a type of OperationType.READ in the list of operations
+	 */
+	@JsonIgnore
+	public abstract boolean isRead();
+	
+	/**
+	 * This will return true exactly when there is at least one operation with a type of OperationType.UPDATE in the list being maintained by the CRDT 
+	 * @return Returns true exactly when there is at least one operation with a type of OperationType.UPDATE in the list of operations
+	 */
+	@JsonIgnore
+	public abstract boolean isUpdated();
+	
+	/**
+	 * This will return true exactly when there is at least one operation with a type of OperationType.DELETE in the list being maintained by the CRDT 
+	 * @return Returns true exactly when there is at least one operation with a type of OperationType.DELETE in the list of operations
+	 */
+	@JsonIgnore
+	public abstract boolean isDeleted();
+	
+	/**
+	 * Count the number of CREATE Operation instances are associated with this CRDT
+	 * @return Number of CREATE Operation instances associated with this CRDT  
 	 */
 	public abstract long countCreated();
 	
 	/**
-	 * Count the number of ReadOperation instances are associated with this CRDT
-	 * @return Number of ReadOperatiopn instances associated with this CRDT  
+	 * Count the number of READ Operation instances are associated with this CRDT
+	 * @return Number of READ Operation instances associated with this CRDT  
 	 */
 	public abstract long countRead();
 	
 	/**
-	 * Count the number of UpdateOperation instances are associated with this CRDT
-	 * @return Number of UpdateOperatiopn instances associated with this CRDT  
+	 * Count the number of UPDATE Operation instances are associated with this CRDT
+	 * @return Number of UPDATE Operation instances associated with this CRDT  
 	 */
 	public abstract long countUpdate();
 	
 	/**
-	 * Count the number of DeleteOperation instances are associated with this CRDT
-	 * @return Number of DeleteOperatiopn instances associated with this CRDT  
+	 * Count the number of DELETE Operation instances are associated with this CRDT
+	 * @return Number of DELETE Operation instances associated with this CRDT  
 	 */
 	public abstract long countDelete();
 	
@@ -80,6 +95,7 @@ public abstract class AbstractCRDT extends Observable {
 	 * Process the operations and return the resulting JsonNode document
 	 * @return The JSON document resulting from processing the operations in the CRDT
 	 */
+	@JsonIgnore
 	public abstract JsonNode getDocument();
 	
 	/**
@@ -93,13 +109,14 @@ public abstract class AbstractCRDT extends Observable {
 	 * This is used to create a string representation of the CRDT in support of the toString() method
 	 * @return Return the relevant data for the CRDT
 	 */
+	@JsonIgnore
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
-		JsonNode value = this.getDocument();
+		JsonNode document = this.getDocument();
 		
 		sb.append("\"created\":\"" + this.isCreated() + "\",");
 		sb.append("\"deleted\":\"" + this.isDeleted() + "\",");
-		sb.append("\"value\":" + (null == value ? "null" : value));
+		sb.append("\"document\":" + (null == document ? "null" : document));
 
 		return sb.toString();
 	}

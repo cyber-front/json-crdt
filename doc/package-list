@@ -1,9 +1,10 @@
 com.cyberfront.crdt
-com.cyberfront.crdt.operations
+com.cyberfront.crdt.operation
 com.cyberfront.crdt.sample.data
 com.cyberfront.crdt.sample.manager
-com.cyberfront.crdt.sample.simlation
+com.cyberfront.crdt.sample.simulation
 com.cyberfront.crdt.support
 com.cyberfront.crdt.unittest.basiccrdt
 com.cyberfront.crdt.unittest.data
+com.cyberfront.crdt.unittest.operation
 com.cyberfront.crdt.unittest.simulator

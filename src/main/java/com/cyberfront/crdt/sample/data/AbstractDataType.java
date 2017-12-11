@@ -27,9 +27,11 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.cyberfront.crdt.sample.data.Factory.TYPE;
+import com.cyberfront.crdt.sample.data.Factory.DataType;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -44,14 +46,25 @@ import com.thedeanda.lorem.LoremIpsum;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
-    @Type(value = SimpleA.class, name = "SimpleA"),
-    @Type(value = SimpleB.class, name = "SimpleB"),
-    @Type(value = SimpleC.class, name = "SimpleC"),
-    @Type(value = SimpleD.class, name = "SimpleD"),
+    @Type(value = SimpleString.class, name = "SimpleString"),
+    @Type(value = SimpleInteger.class, name = "SimpleInteger"),
+    @Type(value = SimpleDouble.class, name = "SimpleDouble"),
+    @Type(value = SimpleBoolean.class, name = "SimpleBoolean"),
     @Type(value = SimpleCollection.class, name = "SimpleCollection"),
     @Type(value = SimpleReference.class, name = "SimpleReference") })
 
 public abstract class AbstractDataType {
+	/** JSON property name for the id stored in any AbstractDataType instances */
+	protected final static String ID = "id";
+
+	/** JSON property name for the version stored in any AbstractDataType instances */
+	protected final static String VERSION = "version";
+
+	/** JSON property name for the notes stored in any AbstractDataType instances */
+	protected final static String NOTES = "notes";
+
+	/** JSON property name for the description stored in any AbstractDataType instances */
+	protected final static String DESCRIPTION = "description";
 	
 	/** Logger to use when displaying state information */
 	@SuppressWarnings("unused")
@@ -62,26 +75,27 @@ public abstract class AbstractDataType {
 	private static final ObjectMapper mapper = new ObjectMapper();
 
 	/** A unique identifier for the object */
+	@JsonProperty(ID)
 	private final UUID id;
 	
 	/** Notes associated with the data instance. */
-	private String notes;
+	@JsonProperty(NOTES)
+	private final String notes;
 	
 	/** A description of the object. */
-	private String description;
+	@JsonProperty(DESCRIPTION)
+	private final String description;
 	
 	/** The version, relating to the number of times the object was revised */
-	private Long version;
+	@JsonProperty(VERSION)
+	private final Long version;
 	
 	/**
 	 * Create a new object, setting random values to most of the fields, though
 	 * the version is set initially to 0 since it hasn't been changed.
 	 */
 	public AbstractDataType() {
-		this.id = UUID.randomUUID();
-		this.setDescription(LoremIpsum.getInstance().getWords(5, 10));
-		this.setNotes(LoremIpsum.getInstance().getWords(5, 10));
-		this.setVersion(0L);
+		this(UUID.randomUUID(), 0L, LoremIpsum.getInstance().getWords(5, 10));
 	}
 	
 	/**
@@ -89,11 +103,35 @@ public abstract class AbstractDataType {
 	 *
 	 * @param src The course AbstractDataType to copy into this instance
 	 */
-	protected AbstractDataType(AbstractDataType src) {
-		this.description = src.description;
+	public AbstractDataType(AbstractDataType src) {
+		this(src.id, src.version, src.notes);
+	}
+
+	/**
+	 * Instantiates a new AbstractDataType by copying a source instance 
+	 *
+	 * @param src The course AbstractDataType to copy into this instance
+	 * @param pChange Probability of changing either of the strings
+	 */
+	public AbstractDataType(AbstractDataType src, double pChange) {
 		this.id = src.id;
-		this.notes = src.notes;
-		this.version = src.version;
+		this.version = src.version + 1;
+		this.notes = Support.getRandom().nextDouble() < pChange  ? LoremIpsum.getInstance().getWords(5, 10) : src.notes;
+		this.description = this.getClass().toString();
+	}
+
+	/**
+	 * Constructor for specifying each of the elements of the AbstractDataType
+	 * 
+	 * @param id Identifier for the AbstractDataType instance
+	 * @param version Version for the AbstractDataType instance
+	 * @param notes Notes associated with the AbstractDataType instance
+	 */
+	public AbstractDataType(UUID id, Long version, String notes) {
+		this.id = id;
+		this.version = version;
+		this.notes = notes;
+		this.description = this.getClass().toString();
 	}
 	
 	/**
@@ -101,17 +139,9 @@ public abstract class AbstractDataType {
 	 *
 	 * @return the notes
 	 */
+	@JsonProperty(NOTES)
 	public String getNotes() {
 		return notes;
-	}
-
-	/**
-	 * Sets the notes to the given value.
-	 *
-	 * @param notes The new notes
-	 */
-	public void setNotes(String notes) {
-		this.notes = notes;
 	}
 
 	/**
@@ -119,17 +149,9 @@ public abstract class AbstractDataType {
 	 *
 	 * @return the description
 	 */
+	@JsonProperty(DESCRIPTION)
 	public String getDescription() {
 		return description;
-	}
-
-	/**
-	 * Sets the description to the given value.
-	 *
-	 * @param description The new description
-	 */
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 	/**
@@ -137,6 +159,7 @@ public abstract class AbstractDataType {
 	 *
 	 * @return the id
 	 */
+	@JsonProperty(ID)
 	public UUID getId() {
 		return id;
 	}
@@ -146,43 +169,18 @@ public abstract class AbstractDataType {
 	 *
 	 * @return the version number
 	 */
+	@JsonProperty(VERSION)
 	public Long getVersion() {
 		return version;
 	}
-
-	/**
-	 * Increments the version counter to the next element; this should be
-	 * called whenever the object is updated.
-	 */
-	protected void incrementVersion() {
-		this.setVersion(this.getVersion() + 1);
-	}
 	
 	/**
-	 * Sets the version number to the given value.
-	 *
-	 * @param version The new version
-	 */
-	public void setVersion(Long version) {
-		this.version = version;
-	}
-
-	/**
-	 * Update the instance such that each field is changed with probability given by prob
+	 * Update the instance such that each field is changed with probability given by probability pChange
 	 * 
-	 * @param prob Probability an individual field will be changed
+	 * @param pChange Probability an individual field will be changed
+	 * @return Updated copy of this instance with individual fields updated based on the given probability pChange
 	 */
-	public void update(Double prob) {
-		if (Support.getRandom().nextDouble() < prob) {
-			this.setDescription(LoremIpsum.getInstance().getWords(5, 10));
-			this.incrementVersion();
-		}
-
-		if (Support.getRandom().nextDouble() < prob) {
-			this.setNotes(LoremIpsum.getInstance().getWords(5, 10));
-			this.incrementVersion();
-		}
-	}
+	public abstract AbstractDataType copy(Double pChange);
 
 	/**
 	 * Gets the object mapper.
@@ -207,7 +205,8 @@ public abstract class AbstractDataType {
 	 *
 	 * @return The type of this object
 	 */
-	public abstract TYPE getType();
+	@JsonIgnore
+	public abstract DataType getType();
 	
 
 	/**
@@ -220,6 +219,7 @@ public abstract class AbstractDataType {
 	 * Generate a string representation of this AbstractDataType
 	 * @return String representation of this AbstractDataType
 	 */
+	@JsonIgnore
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		

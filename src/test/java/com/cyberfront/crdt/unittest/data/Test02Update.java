@@ -39,33 +39,50 @@ import com.cyberfront.crdt.sample.data.Factory;
 public class Test02Update {
 	public static class UpdateTest extends AssessmentSupport {
 		/** Constant to define the default update probability to use */
-		private static final double UPDATE_PROBABILITY = 0.2;
+		private static final double PROBABILITY_CHANGE = 0.2;
 		
 		/** Logger to use when displaying state information */
 		private Logger logger = LogManager.getLogger(Test03Clone.CloneTest.class);
 
-		private double updateProbability;
+		/** Probability of change */
+		private double pChange;
 		
+		/**
+		 * Constructor for using the default settings
+		 */
 		public UpdateTest() {
 			super();
-			this.setUpdateProbability(UPDATE_PROBABILITY);
+			this.setProbabilityChange(PROBABILITY_CHANGE);
 		}
 		
-		public UpdateTest(double updateProbability, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed) {
+		/**
+		 * Constructor to explicitly set each of the test parameters 
+		 * @param pChange Probability of change
+		 * @param trialCount Number of trials to perform
+		 * @param abbreviatedFactor Division factor for performing abbreviated tests
+		 * @param stressedFactor Multiplication factor for performing stress tests
+		 * @param abbreviated Flag to use abbreviated testing
+		 * @param stressed Flag to use stress testing
+		 */
+		public UpdateTest(double pChange, long trialCount, long abbreviatedFactor, long stressedFactor, boolean abbreviated, boolean stressed) {
 			super(trialCount, abbreviatedFactor, stressedFactor, abbreviated, stressed);
-			this.setUpdateProbability(updateProbability);
+			this.setProbabilityChange(pChange);
 		}
 
 		/**
 		 * Return the given update probability factor
 		 * @return The update probability factor
 		 */
-		public double getUpdateProbability() {
-			return this.updateProbability;
+		public double getProbabilityChange() {
+			return this.pChange;
 		}
 
-		public void setUpdateProbability(double updateProbability) {
-			this.updateProbability = updateProbability;
+		/**
+		 * Set the probability of change for update operations
+		 * @param pChange New probability of change value
+		 */
+		public void setProbabilityChange(double pChange) {
+			this.pChange = pChange;
 		}
 
 		/**
@@ -73,11 +90,11 @@ public class Test02Update {
 		 * a single update session on the object.
 		 */
 		public void test() {
-			logger.info("\n** Test02Update: {\"count\":" + this.getTrialCount() + ",\"updateProb\":" + this.getUpdateProbability() + "}");
+			logger.info("\n** Test02Update: {\"count\":" + this.getTrialCount() + ",\"updateProb\":" + this.getProbabilityChange() + "}");
 			for (int i=0; i<this.getTrialCount(); ++i) {
 				AbstractDataType tmp = Factory.getInstance();
 				assertNotNull(tmp);
-				tmp.update(this.getUpdateProbability());
+				tmp = tmp.copy(this.getProbabilityChange());
 				assertNotNull(tmp);
 			}
 			logger.info("   SUCCESS");

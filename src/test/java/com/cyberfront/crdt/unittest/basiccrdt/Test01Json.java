@@ -23,11 +23,11 @@
 package com.cyberfront.crdt.unittest.basiccrdt;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
@@ -35,10 +35,9 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
-import com.cyberfront.crdt.sample.data.SimpleCollection;
 import com.cyberfront.crdt.sample.manager.JsonManager;
+import com.cyberfront.crdt.support.Support;
 import com.cyberfront.crdt.unittest.data.AssessmentSupport;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.diff.JsonDiff;
@@ -51,7 +50,7 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 public class Test01Json {
 	public static class JsonTest extends AssessmentSupport {
 		/** Constant defining the number of states to use in the testing */
-		private static final long STATE_COUNT = 32L;
+		private static final long STATE_COUNT = 1024L;
 		
 		/** Logger to use when displaying state information */
 		private static final Logger logger = LogManager.getLogger(Test01Json.JsonTest.class);
@@ -95,20 +94,64 @@ public class Test01Json {
 		}
 		
 		/**
-		 * Generate a collection of state transitions for testing the JsonManager class
-		 * @param count Number of state transitions to generate
-		 * @return A collection of state transitions, the number being that given
+		 * Test the recall ability a JSON CRDT to ensure the CRDT can reconstruct a JSON object it manages
 		 */
-		private static Collection<JsonNode> getStates(long count) {
-			Collection<JsonNode> rv = new ArrayList<>();
-			AbstractDataType object = new SimpleCollection();
+		public void testRecall() {
+			logger.info("\n** testRecall: {\"count\":" + this.getTrialCount() + ", \"stateCount\":" + this.getStateCount()+ "}");
 			
-			for (long i=0; i<count; ++i) {
-				rv.add(mapper.valueToTree(object));
-				object.update(0.1);
+			for (int trial=0; trial<this.getTrialCount(); ++trial) {
+				StringBuilder sb = new StringBuilder();
+				logger.info("   trial " + (trial+1) + " of " + this.getTrialCount() + ".");
+
+				Collection<AbstractDataType> objects = generateObjectSequence(this.stateCount, 0.1);
+				sb.append("{\"objects\":" + Support.convert(objects));
+				if (this.stateCount != objects.size()) {
+					sb.append("}");
+					System.out.println(sb.toString());
+					assertEquals("Object count mismatch: ", this.stateCount, objects.size());
+				}
+				
+				Collection<JsonNode> documents = generateJsonSequence(objects);
+				sb.append(",\n\"documents\":" + Support.convert(documents));
+				if (this.stateCount != documents.size()) {
+					sb.append("}");
+					System.out.println(sb.toString());
+					assertEquals("Document count mismatch: ", this.stateCount, documents.size());
+				}
+
+				Collection<JsonNode> diffs = generateDifferenceSequence(documents);
+				sb.append(",\n\"diffs\":" + Support.convert(diffs));
+				if (this.stateCount != diffs.size()) {
+					sb.append("}");
+					System.out.println(sb.toString());
+					assertEquals("Diference count mismatch: ", this.stateCount, diffs.size());
+				}
+
+				Collection<JsonNode> regen = regenerateJsonSequence(diffs);
+				sb.append(",\n\"regen\":" + Support.convert(regen));
+				if (this.stateCount != regen.size()) {
+					sb.append("}");
+					System.out.println(sb.toString());
+					assertEquals("Regeneration count mismatch: ", this.stateCount, regen.size());
+				}
+
+				Collection<JsonNode> deviations = super.compareJsonSequence(documents, regen);
+				sb.append(",\n\"deviations\":" + Support.convert(deviations));
+				if (this.stateCount != deviations.size()) {
+					System.out.println(sb.toString());
+					assertEquals("Deviation count mismatch: ", this.stateCount, deviations.size());
+				}
+
+				for (JsonNode deviation : deviations) {
+					if (0 != deviation.size()) {
+						sb.append(",\n\"deviation\":" + (null == deviation ? "null" : deviation.toString()) + "}");
+						System.out.println(sb.toString());
+						assertEquals("Invalid regeneration: ", 0, deviation.size());
+					}
+				}
 			}
 			
-			return rv;
+			logger.info("   SUCCESS");
 		}
 		
 		/**
@@ -120,26 +163,25 @@ public class Test01Json {
 			for (int trial=0; trial<this.getTrialCount(); ++trial) {
 				logger.info("   trial " + (trial+1) + " of " + this.getTrialCount() + ".");
 
-				Collection<JsonNode> states = getStates(this.stateCount);
-				JsonManager mgr = null;
+				Collection<AbstractDataType> objects = generateObjectSequence(this.stateCount, 0.1);
+				Collection<JsonNode> documents = generateJsonSequence(objects);
+				
 				long timeStamp = 0;
-				for (JsonNode source : states) {
-					if (null == mgr) {
-						mgr = new JsonManager(source, timeStamp);
-					} else {
-						mgr.update(source, timeStamp);
-					}
+				JsonManager mgr = new JsonManager(timeStamp);
+
+				for (JsonNode source : documents) {
+					mgr.update(source, timeStamp);
 					
 					JsonNode target = mgr.read(timeStamp);
 					try {
 						target = mapper.readTree(target.toString());
 						source = mapper.readTree(source.toString());
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
+						assertTrue(false);
 					}
 					
-					JsonNode diff = JsonDiff.asJson(target, source);
+					JsonNode diff = JsonDiff.asJson(source, target);
 					
 					if (0 != diff.size()) {
 						logger.error("timestamp: " + timeStamp);
@@ -171,52 +213,49 @@ public class Test01Json {
 			for (int trial=0; trial<this.getTrialCount(); ++trial) {
 				logger.info("   trial " + (trial+1) + " of " + this.getTrialCount() + ".");
 
-				Collection<JsonNode> states = getStates(this.stateCount);
-				JsonManager mgr = null;
-				long timeStamp = 0;
+				Collection<AbstractDataType> objects = generateObjectSequence(this.stateCount, 0.1);
+				Collection<JsonNode> states = generateJsonSequence(objects);
+
+				long timestamp = 0;
+				JsonManager mgr = new JsonManager(timestamp);
 				for (JsonNode source : states) {
-					if (null == mgr) {
-						mgr = new JsonManager(source, timeStamp);
-					} else {
-						mgr.update(source, timeStamp);
-					}
-					
-					String mgrString = null;
+					mgr.update(source, timestamp);
+
+					JsonNode mgrDocument = getMapper().valueToTree(mgr);
+					String mgrString = mgrDocument.toString();
+
 					JsonNode restoredJsonMgr = null;
 					JsonManager restoredMgr = null;
-					
+
 					try {
-						mgrString = mapper.writeValueAsString(mgr);
 						restoredJsonMgr = mapper.readerFor(JsonManager.class).readTree(mgrString);
 						restoredMgr = mapper.treeToValue(restoredJsonMgr, JsonManager.class);
-					} catch (JsonProcessingException e) {
-						logger.info("    mgrString:" + (null == mgrString ? "null" : mgrString.toString()));
-						logger.info("    restoredJsonMgr:" + (null == restoredJsonMgr ? "null" : restoredJsonMgr.toString()));
-						logger.info("    restoredMgr:" + (null == restoredMgr ? "null" : restoredMgr.toString()));
-						e.printStackTrace();
-					} catch (IOException e) {
-						logger.info("    exception:" + e.toString());
-						logger.info("    restoredJsonMgr:" + (null == restoredJsonMgr ? "null" : restoredJsonMgr.toString()));
-						logger.info("    restoredMgr:" + (null == restoredMgr ? "null" : restoredMgr.toString()));
-						e.printStackTrace();
+					} catch (IOException e1) {
+						logger.info(e1.toString());
+						logger.info("{\"mgr\":" + (null == mgr ? "null" : mgr.toString()) + ",");
+						logger.info("\"mgrDocument\":" + (null == mgrDocument ? "null" : mgrDocument.toString()) + ",");
+						logger.info("\"mgrString\":" + (null == mgrString ? "null" : mgrString) + ",");
+						logger.info("\"restoredJsonMgr\":" + (null == restoredJsonMgr ? "null" : restoredJsonMgr.toString()) + ",");
+						logger.info("\"restoredMgr\":" + (null == restoredMgr ? "null" : restoredMgr.toString()) + "}");
 					}
-
+					
+					assertNotNull(restoredJsonMgr);
 					assertNotNull(restoredMgr);
 					
-					JsonNode target = restoredMgr.read(timeStamp);
+					JsonNode target = restoredMgr.read(timestamp);
 					
 					try {
 						target = mapper.readTree(target.toString());
 						source = mapper.readTree(source.toString());
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
+						assertTrue(false);
 					}
 					
 					JsonNode diff = JsonDiff.asJson(target, source);
 					
 					if (0 != diff.size()) {
-						logger.error("timestamp: " + timeStamp);
+						logger.error("timestamp: " + timestamp);
 						logger.error("source: " + (null == source ? "null" : source.toString()));
 						logger.error("target: " + (null == target ? "null" : target.toString()));
 						logger.error("diff: " + (null == diff ? "null" : diff.toString()));
@@ -225,19 +264,18 @@ public class Test01Json {
 					
 					assertEquals("Difference Detected: ", 0, diff.size());
 					
-					timeStamp += 10;
+					timestamp += 10;
 					
 				}
 				
-				mgr.delete(timeStamp);
+				mgr.delete(timestamp);
 				
-				assertNull(mgr.read(timeStamp));
+				assertNull(mgr.read(timestamp));
 			}
 			logger.info("   SUCCESS");
 		}
 	}
-	
-	
+
 	/**
 	 * The main unit test routine used to perform the actual test execution 
 	 */
@@ -253,7 +291,15 @@ public class Test01Json {
 	@Test
 	public void testTransformations() {
 		JsonTest test = new JsonTest();
-		test.setTrialCount(0);
 		test.testTransformation();
+	}
+	
+	/**
+	 * Test the ability of the CRDT to recall the different states of the object for its saved states.
+	 */
+	@Test
+	public void testRecall() {
+		JsonTest test = new JsonTest();
+		test.testRecall();
 	}
 }

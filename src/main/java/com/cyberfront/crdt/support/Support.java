@@ -38,8 +38,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.thedeanda.lorem.LoremIpsum;
 
-/** TODO: COmplete JavaDoc content in this class declaration */ 
-
 /**
  * This is a helper class for generating a number of random values useful for testing the CRDTs
  */
@@ -258,6 +256,67 @@ public class Support {
 	}
 	
 	/**
+	 * Get a string comprised of a sequence of word chosen from the provided list and separated by the given delimiter
+	 * @param count Number of words to pick from the list
+	 * @param words Words form which to choose the random values
+	 * @param delimiter Delimiter to separate consecutive words
+	 * @return The resulting string of words separated by the delimiter
+	 */
+	public static String getSequence(long count, List<String> words, char delimiter) {
+		StringBuilder sb = new StringBuilder();
+		
+		for (long i = 0; i < count; ++i) {
+			if (i>0) {
+				sb.append(delimiter);
+			}
+			
+			sb.append(getWord(words));
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Get a string comprised of a sequence of adjectives separated by the given delimiter
+	 * @param count Number of adjectives to pick
+	 * @param delimiter Delimiter to separate consecutive adjectives
+	 * @return The resulting string of adjectives separated by the delimiter
+	 */
+	public static String getAdjectives(long count, char delimiter) {
+		return getSequence(count, Support.ADJECTIVES, delimiter);
+	}
+	
+	/**
+	 * Get a string comprised of a sequence of adverbs separated by the given delimiter
+	 * @param count Number of adverbs to pick
+	 * @param delimiter Delimiter to separate consecutive adverbs
+	 * @return The resulting string of adverbs separated by the delimiter
+	 */
+	public static String getAdverbs(long count, char delimiter) {
+		return getSequence(count, Support.ADVERBS, delimiter);
+	}
+	
+	/**
+	 * Get a string comprised of a sequence of nous separated by the given delimiter
+	 * @param count Number of words to pick from the list of nouns
+	 * @param delimiter Delimiter to separate consecutive nouns
+	 * @return The resulting string of nouns separated by the delimiter
+	 */
+	public static String getNouns(long count, char delimiter) {
+		return getSequence(count, Support.NOUNS, delimiter);
+	}
+	
+	/**
+	 * Get a string comprised of a sequence of verbs separated by the given delimiter
+	 * @param count Number of verbs to pick
+	 * @param delimiter Delimiter to separate consecutive verbs
+	 * @return The resulting string of verbs separated by the delimiter
+	 */
+	public static String getVerbs(long count, char delimiter) {
+		return getSequence(count, Support.VERBS, delimiter);
+	}
+	
+	/**
 	 * Generate and return a male first, middle and last name
 	 *
 	 * @return The generated male name
@@ -302,6 +361,10 @@ public class Support {
 		return LoremIpsum.getInstance().getFirstName() + "." + LoremIpsum.getInstance().getLastName();
 	}
 	
+	/**
+	 * Display the stack trace provided
+	 * @param stackTrace to display
+	 */
 	public static void displayStackTrace(StackTraceElement[] stackTrace) {
 		for (StackTraceElement ste : stackTrace) {
 		    logger.info(ste);
@@ -361,5 +424,32 @@ public class Support {
 		sb.append("]");
 	
 		return sb.toString();
+	}
+
+	/**
+	 * Validate the given string can be interpreted as an integer.  Return true exactly when this is matched
+	 * @param str String to parse and determine if the value is an integer
+	 * @return True exactly when the string contains a representation of an integer
+	 */
+	public static boolean isInteger(String str) {
+		return null != str && str.matches("[-+]?[0-9]+");
+	}
+	
+	/**
+	 * Validate the given string can be interpreted as a numeric value.  Return true exactly when this is matched
+	 * @param str String to parse and determine if the value is a numeric value
+	 * @return True exactly when the string contains a representation of a numeric value
+	 */
+	public static boolean isNumeric(String str) {
+		return null != str && str.matches("[-+]?[0-9]+\\.?[0-9]+([eE][-+]?[0-9]+)?");
+	}
+
+	/**
+	 * Validate the given string can be interpreted as a boolean value.  Return true exactly when this is matched
+	 * @param str String to parse and determine if the value is a boolean value
+	 * @return True exactly when the string contains a representation of a boolean value
+	 */
+	public static boolean isBoolean(String str) {
+		return null != str && ("true".equals(str) || "false".equals(str));
 	}
 }

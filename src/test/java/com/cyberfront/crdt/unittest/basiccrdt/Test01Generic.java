@@ -25,7 +25,6 @@ package com.cyberfront.crdt.unittest.basiccrdt;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
@@ -33,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
-import com.cyberfront.crdt.sample.data.SimpleCollection;
 import com.cyberfront.crdt.sample.manager.GenericManager;
 import com.cyberfront.crdt.unittest.data.AssessmentSupport;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,7 +46,7 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 public class Test01Generic {
 	public static class GenericTest extends AssessmentSupport {
 		/** Constant defining the number of states to use in the testing */
-		private static final long STATE_COUNT = 32L;
+		private static final long STATE_COUNT = 1024L;
 		
 		/** Logger to use when displaying state information */
 		private static final Logger logger = LogManager.getLogger(Test01Generic.GenericTest.class);
@@ -92,23 +90,6 @@ public class Test01Generic {
 		}
 		
 		/**
-		 * Generate a collection of state transitions for testing the JsonManager class
-		 * @param count Number of state transitions to generate
-		 * @return A collection of state transitions, the number being that given
-		 */
-		private static Collection<AbstractDataType> getStates(long count) {
-			Collection<AbstractDataType> rv = new ArrayList<>();
-			AbstractDataType object = new SimpleCollection();
-			
-			for (long i=0; i<count; ++i) {
-				rv.add(object.copy());
-				object.update(0.1);
-			}
-			
-			return rv;
-		}
-		
-		/**
 		 * Test the ability of the JsonManager to correctly encode the operations and generate the resulting object.
 		 */
 		public void createDataTest() {
@@ -117,9 +98,9 @@ public class Test01Generic {
 			for (int trial=0; trial<this.getTrialCount(); ++trial) {
 				logger.info("   trial " + (trial+1) + " of " + this.getTrialCount() + ".");
 
-				Collection<AbstractDataType> states = getStates(this.stateCount);
-				GenericManager<AbstractDataType> mgr = null;
 				long timeStamp = 0;
+				Collection<AbstractDataType> states = super.generateObjectSequence(this.stateCount, 0.1);
+				GenericManager<AbstractDataType> mgr = null;
 				for (AbstractDataType source : states) {
 					if (null == mgr) {
 						mgr = new GenericManager<>(source, timeStamp);
@@ -161,7 +142,7 @@ public class Test01Generic {
 			for (int trial=0; trial<this.getTrialCount(); ++trial) {
 				logger.info("   trial " + (trial+1) + " of " + this.getTrialCount() + ".");
 
-				Collection<AbstractDataType> states = getStates(this.stateCount);
+				Collection<AbstractDataType> states = super.generateObjectSequence(this.stateCount, 0.1);
 				GenericManager<AbstractDataType> mgr = null;
 				long timeStamp = 0;
 				for (AbstractDataType source : states) {
@@ -171,26 +152,21 @@ public class Test01Generic {
 						mgr.update(source, timeStamp);
 					}
 					
-//					JsonNode target = mgr.read(timeStamp);
-//					try {
-//						target = mapper.readTree(target.toString());
-//						source = mapper.readTree(source.toString());
-//					} catch (IOException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					
-//					JsonNode diff = JsonDiff.asJson(target, source);
-//					
-//					if (0 != diff.size()) {
-//						logger.error("timestamp: " + timeStamp);
-//						logger.error("source: " + (null == source ? "null" : source.toString()));
-//						logger.error("target: " + (null == target ? "null" : target.toString()));
-//						logger.error("diff: " + (null == diff ? "null" : diff.toString()));
-//						logger.error("mgr: " + (null == mgr ? "null" : mgr.toString()));
-//					}
-//					
-//					assertEquals("Difference Detected: ", 0, diff.size());
+					AbstractDataType target = mgr.read(timeStamp);
+					
+					JsonNode srcDoc = mapper.valueToTree(source);
+					JsonNode tgtDoc = mapper.valueToTree(target);
+					JsonNode diff = JsonDiff.asJson(srcDoc, tgtDoc);
+					
+					if (0 != diff.size()) {
+						logger.error("timestamp: " + timeStamp);
+						logger.error("source: " + (null == source ? "null" : source.toString()));
+						logger.error("target: " + (null == target ? "null" : target.toString()));
+						logger.error("diff: " + (null == diff ? "null" : diff.toString()));
+						logger.error("mgr: " + (null == mgr ? "null" : mgr.toString()));
+					}
+					
+					assertEquals("Difference Detected: ", 0, diff.size());
 					
 					timeStamp += 10;
 					
@@ -203,8 +179,7 @@ public class Test01Generic {
 			logger.info("   SUCCESS");
 		}
 	}
-	
-	
+
 	/**
 	 * The main unit test routine used to perform the actual test execution 
 	 */
@@ -220,7 +195,6 @@ public class Test01Generic {
 	@Test
 	public void testTransformations() {
 		GenericTest test = new GenericTest();
-		test.setTrialCount(0);
 		test.testTransformation();
 	}
 }

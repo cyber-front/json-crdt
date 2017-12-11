@@ -25,37 +25,38 @@ package com.cyberfront.crdt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.cyberfront.crdt.operations.AbstractOperation;
-import com.cyberfront.crdt.operations.CreateOperation;
-import com.cyberfront.crdt.operations.DeleteOperation;
-import com.cyberfront.crdt.operations.OperationManager;
-import com.cyberfront.crdt.operations.ReadOperation;
-import com.cyberfront.crdt.operations.UpdateOperation;
+import com.cyberfront.crdt.operation.Operation.OperationType;
+import com.cyberfront.crdt.operation.Operation;
+import com.cyberfront.crdt.operation.OperationManager;
 import com.cyberfront.crdt.sample.manager.GenericManager;
 import com.cyberfront.crdt.sample.manager.JsonManager;
-import com.cyberfront.crdt.sample.simlation.SimCRDTManager;
+import com.cyberfront.crdt.sample.simulation.SimCRDTManager;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
- * The CRDTManager class is used to wrap a CRDT instance so as to interact with it.  The intent of this class is to 
+ * The DeprecatedCRDTManager class is used to wrap a CRDT instance so as to interact with it.  The intent of this class is to 
  * provide an interface to manage JSON documents with the CRDT types provided.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
-    @Type(value = GenericCRDTManager.class, name = "GenericCRDTManager"),
+    @Type(value = GenericCRDTManager.class, name = "DeprecatedGenericCRDTManager"),
     @Type(value = JsonManager.class, name = "JsonManager"),
     @Type(value = GenericManager.class, name = "GenericManager"),
     @Type(value = SimCRDTManager.class, name = "SimCRDTManager")
     })
 public class CRDTManager {
+	protected static final String CRDT = "crdt";
+	
 	/** The Constant logger used to generate log entries */
 	@SuppressWarnings("unused")
 	private static final Logger logger = LogManager.getLogger(CRDTManager.class);
@@ -64,12 +65,27 @@ public class CRDTManager {
 	private static final ObjectMapper mapper = new ObjectMapper();
 	
 	/** The CRDT containing the updates for the JSON object being managed. */
+	@JsonProperty(CRDT)
 	private LastWriteWins crdt;
+	
+	/**
+	 * Default constructor; performs no initialization of components
+	 */
+	public CRDTManager() {}
+
+	/**
+	 * Constructor specifying the CRDT to manage the LastWriteWins CRDT provided
+	 * @param crdt LastWriteWins CRDT to manage with this instance
+	 */
+	public CRDTManager(@JsonProperty(CRDT) LastWriteWins crdt) {
+		this.crdt = new LastWriteWins(crdt);
+	}
 	
 	/**
 	 * Gets the CRDT this manager is managing
 	 * @return the CRDT this manager is managing
 	 */
+	@JsonProperty(CRDT)
 	public LastWriteWins getCrdt() {
 		if (null == this.crdt) {
 			this.crdt = new LastWriteWins();
@@ -86,18 +102,41 @@ public class CRDTManager {
 	}
 	
 	/**
-	 * Checks if the CRDT being managed includes a CreateOperation
+	 * Checks if the CRDT being managed includes an operation with a Type.CREATE operation type
 	 *
-	 * @return True if and only if the CRDT includes a CreateOperation
+	 * @return True if and only if the CRDT includes an operation with a Type.CREATE operation type
 	 */
+	@JsonIgnore
 	public boolean isCreated() {
 		return this.getCrdt().isCreated();
 	}
 	
 	/**
-	 * Checks if the CRDT being managed includes a DeleteOperation
-	 * @return True if and only if the CRDT includes a DeleteOperation
+	 * Checks if the CRDT being managed includes an operation with a Type.READ operation type
+	 *
+	 * @return True if and only if the CRDT includes an operation with a Type.READ operation type
 	 */
+	@JsonIgnore
+	public boolean isRead() {
+		return this.getCrdt().isRead();
+	}
+	
+	/**
+	 * Checks if the CRDT being managed includes an operation with a Type.UPDATE operation type
+	 *
+	 * @return True if and only if the CRDT includes an operation with a Type.UPDATE operation type
+	 */
+	@JsonIgnore
+	public boolean isUpdated() {
+		return this.getCrdt().isUpdated();
+	}
+	
+	/**
+	 * Checks if the CRDT being managed includes an operation with a Type.DELETE operation type
+	 *
+	 * @return True if and only if the CRDT includes an operation with a Type.DELETE operation type
+	 */
+	@JsonIgnore
 	public boolean isDeleted() {
 		return this.getCrdt().isDeleted();
 	}
@@ -113,20 +152,20 @@ public class CRDTManager {
 	 * Deliver the operation, which has the effect of inserting the operation into the AddOperation set
 	 * @param op Operation to deliver to the CRDT
 	 */
-	private void pushAdd(AbstractOperation op) {
+	private void pushAdd(Operation op) {
 		this.getCrdt().addOperation(op);
 	}
 
 	/**
 	 * Cancel an operation which currently is, or potentially in the future will be, included in the RemOperation set  
-	 * @param op The AbstractOperation instance to include in the RemoveOperation list
+	 * @param op The DeprecatedAbstractOperation instance to include in the RemoveOperation list
 	 */
-	private void pushRemove(AbstractOperation op) {
+	private void pushRemove(Operation op) {
 		this.getCrdt().remOperation(op);
 	}
 
 	/**
-	 * Deliver an operation embedded in the OperationManager and based upon the StatusType of that OperationManager
+	 * Deliver an operation embedded in the DeprecatedOperationManager and based upon the StatusType of that DeprecatedOperationManager
 	 * @param op OperationsManager instance wrapping the operation to persist in this CRDT
 	 */
 	protected void push(OperationManager op) {
@@ -144,43 +183,41 @@ public class CRDTManager {
 	}
 	
 	/**
-	 * Generate a CreateOperation given a JsonNode and timestamp
-	 * @param document The source document around which to build the CreateOperation 
+	 * Generate a DeprecatedCreateOperation given a JsonNode and timestamp
 	 * @param timestamp Effective timestamp for the create operation
-	 * @return The new CreateOperation
+	 * @return The new DeprecatedCreateOperation
 	 */
-	protected static CreateOperation generateCreateOperation(JsonNode document, long timestamp) {
-		return new CreateOperation(JsonDiff.asJson(mapper.createObjectNode(), document), timestamp);
+	public static Operation generateCreate(long timestamp) {
+		return new Operation(OperationType.CREATE, timestamp);
 	}
 	
 	/**
-	 * Generate a ReadOperation with the given time stamp value
+	 * Generate a DeprecatedReadOperation with the given time stamp value
 	 * @param timestamp Effective timestamp for the read operation
 	 * @return The read operation with the given timestamp
 	 */
-	protected static ReadOperation generateReadOperation(long timestamp) {
-		return new ReadOperation(timestamp);
+	public static Operation generateRead(long timestamp) {
+		return new Operation(OperationType.READ, timestamp);
 	}
 	
 	/**
-	 * Generate an UpdateOperation given an original and update value and a timestamp value.
+	 * Generate an DeprecatedUpdateOperation given an original and update value and a timestamp value.
 	 * @param source The original JsonNode to update with a new value
 	 * @param target The new JsonNode which the update will produce given the original state 
 	 * @param timestamp Effective time stamp for the update operations
 	 * @return The update operation resulting from transforming from the source to target JsonNode values
 	 */
-	protected static UpdateOperation generateUpdateOperation(JsonNode source, JsonNode target, long timestamp) {
-		JsonNode diff = JsonDiff.asJson(source, target);
-		return diff.size() > 0 ? new UpdateOperation(diff, timestamp) : null;
+	public static Operation generateUpdate(JsonNode source, JsonNode target, long timestamp) {
+		return new Operation(JsonDiff.asJson(source, target), timestamp);
 	}
 
 	/**
-	 * Generate a DeleteOperation with the given timestamp
+	 * Generate a DeprecatedDeleteOperation with the given timestamp
 	 * @param timestamp Effective timestamp for the delete operations
-	 * @return A DeleteOperation with the given timestamp 
+	 * @return A DeprecatedDeleteOperation with the given timestamp 
 	 */
-	protected static DeleteOperation generateDeleteOperation(long timestamp) {
-		return new DeleteOperation(timestamp);
+	public static Operation generateDelete(long timestamp) {
+		return new Operation(OperationType.DELETE, timestamp);
 	}
 
 	/* (non-Javadoc)

@@ -4,11 +4,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.cyberfront</groupId>
 	<artifactId>json-crdt</artifactId>
-	<version>0.0.3</version>
+	<version>0.1.0</version>
 
 	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>9.0.1</maven.compiler.source>
+		<maven.compiler.target>9.0.1</maven.compiler.target>
 	</properties>
 
 	<dependencies>
@@ -43,6 +43,10 @@
 		<dependency>
 			<groupId>com.github.fge</groupId>
 			<artifactId>json-patch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
@@ -86,6 +90,11 @@
 				<groupId>com.github.fge</groupId>
 				<artifactId>json-patch</artifactId>
 				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

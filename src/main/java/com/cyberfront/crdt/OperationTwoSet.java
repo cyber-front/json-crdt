@@ -25,9 +25,12 @@ package com.cyberfront.crdt;
 import java.util.Collection;
 import java.util.TreeSet;
 
-import com.cyberfront.crdt.operations.AbstractOperation;
-import com.cyberfront.crdt.operations.AbstractOperation.OperationType;
+import com.cyberfront.crdt.operation.Operation.OperationType;
+import com.cyberfront.crdt.operation.Operation;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This is an abstract class which defines a Two Set CRDT.  One set contains operations to use, called an ADD set, and the other contains
@@ -36,19 +39,48 @@ import com.cyberfront.crdt.support.Support;
  * ADD set.
  */
 public abstract class OperationTwoSet extends AbstractCRDT {
+	/** Property label for the add set property */
+	protected static final String ADDSET = "addset"; 
+
+	/** Property label for the remove set property */
+	protected static final String REMSET = "remset"; 
 	
 	/** The ADD set. */
-	private Collection<AbstractOperation> addSet;
+	@JsonProperty(ADDSET)
+	private Collection<Operation> addSet;
 
 	/** The REMOVE set. */
-	private Collection<AbstractOperation> remSet;
+	private Collection<Operation> remSet;
 	
+	/** Default constructor for the two set instance... no fields are initialized */
+	public OperationTwoSet() { }
+
+	/**
+	 * Copy constructor which duplicates the state of the given CRDT instance
+	 * @param src Source CRDT to copy
+	 */
+	public OperationTwoSet(OperationTwoSet src) {
+		this(src.getAddSet(), src.getRemSet());
+	}
+	
+	/**
+	 * COnstructor to specifically define the add and remove sets
+	 * @param addset Add set to use in the constructed CRDT
+	 * @param remset Remove set to use in the constructed CRDT
+	 */
+	@JsonCreator
+	public OperationTwoSet(@JsonProperty(ADDSET) Collection<Operation> addset,
+						   @JsonProperty(REMSET) Collection<Operation> remset) {
+		this.getAddSet().addAll(addset);
+		this.getRemSet().addAll(remset);
+	}
+
 	/**
 	 * This method retrieved the ADD set.
 	 *
 	 * @return the ADD set
 	 */
-	private Collection<AbstractOperation> getAddSet() {
+	private Collection<Operation> getAddSet() {
 		if (null == this.addSet) {
 			this.addSet = new TreeSet<>();
 		}
@@ -61,19 +93,29 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return the REMOVE set
 	 */
-	private Collection<AbstractOperation> getRemSet() {
+	private Collection<Operation> getRemSet() {
 		if (null == this.remSet) {
 			this.remSet = new TreeSet<>();
 		}
 		return this.remSet;
 	}
 	
-	public Collection<AbstractOperation> copyAddSet() {
-		return AbstractOperation.copy(this.getAddSet());
+	/**
+	 * Generate and retrieve a copy of the add set for public consumption
+	 * @return A copy of the add set
+	 */
+	@JsonProperty(ADDSET)
+	public Collection<Operation> copyAddSet() {
+		return Operation.copy(this.getAddSet());
 	}
 
-	public Collection<AbstractOperation> copyRemSet() {
-		return AbstractOperation.copy(this.getRemSet());
+	/**
+	 * Generate and retrieve a copy of the remove set for public consumption
+	 * @return A copy of the remove set
+	 */
+	@JsonProperty(REMSET)
+	public Collection<Operation> copyRemSet() {
+		return Operation.copy(this.getRemSet());
 	}
 
 	/**
@@ -81,6 +123,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * 
 	 * @return The number of elements in the Add Set
 	 */
+	@JsonIgnore
 	public long getAddCount() {
 		return this.getAddSet().size();
 	}
@@ -90,6 +133,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * 
 	 * @return The number of elements in the Remove Set
 	 */
+	@JsonIgnore
 	public long getRemCount() {
 		return this.getRemSet().size();
 	}
@@ -99,6 +143,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * 
 	 * @return The number of elements in the Remove Set
 	 */
+	@JsonIgnore
 	public long getOperationCount() {
 		return this.getOpsSet().size();
 	}
@@ -108,7 +153,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @param op The operation to add to the ADD set
 	 */
-	protected void addOperation(AbstractOperation op) {
+	protected void addOperation(Operation op) {
 		this.getAddSet().add(op);
 	}
 	
@@ -117,7 +162,7 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @param op The operation to add to the REMOVE set
 	 */
-	protected void remOperation(AbstractOperation op) {
+	protected void remOperation(Operation op) {
 		this.getRemSet().add(op);
 	}
 	
@@ -128,8 +173,8 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 * @param rhs The right hand side of the difference operator
 	 * @return The set of elements resulting from removing all of the elements in RHS from LHS
 	 */
-	private static Collection<AbstractOperation> diff(Collection<AbstractOperation> lhs, Collection<AbstractOperation> rhs) {
-		Collection<AbstractOperation> rv = new TreeSet<>();
+	private static Collection<Operation> diff(Collection<Operation> lhs, Collection<Operation> rhs) {
+		Collection<Operation> rv = new TreeSet<>();
 		rv.addAll(lhs);
 		rv.removeAll(rhs);
 		return rv;
@@ -141,7 +186,8 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return The operations which are active in this Two Set CRDT
 	 */
-	public Collection<AbstractOperation> getOpsSet() {
+	@JsonIgnore
+	public Collection<Operation> getOpsSet() {
 		return diff(this.getAddSet(), this.getRemSet());
 	}
 
@@ -160,29 +206,20 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	 *
 	 * @return True exactly when the set of active operations is empty
 	 */
+	@JsonIgnore
 	public boolean isEmpty() {
 		return (this.getAddSet().isEmpty() && this.getRemSet().isEmpty()) || this.getOpsSet().isEmpty();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isCreated()
+	/**
+	 * Look in a collection of operations to determine if at least one element has the given OperationType 
+	 * @param operations List of operations to search for the given OperationType
+	 * @param type OperationType to search for in the given collection
+	 * @return True exactly when there is an operation of the given OperationType in the collection of operations; false otherwise
 	 */
-	public boolean isCreated() {
-		for (AbstractOperation op : this.getOpsSet()) {
-			if (op.isCreated()) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isDeleted()
-	 */
-	public boolean isDeleted() {
-		for (AbstractOperation op : this.getOpsSet()) {
-			if (op.isDeleted()) {
+	protected static boolean doesTypeExist(final Collection<Operation> operations, final OperationType type) {
+		for (Operation operation : operations) {
+			if (type.equals(operation.getType())) {
 				return true;
 			}
 		}
@@ -190,17 +227,53 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 		return false;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isCreated()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isCreated() {
+		return doesTypeExist(this.getOpsSet(), OperationType.CREATE);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isRead()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isRead() {
+		return doesTypeExist(this.getOpsSet(), OperationType.READ);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isUpdated()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isUpdated() {
+		return doesTypeExist(this.getOpsSet(), OperationType.UPDATE);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cyberfront.cmrdt.manager.AbstractCRDT#isDeleted()
+	 */
+	@Override
+	@JsonIgnore
+	public boolean isDeleted() {
+		return doesTypeExist(this.getOpsSet(), OperationType.DELETE);
+	}
+	
 	/**
-	 * This static method counts the number of AbstractOperation instances of the type given which are in the 
+	 * This static method counts the number of DeprecatedNewBaseOperation instances of the type given which are in the 
 	 * collection provided
 	 * 
-	 * @param ops Collection of AbstractOperations to search for operations of the specified type
-	 * @param opType Type to look for in the collection of AbstractOperations 
-	 * @return Number of AbstractOperation instances with the given type
+	 * @param ops Collection of BaseOperations to search for operations of the specified type
+	 * @param opType Type to look for in the collection of BaseOperations 
+	 * @return Number of DeprecatedNewBaseOperation instances with the given type
 	 */
-	protected static long countOperations(Collection<AbstractOperation> ops, OperationType opType) {
+	protected static long countOperations(Collection<Operation> ops, OperationType opType) {
 		long rv = 0;
-		for (AbstractOperation op : ops) {
+		for (Operation op : ops) {
 			if (opType.equals(op.getType())) {
 				++rv;
 			}

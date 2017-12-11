@@ -22,17 +22,25 @@
  */
 package com.cyberfront.crdt.sample.data;
 
-import com.cyberfront.crdt.sample.data.Factory.TYPE;
+import java.util.UUID;
+
+import com.cyberfront.crdt.sample.data.Factory.DataType;
 import com.cyberfront.crdt.support.Support;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This is a concrete class type derived from AbstractDataType used to test the CRDT.  It manages a reference to another
  * AbstractDataType derived class instances
  */
 public class SimpleReference extends AbstractDataType {
+	/** JSON property name for the value stored in any SimpleReference instances */
+	protected final static String VALUE = "referenceValue";
 	
 	/** The reference to an AbstractDataType derived values associated with this SimpleReference instance */
-	AbstractDataType referenceValue;
+	@JsonProperty(VALUE)
+	private final AbstractDataType referenceValue;
 
 	/**
 	 * Instantiates a new SimpleReference instance with a collection of random objects
@@ -40,7 +48,7 @@ public class SimpleReference extends AbstractDataType {
 	 */
 	public SimpleReference() {
 		super();
-		this.setReferenceValue(Factory.getInstance());
+		this.referenceValue = Factory.getInstance();
 	}
 
 	/**
@@ -49,33 +57,44 @@ public class SimpleReference extends AbstractDataType {
 	 * @param src Source data from which to create the new instance
 	 */
 	public SimpleReference(SimpleReference src) {
-		super(src);
-		this.referenceValue = src.referenceValue.copy();
+		this(src.getId(), src.getVersion(), src.getNotes(), src.getReferenceValue());
 	}
 
 	/**
-	 * Gets the Reference value associated with this instance.
+	 * Copy constructor which uses `src` as the source content for the new instance
+	 *
+	 * @param src Source data from which to create the new instance
+	 * @param pChange Probability an individual field will be changed
+	 */
+	public SimpleReference(SimpleReference src, double pChange) {
+		super(src, pChange);
+		this.referenceValue = Support.getRandom().nextDouble() < pChange ? Factory.getInstance() : src.referenceValue.copy(pChange);
+	}
+
+	/**
+	 * Constructor used to fully specify the elements of the SimpleReference instance
+	 * @param id Identifier for the SimpleReference instance
+	 * @param version Version number for the specific instance
+	 * @param notes Notes associated with the data instance
+	 * @param value Value of the Reference stored in conjunction with this instance
+	 */
+	@JsonCreator
+	public SimpleReference(@JsonProperty(ID) UUID id,
+			@JsonProperty(VERSION) Long version,
+			@JsonProperty(NOTES) String notes,
+			@JsonProperty(VALUE) AbstractDataType value) {
+		super(id, version, notes);
+		this.referenceValue = value.copy();
+	}
+
+	/**
+	 * Gets the Reference referenceValue associated with this instance.
 	 *
 	 * @return The Reference values
 	 */
+	@JsonProperty(VALUE)
 	public AbstractDataType getReferenceValue() {
-		if (null == this.referenceValue) {
-			throw new NullPointerException();
-		}
 		return referenceValue;
-	}
-
-	/**
-	 * Sets the Reference value associated with this instance.
-	 *
-	 * @param value The new Reference value to set for this instance
-	 */
-	public void setReferenceValue(AbstractDataType value) {
-		if (null == value) {
-			throw new NullPointerException();
-		}
-		
-		this.referenceValue = value.copy();
 	}
 
 	/* (non-Javadoc)
@@ -90,6 +109,7 @@ public class SimpleReference extends AbstractDataType {
 	 * @see com.cyberfront.crdt.unittest.data.AbstractDataType#getSegment()
 	 */
 	@Override
+	@JsonIgnore
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();
 		
@@ -103,13 +123,8 @@ public class SimpleReference extends AbstractDataType {
 	 * @see com.cyberfront.cmrdt.data.DataType#update(java.lang.Double)
 	 */
 	@Override
-	public void update(Double prob) {
-		super.update(prob);
-		
-		if (Support.getRandom().nextDouble() < prob) {
-			this.getReferenceValue().update(prob);
-			this.incrementVersion();
-		}
+	public AbstractDataType copy(Double pChange) {
+		return new SimpleReference(this, pChange);
 	}
 
 	/* (non-Javadoc)
@@ -141,7 +156,8 @@ public class SimpleReference extends AbstractDataType {
 	 * @see com.cyberfront.cmrdt.data.DataType#getType()
 	 */
 	@Override
-	public TYPE getType() {
-		return TYPE.SIMPLE_REFERENCE;
+	@JsonIgnore
+	public DataType getType() {
+		return DataType.SIMPLE_REFERENCE;
 	}
 }

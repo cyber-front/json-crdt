@@ -25,15 +25,14 @@ package com.cyberfront.crdt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.cyberfront.crdt.operations.CreateOperation;
-import com.cyberfront.crdt.operations.DeleteOperation;
-import com.cyberfront.crdt.operations.ReadOperation;
-import com.cyberfront.crdt.operations.UpdateOperation;
+import com.cyberfront.crdt.operation.Operation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * The Class GenericCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
+ * The Class DeprecatedGenericCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
  * JSON operations but to the external interface, the object type being managed is given by the generic parameter T 
  *
  * @param <T> The generic type to manage.  The type will need to be annotated to support Jackson serializing as a JSON object.  See
@@ -41,45 +40,44 @@ import com.fasterxml.jackson.databind.JsonNode;
  * accepts no arguments.
  */
 public class GenericCRDTManager <T> extends CRDTManager {
-
+	/** Property label for the object class property */
+	public static final String OBJECT_CLASS = "class"; 
+	
 	/** A logger for writing to the local log output. */
 	private static final Logger logger = LogManager.getLogger(GenericCRDTManager.class);
 
-	/** The object class. */
-	private final Class<T> objectClass;
-	
 	/** Flag to determine whether to display situations where the Java object could not be reconstructed from a JSON document*/
-	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = false; 
+	private static final boolean LOG_JSON_PROCESSING_EXCEPTIONS = true; 
 	
 	/** Flag to determine whether to terminate when Jackson could not reconstitute a Java object from a JSON document. */  
 	private static final boolean TERMINATE_ON_JSON_PROCESSING_EXCEPTIONS = false; 
+	
+	/** The object class. */
+	@JsonProperty(OBJECT_CLASS)
+	private final Class<T> objectClass;
 	
 	/**
 	 * Instantiates a new CRDT manager.
 	 *
 	 * @param objectClass the object class
 	 */
-	public GenericCRDTManager(Class<T> objectClass) {
-		this.objectClass = objectClass;
-	}
+	public GenericCRDTManager(Class<T> objectClass) { this.objectClass = objectClass; }
 
 	/**
 	 * Gets the Class for the type being managed.
 	 *
 	 * @return The Class for the managed type
 	 */
-	public Class<T> getObjectClass() {
-		return this.objectClass;
-	}
+	@JsonProperty(OBJECT_CLASS)
+	public Class<T> getObjectClass() { return this.objectClass; }
 
 	/**
 	 * Gets the object.
 	 *
 	 * @return the object
 	 */
-	public T getObject() {
-		return this.getObject(Long.MAX_VALUE);
-	}
+	@JsonIgnore
+	public T getObject() { return this.getObject(Long.MAX_VALUE); }
 	
 	/**
 	 * Gets the object as it was at the time of the given timestamp
@@ -90,7 +88,7 @@ public class GenericCRDTManager <T> extends CRDTManager {
 	public T getObject(long timestamp) {
 		JsonNode json = this.getCrdt().getDocument(timestamp);
 
-		if (null != json) {
+		if (null != json && !json.isNull() && 0 < json.size()) {
 			try {
 				return getMapper().treeToValue(json, this.getObjectClass());
 			} catch (JsonProcessingException e) {
@@ -112,58 +110,16 @@ public class GenericCRDTManager <T> extends CRDTManager {
 	}
 	
 	/**
-	 * Allocate and return a new CreateOperation for the given timestamp
+	 * Generate and return an DeprecatedUpdateOperation for the given object passed 
 	 *
-	 * @param timestamp the timestamp
-	 * @return The CreateOperations generated
-	 * @throws ReflectiveOperationException Exception thrown when something prevents a new instance of T to be
-	 * generated, such as having no default constructor
+	 * @param timestamp Time stamp associated with the DeprecatedUpdateOperation
+	 * @param object The object from which to generate the DeprecatedUpdateOperation
+	 * @return The resulting DeprecatedUpdateOperation
 	 */
-	public CreateOperation generateCreate(long timestamp) throws ReflectiveOperationException {
-		return this.generateCreate(timestamp, this.getObjectClass().newInstance());
+	public Operation generateUpdate(long timestamp, T object) {
+		return super.generateUpdate(this.getCrdt().getDocument(), getMapper().valueToTree(object), timestamp);
 	}
 
-	/**
-	 * Generate and return a CreateOperation for the given object passed 
-	 *
-	 * @param timestamp Time stamp associated with the CreateOperation
-	 * @param object The object from which to generate the CreateOperation
-	 * @return The resulting CreateOperation
-	 */
-	public CreateOperation generateCreate(long timestamp, T object) {
-		return generateCreateOperation(getMapper().valueToTree(object), timestamp);
-	}
-	
-	/**
-	 * Generate and return a ReadOperation for the given object passed 
-	 *
-	 * @param timestamp Time stamp associated with the ReadOperation
-	 * @return The resulting ReadOperation
-	 */
-	protected ReadOperation generateRead(long timestamp) {
-		return generateReadOperation(timestamp);
-	}
-	
-	/**
-	 * Generate and return an UpdateOperation for the given object passed 
-	 *
-	 * @param timestamp Time stamp associated with the UpdateOperation
-	 * @param object The object from which to generate the UpdateOperation
-	 * @return The resulting UpdateOperation
-	 */
-	public UpdateOperation generateUpdate(long timestamp, T object) {
-		return generateUpdateOperation(this.getCrdt().getDocument(), getMapper().valueToTree(object), timestamp);
-	}
-
-	/**
-	 * Generate and return a DeleteOperation for the given object passed 
-	 *
-	 * @param timestamp Time stamp associated with the DeleteOperation
-	 * @return The resulting DeleteOperation
-	 */
-	public DeleteOperation generateDelete(long timestamp) {
-		return generateDeleteOperation(timestamp);
-	}
 	
 	/* (non-Javadoc)
 	 * @see com.cyberfront.cmrdt.support.BaseManager#hashCode()
