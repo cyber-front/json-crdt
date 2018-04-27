@@ -38,7 +38,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
-    @Type(value = GenericOperationManager.class, name = "DeprecatedGenericOperationManager"),
+    @Type(value = GenericOperationManager.class, name = "GenericOperationManager"),
     @Type(value = SimOperationManager.class, name = "SimOperationManager")
     })
 public class OperationManager implements Comparable<OperationManager> {
@@ -84,7 +84,7 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 
 	/**
-	 * Copy constructor to copy from a source DeprecatedOperationManager 
+	 * Copy constructor to copy from a source OperationManager 
 	 *
 	 * @param src The source object
 	 */
@@ -113,9 +113,9 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 
 	/**
-	 * Checks if the op is a DeprecatedCreateOperation
+	 * Checks if the op is a CreateOperation
 	 *
-	 * @return true, if the op being managed is a DeprecatedCreateOperation
+	 * @return true, if the op being managed is a CreateOperation
 	 */
 	@JsonIgnore
 	public boolean isCreated() {
@@ -123,9 +123,9 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 
 	/**
-	 * Checks if the op is a DeprecatedDeleteOperation
+	 * Checks if the op is a DeleteOperation
 	 *
-	 * @return true, if the op being managed is a DeprecatedDeleteOperation
+	 * @return true, if the op being managed is a DeleteOperation
 	 */
 	@JsonIgnore
 	public boolean isDeleted() {
@@ -173,9 +173,9 @@ public class OperationManager implements Comparable<OperationManager> {
 	}
 	
 	/**
-	 * Get the string segment for rendering the DeprecatedOperationManager portions of this class instance 
+	 * Get the string segment for rendering the OperationManager portions of this class instance 
 	 *
-	 * @return The string segment containing a rendering of the DeprecatedOperationManager portions of this class instance 
+	 * @return The string segment containing a rendering of the OperationManager portions of this class instance 
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();

@@ -116,7 +116,7 @@ public final class Operation implements Comparable<Operation> {
 	}
 	
 	/**
-	 * This instantiates a new DeprecatedUpdateOperation given an operation in a JsonNode and a timestamp.  The operation
+	 * This instantiates a new UpdateOperation given an operation in a JsonNode and a timestamp.  The operation
 	 * is not validated as conforming to RFC 6902
 	 *
 	 * @param op The operation, consisting of a JsonNode conforming to RFC 6902.
@@ -127,7 +127,7 @@ public final class Operation implements Comparable<Operation> {
 	}
 
 	/**
-	 * This is essentially a copy constructor for duplicating some source DeprecatedAbstractOperation
+	 * This is essentially a copy constructor for duplicating some source AbstractOperation
 	 *
 	 * @param src The source operation to copy
 	 */
@@ -348,9 +348,9 @@ public final class Operation implements Comparable<Operation> {
 
 	/**
 	 * This method is used to support the toString method by generating a string representation
-	 * of this DeprecatedAbstractOperation instance
+	 * of this AbstractOperation instance
 	 *
-	 * @return The string representation of this DeprecatedAbstractOperation
+	 * @return The string representation of this AbstractOperation
 	 */
 	protected String getSegment() {
 		StringBuilder sb = new StringBuilder();

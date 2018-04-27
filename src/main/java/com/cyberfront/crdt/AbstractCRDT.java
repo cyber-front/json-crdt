@@ -35,8 +35,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
-    @Type(value = OperationTwoSet.class, name = "DeprecatedOperationTwoSet"),
-    @Type(value = LastWriteWins.class, name = "DeprecatedLastWriteWins") })
+    @Type(value = OperationTwoSet.class, name = "OperationTwoSet"),
+    @Type(value = LastWriteWins.class, name = "LastWriteWins") })
 public abstract class AbstractCRDT {
 	
 	/**

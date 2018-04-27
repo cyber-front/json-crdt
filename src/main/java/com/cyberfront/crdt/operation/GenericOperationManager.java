@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * The Class DeprecatedGenericOperationManager provides a mechanism for managing java types as a CRDT by wrapping an object by a collection
+ * The Class GenericOperationManager provides a mechanism for managing java types as a CRDT by wrapping an object by a collection
  * of operations on that object.
  *
  * @param <T> The generic type to manage.  The type will need to be annotated to support Jackson serializing as a JSON object.  See

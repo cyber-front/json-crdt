@@ -264,12 +264,12 @@ public abstract class OperationTwoSet extends AbstractCRDT {
 	}
 	
 	/**
-	 * This static method counts the number of DeprecatedNewBaseOperation instances of the type given which are in the 
+	 * This static method counts the number of NewBaseOperation instances of the type given which are in the 
 	 * collection provided
 	 * 
 	 * @param ops Collection of BaseOperations to search for operations of the specified type
 	 * @param opType Type to look for in the collection of BaseOperations 
-	 * @return Number of DeprecatedNewBaseOperation instances with the given type
+	 * @return Number of NewBaseOperation instances with the given type
 	 */
 	protected static long countOperations(Collection<Operation> ops, OperationType opType) {
 		long rv = 0;

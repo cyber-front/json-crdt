@@ -32,7 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * The Class DeprecatedGenericCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
+ * The Class GenericCRDTManager is used to manage a Plain Old Java Object (POJO).  Internally changes are represented as a series of
  * JSON operations but to the external interface, the object type being managed is given by the generic parameter T 
  *
  * @param <T> The generic type to manage.  The type will need to be annotated to support Jackson serializing as a JSON object.  See
@@ -110,11 +110,11 @@ public class GenericCRDTManager <T> extends CRDTManager {
 	}
 	
 	/**
-	 * Generate and return an DeprecatedUpdateOperation for the given object passed 
+	 * Generate and return an UpdateOperation for the given object passed 
 	 *
-	 * @param timestamp Time stamp associated with the DeprecatedUpdateOperation
-	 * @param object The object from which to generate the DeprecatedUpdateOperation
-	 * @return The resulting DeprecatedUpdateOperation
+	 * @param timestamp Time stamp associated with the UpdateOperation
+	 * @param object The object from which to generate the UpdateOperation
+	 * @return The resulting UpdateOperation
 	 */
 	public Operation generateUpdate(long timestamp, T object) {
 		return super.generateUpdate(this.getCrdt().getDocument(), getMapper().valueToTree(object), timestamp);

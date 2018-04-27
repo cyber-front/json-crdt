@@ -434,7 +434,7 @@ public class Test01Simulation {
 		 * For a given CRDT instance, ensure all of the nodes have the same CRDT and that
 		 * the state is consistent across all of the nodes.
 		 *
-		 * @param <T> The type the DeprecatedCRDTManager manages
+		 * @param <T> The type the CRDTManager manages
 		 * @param crdt The CRDT which should be compared for synchronization errors with the corresponding CRDTs
 		 * in all other Node instances.
 		 */

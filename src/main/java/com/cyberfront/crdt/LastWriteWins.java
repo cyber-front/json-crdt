@@ -42,13 +42,13 @@ import com.github.fge.jsonpatch.JsonPatchException;				// Use this with jsonpatc
 //import com.flipkart.zjsonpatch.JsonPatchApplicationException;		// Use this with zjsonpatch
 
 /**
- * The DeprecatedLastWriteWins class implements a Last Write Wins commutative CRDT.  Operations are stored and recalled in time stamp
+ * The LastWriteWins class implements a Last Write Wins commutative CRDT.  Operations are stored and recalled in time stamp
  * order.  There is both an add and remove set, where removing an operation takes precedence over adding.  It also contains
  * a list of invalid operations which is used to hold operations which fail during reconstitution of the underlying data element
  */
 public class LastWriteWins extends OperationTwoSet {
 	/**
-	 * The Class TrialResult is used to process a collection of operations provided to it.  It is intended to augment the DeprecatedLastWriteWins class
+	 * The Class TrialResult is used to process a collection of operations provided to it.  It is intended to augment the LastWriteWins class
 	 * by providing an auxiliary location for storing a single set of operations and to manage access to the resulting JsonNode when the
 	 * operations are processed.  It also tracks any invalid operations which are in the set of operations.  Invalid operations are those which
 	 * cannot be processed due to a difference in the way the JSON operations are performed on different nodes.  These invalid operations are 

@@ -43,13 +43,13 @@ import com.github.fge.jsonpatch.diff.JsonDiff;	// Use this with jsonpatch
 //import com.flipkart.zjsonpatch.JsonDiff;		// Use this with zjsonpatch
 
 /**
- * The DeprecatedCRDTManager class is used to wrap a CRDT instance so as to interact with it.  The intent of this class is to 
+ * The CRDTManager class is used to wrap a CRDT instance so as to interact with it.  The intent of this class is to 
  * provide an interface to manage JSON documents with the CRDT types provided.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
-    @Type(value = GenericCRDTManager.class, name = "DeprecatedGenericCRDTManager"),
+    @Type(value = GenericCRDTManager.class, name = "GenericCRDTManager"),
     @Type(value = JsonManager.class, name = "JsonManager"),
     @Type(value = GenericManager.class, name = "GenericManager"),
     @Type(value = SimCRDTManager.class, name = "SimCRDTManager")
@@ -158,14 +158,14 @@ public class CRDTManager {
 
 	/**
 	 * Cancel an operation which currently is, or potentially in the future will be, included in the RemOperation set  
-	 * @param op The DeprecatedAbstractOperation instance to include in the RemoveOperation list
+	 * @param op The AbstractOperation instance to include in the RemoveOperation list
 	 */
 	private void pushRemove(Operation op) {
 		this.getCrdt().remOperation(op);
 	}
 
 	/**
-	 * Deliver an operation embedded in the DeprecatedOperationManager and based upon the StatusType of that DeprecatedOperationManager
+	 * Deliver an operation embedded in the OperationManager and based upon the StatusType of that OperationManager
 	 * @param op OperationsManager instance wrapping the operation to persist in this CRDT
 	 */
 	protected void push(OperationManager op) {
@@ -183,16 +183,16 @@ public class CRDTManager {
 	}
 	
 	/**
-	 * Generate a DeprecatedCreateOperation given a JsonNode and timestamp
+	 * Generate a CreateOperation given a JsonNode and timestamp
 	 * @param timestamp Effective timestamp for the create operation
-	 * @return The new DeprecatedCreateOperation
+	 * @return The new CreateOperation
 	 */
 	public static Operation generateCreate(long timestamp) {
 		return new Operation(OperationType.CREATE, timestamp);
 	}
 	
 	/**
-	 * Generate a DeprecatedReadOperation with the given time stamp value
+	 * Generate a ReadOperation with the given time stamp value
 	 * @param timestamp Effective timestamp for the read operation
 	 * @return The read operation with the given timestamp
 	 */
@@ -201,7 +201,7 @@ public class CRDTManager {
 	}
 	
 	/**
-	 * Generate an DeprecatedUpdateOperation given an original and update value and a timestamp value.
+	 * Generate an UpdateOperation given an original and update value and a timestamp value.
 	 * @param source The original JsonNode to update with a new value
 	 * @param target The new JsonNode which the update will produce given the original state 
 	 * @param timestamp Effective time stamp for the update operations
@@ -212,9 +212,9 @@ public class CRDTManager {
 	}
 
 	/**
-	 * Generate a DeprecatedDeleteOperation with the given timestamp
+	 * Generate a DeleteOperation with the given timestamp
 	 * @param timestamp Effective timestamp for the delete operations
-	 * @return A DeprecatedDeleteOperation with the given timestamp 
+	 * @return A DeleteOperation with the given timestamp 
 	 */
 	public static Operation generateDelete(long timestamp) {
 		return new Operation(OperationType.DELETE, timestamp);

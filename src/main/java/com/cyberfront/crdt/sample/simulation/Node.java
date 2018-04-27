@@ -98,10 +98,10 @@ public class Node extends AbstractNode {
 	}
 
 	/**
-	 * Generate and return a DeprecatedReadOperation wrapped in a collection of Message instances to deliver to the other nodes in the
+	 * Generate and return a ReadOperation wrapped in a collection of Message instances to deliver to the other nodes in the
 	 * simulation.  Read operations are always marked as APPROVED even if performed on a non-managing node
 	 *
-	 * @return A collection of Messages containing the DeprecatedReadOperation which is to be delivered to all of the other nodes 
+	 * @return A collection of Messages containing the ReadOperation which is to be delivered to all of the other nodes 
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateReadOperation() {
 		Collection<Message<? extends AbstractDataType>> rv;
@@ -117,12 +117,12 @@ public class Node extends AbstractNode {
 	}
 
 	/**
-	 * Generate and return an DeprecatedUpdateOperation wrapped in a collection of Message instances to deliver to other nodes in the
+	 * Generate and return an UpdateOperation wrapped in a collection of Message instances to deliver to other nodes in the
 	 * simulation.  The operation is marked APPROVED only when it originates from the object's managing node.  Otherwise it's marked
 	 * PENDING. 
 	 *
 	 * @param pChange Probability of changing the value of each of the object's field, applied independently against all mutable fields
-	 * @return A collection of Messages containing the DeprecatedUpdateOperation with is to be delivered to all other nodes
+	 * @return A collection of Messages containing the UpdateOperation with is to be delivered to all other nodes
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateUpdateOperation(Double pChange) {
 		Collection<Message<? extends AbstractDataType>> rv;
@@ -139,11 +139,11 @@ public class Node extends AbstractNode {
 	}
 
 	/**
-	 * Generate and return an DeprecatedDeleteOperation wrapped in a collection of Message instances to deliver to other nodes in the
+	 * Generate and return an DeleteOperation wrapped in a collection of Message instances to deliver to other nodes in the
 	 * simulation.  The operation is marked APPROVED only when it originates from the object's managing node.  Otherwise it's marked
 	 * PENDING. 
 	 *
-	 * @return A collection of Messages containing the DeprecatedDeleteOperation with is to be delivered to all other nodes
+	 * @return A collection of Messages containing the DeleteOperation with is to be delivered to all other nodes
 	 */
 	public Collection<Message<? extends AbstractDataType>> generateDeleteOperation() {
 		Collection<Message<? extends AbstractDataType>> rv;
