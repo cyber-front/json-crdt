@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Cybernetic Frontiers LLC
+ * Copyright (c) 2018 Cybernetic Frontiers LLC
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,14 @@
  */
 package com.cyberfront.crdt.unittest.basiccrdt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.manager.GenericManager;
@@ -120,7 +120,7 @@ public class Test01Generic {
 						logger.error("mgr: " + (null == mgr ? "null" : mgr.toString()));
 					}
 					
-					assertEquals("Difference Detected: ", 0, diff.size());
+					assertEquals(0, diff.size(), "Difference Detected: ");
 					
 					timeStamp += 10;
 					
@@ -166,7 +166,7 @@ public class Test01Generic {
 						logger.error("mgr: " + (null == mgr ? "null" : mgr.toString()));
 					}
 					
-					assertEquals("Difference Detected: ", 0, diff.size());
+					assertEquals( 0, diff.size(), "Difference Detected: ");
 					
 					timeStamp += 10;
 					

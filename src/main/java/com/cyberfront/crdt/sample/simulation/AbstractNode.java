@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Cybernetic Frontiers LLC
+ * Copyright (c) 2018 Cybernetic Frontiers LLC
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

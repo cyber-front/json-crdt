@@ -1,8 +1,8 @@
 package com.cyberfront.crdt.unittest.data;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -354,7 +354,7 @@ public class AssessmentSupport {
 				sb.append("{\"source\":" + (null == s ? "null": s.toString()) + ",");
 				sb.append("\"target\":" + (null == t ? "null" : t.toString()) + ",");
 				sb.append("\"diff\":" + d.toString() + "}");
-				assertEquals("Disconnect detected:\n" + sb.toString() + "\n", 0, d.size());
+				assertEquals(0, d.size(), "Disconnect detected:\n" + sb.toString() + "\n");
 			}
 		}
 		

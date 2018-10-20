@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Cybernetic Frontiers LLC
+ * Copyright (c) 2018 Cybernetic Frontiers LLC
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -326,9 +327,9 @@ public final class Operation implements Comparable<Operation> {
 		Operation oper = (Operation) obj;
 		
 		return this.getTimestamp().equals(oper.getTimestamp()) &&
-				ObjectUtils.equals(this.getId(), oper.getId()) &&
-				ObjectUtils.equals(this.getType(), oper.getType()) &&
-				ObjectUtils.equals(this.getOp(), oper.getOp());
+				Objects.equals(this.getId(), oper.getId()) &&
+				Objects.equals(this.getType(), oper.getType()) &&
+				Objects.equals(this.getOp(), oper.getOp());
 	}
 	
 	/* (non-Javadoc)

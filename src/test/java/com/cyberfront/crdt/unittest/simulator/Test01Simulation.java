@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Cybernetic Frontiers LLC
+ * Copyright (c) 2018 Cybernetic Frontiers LLC
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,10 @@
  */
 package com.cyberfront.crdt.unittest.simulator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,7 +33,7 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.simulation.Executive;
@@ -397,7 +397,7 @@ public class Test01Simulation {
 					logger.info("{\"node-id\":\"" + node.getId().toString() + "\",");
 					logger.info("\"executive\":" + Executive.getExecutive().toString() + "}");
 
-					assertTrue(sb.toString(), this.getCreateCount() == count);
+					assertTrue(this.getCreateCount() == count, sb.toString());
 				}
 			}
 		}
@@ -412,7 +412,7 @@ public class Test01Simulation {
 			
 			for (Map.Entry<UUID, Node> entry : Executive.getExecutive().getNodes().entrySet()) {
 				Node baseNode = entry.getValue();
-				assertNotNull("baseNode found to be null", baseNode);
+				assertNotNull(baseNode, "baseNode found to be null");
 
 				for (Entry<UUID, SimCRDTManager<? extends AbstractDataType>> baseEntry : entry.getValue().getDatastore().entrySet()) {
 					SimCRDTManager<? extends AbstractDataType> crdt = baseEntry.getValue();
@@ -443,7 +443,7 @@ public class Test01Simulation {
 			long remCount = crdt.getCrdt().getRemCount();
 			long opCount = crdt.getCrdt().getOpsSet().size();
 			
-			assertTrue("crdt has unmatch remove operations: " + crdt.toString(), opCount == addCount - remCount);
+			assertTrue( opCount == addCount - remCount, "crdt has unmatch remove operations: " + crdt.toString());
 			
 			// If all of the operations have been rejected, then just return 
 			if (opCount == 0) {
@@ -454,32 +454,33 @@ public class Test01Simulation {
 
 			for (Map.Entry<UUID, Node> compEntry : Executive.getExecutive().getNodes().entrySet()) {
 				Node compNode = compEntry.getValue();
-				assertNotNull("compNode found to be null", compNode);
+				assertNotNull(compNode, "compNode found to be null");
 
 				SimCRDTManager<? extends AbstractDataType> compCRDT = compNode.getDatastore().get(crdt.getObjectId());
-				assertNotNull("compCRDT found to be null", compCRDT);
+				assertNotNull(compCRDT, "compCRDT found to be null");
 
 				AbstractDataType compValue = compCRDT.getObject();
-				assertTrue("compCRDT.isDeleted (" + compCRDT.isDeleted() + ") / baseCRDT.isDeleted (" + crdt.isDeleted() + ") deleted flag mismatch: ", compCRDT.isDeleted() == crdt.isDeleted() );
+				assertTrue(compCRDT.isDeleted() == crdt.isDeleted(),
+						"compCRDT.isDeleted (" + compCRDT.isDeleted() + ") / baseCRDT.isDeleted (" + crdt.isDeleted() + ") deleted flag mismatch: ");
 
 				if (!compCRDT.isCreated()) {
-					assertNull("CRDT has no create operations but is not null", compValue);
+					assertNull(compValue, "CRDT has no create operations but is not null");
 				} else if (!compCRDT.isUpdated()) {
-					assertNull("CRDT has no update operations but is not null", compValue);
+					assertNull(compValue, "CRDT has no update operations but is not null");
 				} else if (compCRDT.isDeleted()) {
-					assertNull("CRDT was deleted but is not null", compValue);
+					assertNull(compValue, "CRDT was deleted but is not null");
 				} else {
-					assertNotNull("CRDT is created and not deleted, but is null", compValue);
+					assertNotNull(compValue, "CRDT is created and not deleted, but is null");
 
 					JsonNode source = getMapper().valueToTree(baseValue);
 					JsonNode target = getMapper().valueToTree(compValue);
 					JsonNode diff = JsonDiff.asJson(source, target);
-					assertNotNull("diff found to be null", diff);
+					assertNotNull(diff, "diff found to be null");
 
 					StringBuilder sb = new StringBuilder();
 					sb.append("Value mismatch discovered in between synchronized objects\n");
 					sb.append("{\"basevalue\":" + crdt.toString() + ",\"compValue\":" + compCRDT.toString() + "}");
-					assertTrue(sb.toString(), diff.size() == 0);
+					assertTrue(diff.size() == 0, sb.toString());
 				}
 			}
 
@@ -496,7 +497,7 @@ public class Test01Simulation {
 			logger.info("        Test01Simulation.assessValidity()");
 			
 			Node baseNode = Executive.getExecutive().pickNode();
-			assertNotNull("baseNode found to be null", baseNode);
+			assertNotNull(baseNode, "baseNode found to be null");
 
 			for (Entry<UUID, SimCRDTManager<? extends AbstractDataType>> baseEntry : baseNode.getDatastore().entrySet()) {
 				AbstractDataType val = baseEntry.getValue().getObject();
@@ -504,13 +505,13 @@ public class Test01Simulation {
 				String errMsg = "\n{\"" + baseEntry.getKey() + "\":" + baseEntry.getValue() + "}";
 
 				if (!baseEntry.getValue().isCreated()) {
-					assertNull("CRDT has no create operations but is not null" + errMsg, val);
+					assertNull(val, "CRDT has no create operations but is not null" + errMsg);
 				} else if (!baseEntry.getValue().isUpdated()) {
-					assertNull("CRDT has no update operations but is not null" + errMsg, val);
+					assertNull(val, "CRDT has no update operations but is not null" + errMsg);
 				} else if (baseEntry.getValue().isDeleted()) {
-					assertNull("CRDT was deleted but is not null" + errMsg, val);
+					assertNull(val, "CRDT was deleted but is not null" + errMsg);
 				} else {
-					assertNotNull("CRDT is created and not deleted, but is null" + errMsg, val);
+					assertNotNull(val, "CRDT is created and not deleted, but is null" + errMsg);
 				}
 				
 				if (RESPOND_TO_INVALID_OPERATIONS) {
@@ -529,7 +530,7 @@ public class Test01Simulation {
 					}
 					
 					if (HALT_ON_INVALID_OPERATIONS) {
-						assertEquals("Residual operations remain", 0, invalidOperations);
+						assertEquals(0, invalidOperations, "Residual operations remain");
 					}
 				}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Cybernetic Frontiers LLC
+ * Copyright (c) 2018 Cybernetic Frontiers LLC
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,11 @@
  */
 package com.cyberfront.crdt.unittest.data;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.data.Factory;

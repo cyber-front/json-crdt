@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Cybernetic Frontiers LLC
+ * Copyright (c) 2018 Cybernetic Frontiers LLC
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,9 @@
  */
 package com.cyberfront.crdt.unittest.operation;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +32,7 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.cyberfront.crdt.operation.Operation.OperationType;
 import com.cyberfront.crdt.operation.Operation;
@@ -148,7 +148,7 @@ public class Test01Operator {
 				try {
 					op = new Operation(UUID.randomUUID(), type, operation, timestamp);  
 					logger.info("   -- Failure: " + op.toString());
-					assertNull("Should have generated Exception", op);
+					assertNull(op, "Should have generated Exception");
 				} catch (IllegalArgumentException ex) {
 					return false;
 				}
@@ -158,7 +158,7 @@ public class Test01Operator {
 				} catch (IllegalArgumentException ex) {
 					logger.info(ex.toString());
 					logger.info("   -- Failure: " + this.display(type, timestamp, operation));
-					assertTrue("Should not have generated Exception", false);
+					assertTrue(false, "Should not have generated Exception");
 				}
 			}
 			
@@ -171,7 +171,7 @@ public class Test01Operator {
 				try {
 					Operation op = new Operation(id, type, operation, timestamp);  
 					logger.info("   -- Failure: " + op.toString());
-					assertNull("Should have generated Exception", op);
+					assertNull(op, "Should have generated Exception");
 				} catch (IllegalArgumentException ex) {
 					return false;
 				}
@@ -189,9 +189,9 @@ public class Test01Operator {
 				try {
 					op = new Operation(id, type, operation, timestamp);
 					doc = mapper.valueToTree(op);
-					assertNotNull(op.toString(), doc);
+					assertNotNull(doc, op.toString());
 					restored = mapper.treeToValue(doc, Operation.class);
-					assertNotNull(doc.toString(), restored);
+					assertNotNull(restored, doc.toString());
 				} catch (JsonProcessingException e) {
 					logger.error(e);
 					logger.info("\n   original - " + (null == op ? "null" :op.toString()));

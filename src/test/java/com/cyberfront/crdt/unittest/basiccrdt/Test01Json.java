@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Cybernetic Frontiers LLC
+ * Copyright (c) 2018 Cybernetic Frontiers LLC
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,17 +22,17 @@
  */
 package com.cyberfront.crdt.unittest.basiccrdt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.manager.JsonManager;
@@ -108,7 +108,7 @@ public class Test01Json {
 				if (this.stateCount != objects.size()) {
 					sb.append("}");
 					System.out.println(sb.toString());
-					assertEquals("Object count mismatch: ", this.stateCount, objects.size());
+					assertEquals(this.stateCount, objects.size(), "Object count mismatch: ");
 				}
 				
 				Collection<JsonNode> documents = generateJsonSequence(objects);
@@ -116,7 +116,7 @@ public class Test01Json {
 				if (this.stateCount != documents.size()) {
 					sb.append("}");
 					System.out.println(sb.toString());
-					assertEquals("Document count mismatch: ", this.stateCount, documents.size());
+					assertEquals(this.stateCount, documents.size(), "Document count mismatch: ");
 				}
 
 				Collection<JsonNode> diffs = generateDifferenceSequence(documents);
@@ -124,7 +124,7 @@ public class Test01Json {
 				if (this.stateCount != diffs.size()) {
 					sb.append("}");
 					System.out.println(sb.toString());
-					assertEquals("Diference count mismatch: ", this.stateCount, diffs.size());
+					assertEquals(this.stateCount, diffs.size(), "Diference count mismatch: ");
 				}
 
 				Collection<JsonNode> regen = regenerateJsonSequence(diffs);
@@ -132,21 +132,21 @@ public class Test01Json {
 				if (this.stateCount != regen.size()) {
 					sb.append("}");
 					System.out.println(sb.toString());
-					assertEquals("Regeneration count mismatch: ", this.stateCount, regen.size());
+					assertEquals(this.stateCount, regen.size(), "Regeneration count mismatch: ");
 				}
 
 				Collection<JsonNode> deviations = super.compareJsonSequence(documents, regen);
 				sb.append(",\n\"deviations\":" + Support.convert(deviations));
 				if (this.stateCount != deviations.size()) {
 					System.out.println(sb.toString());
-					assertEquals("Deviation count mismatch: ", this.stateCount, deviations.size());
+					assertEquals(this.stateCount, deviations.size(), "Deviation count mismatch: ");
 				}
 
 				for (JsonNode deviation : deviations) {
 					if (0 != deviation.size()) {
 						sb.append(",\n\"deviation\":" + (null == deviation ? "null" : deviation.toString()) + "}");
 						System.out.println(sb.toString());
-						assertEquals("Invalid regeneration: ", 0, deviation.size());
+						assertEquals(0, deviation.size(), "Invalid regeneration: ");
 					}
 				}
 			}
@@ -191,7 +191,7 @@ public class Test01Json {
 						logger.error("mgr: " + (null == mgr ? "null" : mgr.toString()));
 					}
 					
-					assertEquals("Difference Detected: ", 0, diff.size());
+					assertEquals( 0, diff.size(), "Difference Detected: ");
 					
 					timeStamp += 10;
 					
@@ -262,7 +262,7 @@ public class Test01Json {
 						logger.error("mgr: " + (null == mgr ? "null" : mgr.toString()));
 					}
 					
-					assertEquals("Difference Detected: ", 0, diff.size());
+					assertEquals(0, diff.size(), "Difference Detected: ");
 					
 					timestamp += 10;
 					
