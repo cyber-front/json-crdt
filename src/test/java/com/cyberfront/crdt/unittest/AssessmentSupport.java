@@ -1,4 +1,4 @@
-package com.cyberfront.crdt.unittest.data;
+package com.cyberfront.crdt.unittest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -15,10 +15,14 @@ import java.util.UUID;
 import com.cyberfront.crdt.sample.data.AbstractDataType;
 import com.cyberfront.crdt.sample.data.Factory;
 import com.cyberfront.crdt.support.Support;
-import com.cyberfront.crdt.unittest.data.Test01Create.CreateTest;
-import com.cyberfront.crdt.unittest.data.Test02Update.UpdateTest;
-import com.cyberfront.crdt.unittest.data.Test03Clone.CloneTest;
-import com.cyberfront.crdt.unittest.simulator.Test01Simulation.SimulationTest;
+import com.cyberfront.crdt.unittest.TestCrdt.Generic;
+import com.cyberfront.crdt.unittest.TestCrdt.Json;
+import com.cyberfront.crdt.unittest.TestData.Create;
+import com.cyberfront.crdt.unittest.TestData.Update;
+import com.cyberfront.crdt.unittest.TestData.Clone;
+import com.cyberfront.crdt.unittest.TestData.Encoding;
+import com.cyberfront.crdt.unittest.TestOperator.Operator;
+import com.cyberfront.crdt.unittest.TestSimulation.Simulation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -40,11 +44,14 @@ import com.thedeanda.lorem.LoremIpsum;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
-    @Type(value = CreateTest.class, name = "CreateTest"),
-    @Type(value = UpdateTest.class, name = "UpdateTest"),
-    @Type(value = CloneTest.class, name = "CloneTest"),
-    @Type(value = SimulationTest.class, name = "SimulationTest"),
-    @Type(value = Test04Json.class, name = "Test04Json")
+    @Type(value = Create.class, name = "Create"),
+    @Type(value = Generic.class, name = "Generic"),
+    @Type(value = Json.class, name = "Json"),
+    @Type(value = Update.class, name = "Update"),
+    @Type(value = Clone.class, name = "Clone"),
+    @Type(value = Encoding.class, name = "Encoding"),
+    @Type(value = Operator.class, name = "Operator"),
+    @Type(value = Simulation.class, name = "Simulation")
     })
 public class AssessmentSupport {
 	/** Constant string for the add operation */ 
