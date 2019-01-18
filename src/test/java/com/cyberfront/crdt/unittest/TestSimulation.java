@@ -55,7 +55,7 @@ public class TestSimulation {
 		private static final boolean HALT_ON_INVALID_OPERATIONS = false;
 		
 		/** Flag to indicate whether to report residual invalid operations when detected */
-		private static final boolean REPORT_INVALID_OPERATIONS = true;
+		private static final boolean REPORT_INVALID_OPERATIONS = false;
 		
 		/** Flag indicating either of the INVALID_OPERATION responses is set to true */
 //		@SuppressWarnings("unused")

@@ -292,8 +292,6 @@ public class TestData {
 		/**
 		 * Perform the actual test the specified number of times, whereby each test compares an object created and its clone
 		 * as JSON objects using JsonDiff. 
-		 *
-		 * @param count The number of times to perform the test 
 		 */
 		public void test() {
 			logger.info("\n** TestData.Encoding.test: {\"count\":" + this.getTrialCount() + "}");

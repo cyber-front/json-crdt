@@ -22,15 +22,15 @@
  */
 package com.cyberfront.crdt.support;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -47,69 +47,38 @@ public class Support {
 	
 	/** A random number generator used to choose values for testing purposes */
 	private static Random rnd = new Random();
+	
+	/** Number of unique random words from which to draw for phrases */ 
+	private static final int WORD_COUNT = 65536;
 
+	/** Minimum word length */
+	private static final int MIN_WORD_LEN = 5;
+
+	/** Maximum word length */
+	private static final int MAX_WORD_LEN = 25;
+	
 	/** Logger to use when displaying state information */
 	private static final Logger logger = LogManager.getLogger(Support.class);
+	
+	/** List of random words to use in generating random sequences */
+	private static final List<String> WORDS = genUniqueWords(WORD_COUNT);
+	
+	/** Length of a long sequence of random words from the word list. */
+	protected static final int LONG_SEQUENCE_LENGTH = 4;
+	
+	/** Length of a short sequence of random words from the word list. */
+	protected static final int SHORT_SEQUENCE_LENGTH = 2;
 
-	/**
-	 * An enumeration used to describe different parts of speech
-	 */
-	public enum WordTypes {
-		/** An enumeration value for adjectives */
-		ADJECTIVE,
+	private static final int SHORT_SEQUNCE_LENGTH = 0;
+
+	public static List<String> genUniqueWords(int wordCount) {
+		Set<String> wordSet = new TreeSet<>();
 		
-		/** An enumeration value for adverbs */
-		ADVERB,
-		
-		/** An enumeration value for nouns */
-		NOUN,
-		
-		/** An enumeration value for verbs */
-		VERB
-	}
-	
-	/** A pattern for generating a sequence of words four words*/
-	protected static final WordTypes[] LONG_SEQUENCE = {
-			WordTypes.ADJECTIVE,
-			WordTypes.NOUN,
-			WordTypes.VERB,
-			WordTypes.ADVERB
-	};
-	
-	/** A pattern for generating a sequence of words two words*/
-	protected static final WordTypes[] SHORT_SEQUENCE = {
-			WordTypes.NOUN,
-			WordTypes.VERB,
-	};
-
-	/** List of nouns read from the nouns.txt file */
-	private static final List<String> NOUNS = readLines("src/main/resources/nouns.txt");
-
-	/** List of verbs read from the verbs.txt file */
-	private static final List<String> VERBS = readLines("src/main/resources/verbs.txt");
-	
-	/** List of adverbs read from the adverbs.txt file */
-	private static final List<String> ADVERBS = readLines("src/main/resources/adverbs.txt");
-	
-	/** List of adjectives read from the adjectives.txt file */
-	private static final List<String> ADJECTIVES = readLines("src/main/resources/adjectives.txt");
-
-	/**
-	 * Read the contents of the given file and create a string list containing the elements of the 
-	 * file.
-	 *
-	 * @param filename The name of the file from which to read the elements to populate the returned string list
-	 * @return The string list containing all of the lines in the file
-	 */
-	private static List<String> readLines(String filename) {
-		List<String> list = null;
-		try {
-			list = Files.readAllLines(new File(filename).toPath(), Charset.defaultCharset() );
-		} catch (IOException e) {
-			logger.error(e);
-			logger.error(e.getStackTrace());
+		while (wordSet.size() < wordCount) {
+			wordSet.add(RandomStringUtils.randomAlphabetic(MIN_WORD_LEN, MAX_WORD_LEN+1));
 		}
-		return list;
+
+		return new ArrayList<String>(wordSet); 
 	}
 	
 	/**
@@ -125,77 +94,29 @@ public class Support {
 	/**
 	 * Get a word from the available collections of words
 	 *
-	 * @param type The word type to return
-	 * @return The word of the given type which was randomly selected
+	 * @return The word randomly selected from the list of words
 	 */
-	public static String getWord(WordTypes type) {
-		switch (type) {
-		case NOUN:
-			return getNoun();
-		case VERB:
-			return getVerb();
-		case ADVERB:
-			return getAdverb();
-		case ADJECTIVE:
-			return getAdjective();
-		default:
-			return null;
-		}
-	}
-
-	/**
-	 * Randomly select a noun from the list of nouns 
-	 *
-	 * @return A randomly selected noun
-	 */
-	public static String getNoun() {
-		return getWord(NOUNS);
-	}
-	
-	/**
-	 * Randomly select a verb from the list of verbs 
-	 *
-	 * @return A randomly selected verb
-	 */
-	public static String getVerb() {
-		return getWord(VERBS);
-	}
-	
-	/**
-	 * Randomly select a adverb from the list of adverbs 
-	 *
-	 * @return A randomly selected adverb
-	 */
-	public static String getAdverb() {
-		return getWord(ADVERBS);
-	}
-	
-	/**
-	 * Randomly select a adjective from the list of adjectives 
-	 *
-	 * @return A randomly selected adjective
-	 */
-	public static String getAdjective() {
-		return getWord(ADJECTIVES);
+	public static String getWord() {
+		return getWord(WORDS);
 	}
 
 	/**
 	 * Generate and return a sequence of words of the given type separated by a delimiter
 	 *
-	 * @param types List of word types to to select
+	 * @param count Number of words to extract from those available to string together as a sequence of words
 	 * @param delimiter The delimiter used to separate the selected words
 	 * @return The sequence of words selected
 	 */
-	public static String getSequence(WordTypes[] types, char delimiter) {
+	public static String getSequence(int count, char delimiter) {
 		boolean first = true;
 		StringBuilder sb = new StringBuilder();
 		
-		for (WordTypes type : types) {
+		for (int i=0; i<count; ++i) {
 			
 			if (!first) {
 				sb.append(delimiter);
 			}
-			sb.append(getWord(type));
+			sb.append(getWord());
 
 			first = false;
 		}
@@ -211,7 +132,7 @@ public class Support {
 	 * @return The sequence of words generated using WordFactory.LONG_SEQUENCE as the pattern 
 	 */
 	public static String getLongSequence(char delimiter) {
-		return getSequence(Support.LONG_SEQUENCE, delimiter);
+		return getSequence(LONG_SEQUENCE_LENGTH, delimiter);
 	}
 	
 	/**
@@ -222,17 +143,17 @@ public class Support {
 	 * @return The sequence of words generated using WordFactory.SHORT_SEQUENCE as the pattern 
 	 */
 	public static String getShortSequence(char delimiter) {
-		return getSequence(Support.SHORT_SEQUENCE, delimiter);
+		return getSequence(SHORT_SEQUNCE_LENGTH, delimiter);
 	}
 	
 	/**
 	 * Generate and return a sequence of words of the given type separated by a space ' ' as the delimiter
 	 *
-	 * @param types List of word types to to select
+	 * @param count Number of words to include in the sequence of words
 	 * @return The sequence of words selected
 	 */
-	public static String getSequence(WordTypes[] types) {
-		return getSequence(types,' ');
+	public static String getSequence(int count) {
+		return getSequence(count,' ');
 	}
 	
 	/**
@@ -242,7 +163,7 @@ public class Support {
 	 * @return The sequence of words generated using WordFactory.LONG_SEQUENCE as the pattern 
 	 */
 	public static String getLongSequence() {
-		return getSequence(Support.LONG_SEQUENCE);
+		return getSequence(Support.LONG_SEQUENCE_LENGTH);
 	}
 	
 	/**
@@ -252,7 +173,7 @@ public class Support {
 	 * @return The sequence of words generated using WordFactory.SHORT_SEQUENCE as the pattern 
 	 */
 	public static String getShortSequence() {
-		return getSequence(Support.SHORT_SEQUENCE);
+		return getSequence(Support.SHORT_SEQUENCE_LENGTH);
 	}
 	
 	/**
@@ -274,46 +195,6 @@ public class Support {
 		}
 		
 		return sb.toString();
-	}
-	
-	/**
-	 * Get a string comprised of a sequence of adjectives separated by the given delimiter
-	 * @param count Number of adjectives to pick
-	 * @param delimiter Delimiter to separate consecutive adjectives
-	 * @return The resulting string of adjectives separated by the delimiter
-	 */
-	public static String getAdjectives(long count, char delimiter) {
-		return getSequence(count, Support.ADJECTIVES, delimiter);
-	}
-	
-	/**
-	 * Get a string comprised of a sequence of adverbs separated by the given delimiter
-	 * @param count Number of adverbs to pick
-	 * @param delimiter Delimiter to separate consecutive adverbs
-	 * @return The resulting string of adverbs separated by the delimiter
-	 */
-	public static String getAdverbs(long count, char delimiter) {
-		return getSequence(count, Support.ADVERBS, delimiter);
-	}
-	
-	/**
-	 * Get a string comprised of a sequence of nous separated by the given delimiter
-	 * @param count Number of words to pick from the list of nouns
-	 * @param delimiter Delimiter to separate consecutive nouns
-	 * @return The resulting string of nouns separated by the delimiter
-	 */
-	public static String getNouns(long count, char delimiter) {
-		return getSequence(count, Support.NOUNS, delimiter);
-	}
-	
-	/**
-	 * Get a string comprised of a sequence of verbs separated by the given delimiter
-	 * @param count Number of verbs to pick
-	 * @param delimiter Delimiter to separate consecutive verbs
-	 * @return The resulting string of verbs separated by the delimiter
-	 */
-	public static String getVerbs(long count, char delimiter) {
-		return getSequence(count, Support.VERBS, delimiter);
 	}
 	
 	/**

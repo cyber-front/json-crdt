@@ -406,7 +406,7 @@ public class AssessmentSupport {
 	 * @return A pathname
 	 */
 	protected static String genPath() {
-		return ("/" + Support.getNouns(Support.getRandom().nextInt(8)+1, '/'));
+		return ("/" + Support.getSequence(Support.getRandom().nextInt(8)+1, '/'));
 	}
 	
 	/**

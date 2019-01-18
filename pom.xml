@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.cyberfront</groupId>
 	<artifactId>json-crdt</artifactId>
-	<version>0.1.2</version>
+	<version>0.1.3</version>
 
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
